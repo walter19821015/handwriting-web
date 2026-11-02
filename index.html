@@ -14,22 +14,22 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f4f6f9;
-      color: #333;
+      background-color: #f3f5f8;
+      color: #333333;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
 
-    /* 顶部边框导航条（预留将来加东西） */
+    /* 顶部预留边框导航条 */
     header {
       background: #ffffff;
       border-bottom: 1px solid #e5e7eb;
-      padding: 14px 24px;
+      padding: 14px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
 
     .brand {
@@ -41,7 +41,6 @@
       gap: 8px;
     }
 
-    /* 顶部预留拓展区 */
     .header-actions {
       display: flex;
       gap: 12px;
@@ -51,7 +50,7 @@
     main {
       flex: 1;
       display: flex;
-      max-width: 1440px;
+      max-width: 1480px;
       width: 100%;
       margin: 0 auto;
       padding: 24px;
@@ -60,13 +59,204 @@
 
     /* 左侧控制面板容器 */
     .control-panel {
-      width: 420px;
+      width: 440px;
       flex-shrink: 0;
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      padding: 22px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    /* 上传 / 输入切换 */
+    .tab-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .btn-tab {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 20px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      cursor: pointer;
+      color: #4b5563;
+      transition: all 0.2s;
+    }
+
+    .btn-tab.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .file-input-wrapper {
+      border: 1px dashed #d1d5db;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      background: #fafafa;
+      position: relative;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-hint {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .text-input-area {
+      display: none;
+      width: 100%;
+      height: 110px;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    /* 下拉选择项 */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      color: #1f2937;
+      outline: none;
+      background: #ffffff;
+    }
+
+    /* 滑块控件 */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    .slider-range {
+      width: 100%;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    .slider-sub-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* 高级折叠面板 */
+    details {
+      border: 1px solid #f3f4f6;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f9fafb;
+    }
+
+    details summary {
+      font-size: 13px;
+      font-weight: 500;
+      color: #4b5563;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .advanced-content {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    /* 底部操作按钮 */
+    .action-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-success {
+      background: #16a34a;
+      color: #ffffff;
+    }
+
+    .btn-success:hover {
+      background: #15803d;
     }
 
     /* 右侧画布预览容器 */
@@ -75,20 +265,19 @@
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
-      padding: 20px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      min-height: 600px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+      min-height: 640px;
     }
 
     .preview-header {
-      width: 100%;
       font-size: 13px;
       color: #6b7280;
       margin-bottom: 16px;
-      text-align: left;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f3f4f6;
     }
 
     .canvas-wrapper {
@@ -97,17 +286,17 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #e5e7eb;
+      background: #eef2f6;
       border-radius: 8px;
       border: 1px dashed #cbd5e1;
-      min-height: 500px;
+      min-height: 520px;
     }
 
-    /* 底部边框（预留将来加东西） */
+    /* 底部边框 */
     footer {
       background: #ffffff;
       border-top: 1px solid #e5e7eb;
-      padding: 14px 24px;
+      padding: 14px 28px;
       text-align: center;
       font-size: 12px;
       color: #9ca3af;
@@ -116,37 +305,173 @@
 </head>
 <body>
 
-  <!-- 顶部导航条 -->
+  <!-- 顶部预留边框导航 -->
   <header>
     <div class="brand">
       <span>✍️ 手写模拟工坊</span>
     </div>
-    <div class="header-actions" id="headerActions">
-      <!-- 预留按钮区域 -->
+    <div class="header-actions">
+      <!-- 预留按钮位 -->
     </div>
   </header>
 
   <!-- 中间核心工作区 -->
   <main>
-    <!-- 左侧参数设置区 -->
-    <section class="control-panel" id="controlPanel">
-      <h3 style="font-size: 15px; margin-bottom: 16px; color: #374151;">参数控制</h3>
-      <!-- 下一步我们再往这里填原图里的表单组件 -->
+    <!-- 左侧参数控制面板 -->
+    <section class="control-panel">
+      <!-- 1. 上传文件 / 输入文字 -->
+      <div class="panel-section">
+        <span class="section-title">上传与文本</span>
+        <div class="tab-buttons">
+          <button class="btn-tab active" id="tabUploadBtn" type="button">选择文件</button>
+          <button class="btn-tab" id="tabTextBtn" type="button">直接输入文字</button>
+        </div>
+
+        <div class="file-input-wrapper" id="uploadArea">
+          <input type="file" id="docFileInput" accept=".docx,.txt" />
+          <div style="font-size: 13px; color: #4b5563;" id="fileNameDisplay">点击或拖拽上传 Word (.docx) / TXT</div>
+          <div class="file-hint">支持 .docx 自动提取文本</div>
+        </div>
+
+        <textarea class="text-input-area" id="manualTextInput" placeholder="在这里直接粘贴需要生成手写字迹的长文本..."></textarea>
+      </div>
+
+      <!-- 2. 转换设置：字体与底图选择 -->
+      <div class="panel-section">
+        <span class="section-title">转换设置</span>
+        
+        <div class="form-group">
+          <label for="fontSelect">选择手写字体</label>
+          <select class="form-select" id="fontSelect">
+            <option value="font-1">新叶念体（推荐·行楷连笔）</option>
+            <option value="font-2">手书体（硬笔行书）</option>
+            <option value="font-3">软笔手写体（粗笔流利）</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 8px;">
+          <label for="paperSelect">纸张背景（实拍照 / 打印稿纸）</label>
+          <select class="form-select" id="paperSelect">
+            <option value="paper-1">实拍 - 单红线信稿纸（带真实环境光）</option>
+            <option value="paper-2">实拍 - 横线笔记本（带轻微折痕）</option>
+            <option value="paper-3">实拍 - 方格作文纸（标准网格）</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 3. 涂改概率滑块 -->
+      <div class="slider-group">
+        <div class="slider-label-row">
+          <span>随机勾画涂改概率</span>
+          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">3%</span>
+        </div>
+        <input type="range" class="slider-range" id="scratchRange" min="0" max="100" value="3" />
+        <div class="slider-sub-text">
+          <span>完美无瑕 0%</span>
+          <span>涂改连篇 100%</span>
+        </div>
+      </div>
+
+      <!-- 4. 高级设置（文字与笔画位置凌乱度） -->
+      <details open>
+        <summary>高级微调设置</summary>
+        <div class="advanced-content">
+          <!-- 文字位置凌乱度 -->
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <span>文字基准线浮动（位置凌乱度）</span>
+              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">10%</span>
+            </div>
+            <input type="range" class="slider-range" id="posJitterRange" min="0" max="100" value="10" />
+            <div class="slider-sub-text">
+              <span>整齐排列 0%</span>
+              <span>凌乱起伏 100%</span>
+            </div>
+          </div>
+
+          <!-- 字体旋转倾斜度 -->
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <span>笔画自然旋转度（歪扭度）</span>
+              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">5%</span>
+            </div>
+            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="100" value="5" />
+            <div class="slider-sub-text">
+              <span>工整工整 0%</span>
+              <span>歪七扭八 100%</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 5. 操作按钮 -->
+      <div class="action-row">
+        <button class="btn-action btn-primary" id="btnPreview" type="button">🔄 点击预览</button>
+        <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载高清图</button>
+      </div>
     </section>
 
     <!-- 右侧画板预览区 -->
     <section class="preview-panel">
-      <div class="preview-header">预览效果（支持实时渲染）</div>
-      <div class="canvas-wrapper">
-        <span style="color: #9ca3af; font-size: 14px;">[ Canvas 真实纸张预览区 ]</span>
+      <div class="preview-header">预览效果（预览图已自动适配屏幕，点击“下载高清图”获取高分辨率成品）</div>
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <span style="color: #9ca3af; font-size: 14px;">[ Canvas 真实纸张预览区（下一步接入） ]</span>
       </div>
     </section>
   </main>
 
-  <!-- 底部边框 -->
+  <!-- 底部预留边框 -->
   <footer>
     <span>手写字迹生成系统 · 纯本地前端渲染</span>
   </footer>
 
+  <script>
+    // 基础标签切换与数值联动交互
+    const tabUploadBtn = document.getElementById('tabUploadBtn');
+    const tabTextBtn = document.getElementById('tabTextBtn');
+    const uploadArea = document.getElementById('uploadArea');
+    const manualTextInput = document.getElementById('manualTextInput');
+    const docFileInput = document.getElementById('docFileInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+    tabUploadBtn.addEventListener('click', () => {
+      tabUploadBtn.classList.add('active');
+      tabTextBtn.classList.remove('active');
+      uploadArea.style.display = 'block';
+      manualTextInput.style.display = 'none';
+    });
+
+    tabTextBtn.addEventListener('click', () => {
+      tabTextBtn.classList.add('active');
+      tabUploadBtn.classList.remove('active');
+      uploadArea.style.display = 'none';
+      manualTextInput.style.display = 'block';
+    });
+
+    docFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        fileNameDisplay.textContent = '已选择: ' + e.target.files[0].name;
+      }
+    });
+
+    // 滑块数值联动显示
+    const scratchRange = document.getElementById('scratchRange');
+    const scratchVal = document.getElementById('scratchVal');
+    scratchRange.addEventListener('input', (e) => {
+      scratchVal.textContent = e.target.value + '%';
+    });
+
+    const posJitterRange = document.getElementById('posJitterRange');
+    const posJitterVal = document.getElementById('posJitterVal');
+    posJitterRange.addEventListener('input', (e) => {
+      posJitterVal.textContent = e.target.value + '%';
+    });
+
+    const rotJitterRange = document.getElementById('rotJitterRange');
+    const rotJitterVal = document.getElementById('rotJitterVal');
+    rotJitterRange.addEventListener('input', (e) => {
+      rotJitterVal.textContent = e.target.value + '%';
+    });
+  </script>
 </body>
 </html>
