@@ -245,7 +245,6 @@
 
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
 
-    // 切换字体函数：每次切换选项，动态加载对应 woff 文件并即时重绘
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
       badgeContainer.style.background = '#eff6ff';
@@ -254,7 +253,6 @@
 
       try {
         const fontUrl = './' + fileName;
-        // 生成唯一字体族名称，确保多次切换时绝对刷新
         const uniqueFontName = 'Font_' + Date.now();
         const font = new FontFace(uniqueFontName, `url("${fontUrl}")`);
         await font.load();
@@ -410,14 +408,61 @@
       return x - Math.floor(x);
     }
 
+    // 随机画涂改划线的核心函数
+    function drawScratch(centerX, centerY, size, seed) {
+      const type = Math.floor(pseudoRandom(seed + 88) * 3);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(25, 30, 42, 0.82)';
+      ctx.lineWidth = 1.6 + pseudoRandom(seed + 89) * 0.8;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (type === 0) {
+        // 双斜杠划掉
+        ctx.beginPath();
+        ctx.moveTo(centerX - size * 0.38, centerY + size * 0.15);
+        ctx.lineTo(centerX + size * 0.38, centerY - size * 0.25);
+        ctx.moveTo(centerX - size * 0.32, centerY + size * 0.28);
+        ctx.lineTo(centerX + size * 0.42, centerY - size * 0.12);
+        ctx.stroke();
+      } else if (type === 1) {
+        // 涂黑团块划改
+        ctx.beginPath();
+        const startX = centerX - size * 0.38;
+        const endX = centerX + size * 0.38;
+        const midY = centerY - size * 0.08;
+        ctx.moveTo(startX, midY - 3);
+        ctx.lineTo(endX, midY + 2);
+        ctx.lineTo(startX + 4, midY + 6);
+        ctx.lineTo(endX - 2, midY + 8);
+        ctx.stroke();
+      } else {
+        // 波浪涂抹
+        ctx.beginPath();
+        const startX = centerX - size * 0.4;
+        const midY = centerY - size * 0.05;
+        ctx.moveTo(startX, midY);
+        for (let s = 1; s <= 4; s++) {
+          const segX = startX + (size * 0.8 * s) / 4;
+          const segY = midY + ((s % 2 === 0) ? 4 : -4);
+          ctx.lineTo(segX, segY);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
     function renderHandwriting() {
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_grid_red;
       renderPaperBackground(cfg);
 
       const text = textInput.value;
-      const userPosJitter = parseInt(posJitterRange.value, 10) / 10;
-      const userRotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.06;
+      
+      // 放大起伏和倾角响应系数，确保滑块效果清晰可见
+      const scratchProb = parseInt(scratchRange.value, 10) / 100;
+      const userPosJitter = (parseInt(posJitterRange.value, 10) / 100) * 14.0;
+      const userRotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.35;
 
       ctx.globalCompositeOperation = 'multiply';
 
@@ -442,7 +487,8 @@
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
 
           const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
-          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.045 + (Math.random() - 0.5) * userRotJitter;
+          // 倾角：基础自然倾角 + 用户滑块大幅度摆动
+          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.05 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter;
           const scaleX = 0.94 + pseudoRandom(seed + 3) * 0.12;
           const scaleY = 0.93 + pseudoRandom(seed + 4) * 0.14;
 
@@ -454,8 +500,9 @@
             posY = cfg.marginY + row * cfg.size + cfg.size * 0.78;
           }
 
-          const jX = (pseudoRandom(seed + 5) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 0.6;
-          const jY = (pseudoRandom(seed + 6) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 0.6;
+          // 位置起伏：X 轴与 Y 轴微移，受起伏度滑块深度调控
+          const jX = (pseudoRandom(seed + 5) - 0.5) * userPosJitter;
+          const jY = (pseudoRandom(seed + 6) - 0.5) * userPosJitter;
 
           ctx.save();
           ctx.translate(posX + jX, posY + jY);
@@ -473,6 +520,13 @@
           ctx.fillText(char, 0, 0);
 
           ctx.restore();
+
+          // 随机涂改判断：非标点符号且命中概率时划掉
+          if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
+            if (pseudoRandom(seed + 77) < scratchProb) {
+              drawScratch(posX + jX, posY + jY - cfg.size * 0.35, cfg.size, seed);
+            }
+          }
 
           col++;
           if (col >= cfg.cols) {
@@ -510,12 +564,12 @@
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
 
           const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
-          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.045 + (Math.random() - 0.5) * userRotJitter;
+          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.05 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter;
           const scaleX = 0.94 + pseudoRandom(seed + 3) * 0.12;
           const scaleY = 0.93 + pseudoRandom(seed + 4) * 0.14;
 
-          const jX = (pseudoRandom(seed + 5) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 1.0;
-          const jY = (pseudoRandom(seed + 6) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 0.8;
+          const jX = (pseudoRandom(seed + 5) - 0.5) * userPosJitter;
+          const jY = (pseudoRandom(seed + 6) - 0.5) * userPosJitter;
 
           ctx.save();
           ctx.translate(curX + jX, curY + jY);
@@ -531,6 +585,13 @@
           ctx.fillText(char, 0, 0);
 
           ctx.restore();
+
+          // 随机涂改判断
+          if (scratchProb > 0 && !isEng && char.trim() !== '') {
+            if (pseudoRandom(seed + 77) < scratchProb) {
+              drawScratch(curX + jX + baseFontSize * 0.5, curY + jY - baseFontSize * 0.4, baseFontSize * 1.4, seed);
+            }
+          }
 
           const charStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
           curX += charStep;
@@ -549,6 +610,7 @@
     document.getElementById('btnPreview').addEventListener('click', renderHandwriting);
     fontSelect.addEventListener('change', (e) => switchFont(e.target.value));
 
+    // 绑定 input 实时事件，拖动时数字和画布同时更新
     scratchRange.addEventListener('input', (e) => {
       document.getElementById('scratchVal').textContent = e.target.value + '%';
       renderHandwriting();
@@ -570,7 +632,6 @@
       link.click();
     });
 
-    // 默认开局加载鸿雷小纸条青春体
     switchFont(fontSelect.value);
   </script>
 </body>
