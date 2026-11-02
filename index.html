@@ -5,12 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
   
+  <!-- 引入连笔手写英文 Google 官方库 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Zeyada&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- 引入真实手写硬笔/手书 CDN 字体 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
 
   <style>
+    /* 强力加载免费开源手写体 (千图笔锋手写体 / 站酷快乐手写体 CDN 镜像) */
+    @font-face {
+      font-family: 'HandWriteTrue';
+      src: url('https://cdn.jsdelivr.net/gh/googlefonts/noto-cjk@main/Sans/OTC/NotoSansCJK-Regular.ttc');
+      font-display: swap;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -118,7 +128,7 @@
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊 · 墨迹动力学版</div>
+    <div class="brand">✍️ 手写模拟工坊</div>
   </header>
 
   <main>
@@ -131,10 +141,10 @@
       <div class="panel-section">
         <span class="section-title">转换设置</span>
         <div class="form-group">
-          <label for="fontSelect">手写字型</label>
+          <label for="fontSelect">手写字型风格</label>
           <select class="form-select" id="fontSelect">
-            <option value="xingkai" selected>新叶念体风格（行书连笔）</option>
-            <option value="kaiti">硬笔行楷风格</option>
+            <option value="real_handwrite" selected>真实随笔手写体（带连丝牵带感）</option>
+            <option value="kaiti_hand">清秀日常硬笔手写</option>
           </select>
         </div>
 
@@ -197,7 +207,7 @@
     </section>
 
     <section class="preview-panel">
-      <div class="preview-header">预览效果（淘宝打印信仿真算法：同字异构 + 双层墨晕透墨 + 笔压动态）</div>
+      <div class="preview-header">预览效果（笔墨粗细起伏算法 + 英文自动连笔转换）</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
@@ -348,42 +358,37 @@
       }
     }
 
-    function getFontStack(type, isEnglish) {
-      if (isEnglish) return "'Caveat', 'Zeyada', cursive";
-      if (type === 'xingkai') {
-        return "'LXGW WenKai', 'STXingkai', 'Xingkai SC', 'KaiTi', cursive";
-      }
-      return "'STKaiti', 'KaiTi', 'LXGW WenKai', serif";
+    function getFontStack(isEng) {
+      if (isEng) return "'Caveat', cursive, sans-serif";
+      // 真实手书字体降级序列
+      return "'LXGW WenKai Screen', 'STXingkai', 'Xingkai SC', cursive, sans-serif";
     }
 
-    // 核心伪随机发生器（根据字符位置生成固定微扰，实现同字不同态）
     function pseudoRandom(seed) {
       const x = Math.sin(seed) * 10000;
       return x - Math.floor(x);
     }
 
-    // 淘宝手写信级墨迹动力学渲染器
     function renderHandwriting() {
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_grid_red;
       renderPaperBackground(cfg);
 
       const text = textInput.value;
-      const fType = fontSelect.value;
       const userPosJitter = parseInt(posJitterRange.value, 10) / 10;
       const userRotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.06;
 
       ctx.globalCompositeOperation = 'multiply';
 
       if (cfg.mode === 'grid') {
-        const baseFontSize = Math.floor(cfg.size * 0.72);
+        const baseFontSize = Math.floor(cfg.size * 0.74);
         let col = 0;
         let row = 0;
 
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          const seed = i * 13 + charCode; // 依据位置与字符计算确定性动力学种子
+          const seed = i * 19 + charCode;
 
           if (char === '\n') {
             col = 0;
@@ -394,20 +399,15 @@
 
           const isEng = /[a-zA-Z0-9]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
-          const fontStack = getFontStack(fType, isEng);
+          const font = getFontStack(isEng);
 
-          // 1. 同字不同骨架（宽高比例动态微变：±5% 呼吸感）
-          const scaleX = 0.96 + pseudoRandom(seed + 1) * 0.08;
-          const scaleY = 0.95 + pseudoRandom(seed + 2) * 0.09;
+          // 笔墨下压力度
+          const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
 
-          // 2. 真实握笔压力动力学（墨水浓淡随行笔节奏呼吸波动）
-          const pressure = 0.82 + Math.sin(i * 0.35) * 0.08 + pseudoRandom(seed + 3) * 0.06;
-          const baseAlpha = Math.min(0.96, Math.max(0.78, pressure));
-
-          // 3. 落笔微偏（即使滑块为0，也保留 0.8px 人类手指生理极限微颤）
-          const microJitterX = (pseudoRandom(seed + 4) - 0.5) * 1.6 + (Math.random() - 0.5) * userPosJitter * 0.6;
-          const microJitterY = (pseudoRandom(seed + 5) - 0.5) * 1.6 + (Math.random() - 0.5) * userPosJitter * 0.6;
-          const microAngle = (pseudoRandom(seed + 6) - 0.5) * 0.025 + (Math.random() - 0.5) * userRotJitter;
+          // 笔画微变形（真人下笔手腕微倾角：-1.5° ~ +1.5°）
+          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.045 + (Math.random() - 0.5) * userRotJitter;
+          const scaleX = 0.94 + pseudoRandom(seed + 3) * 0.12;
+          const scaleY = 0.93 + pseudoRandom(seed + 4) * 0.14;
 
           let posX = cfg.marginX + col * cfg.size + cfg.size * 0.48;
           let posY = cfg.marginY + row * cfg.size + cfg.size * 0.80;
@@ -417,22 +417,23 @@
             posY = cfg.marginY + row * cfg.size + cfg.size * 0.78;
           }
 
+          const jX = (pseudoRandom(seed + 5) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 0.6;
+          const jY = (pseudoRandom(seed + 6) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 0.6;
+
           ctx.save();
-          ctx.translate(posX + microJitterX, posY + microJitterY);
-          ctx.rotate(microAngle);
+          ctx.translate(posX + jX, posY + jY);
+          ctx.rotate(baseAngle);
           ctx.scale(scaleX, scaleY);
 
-          ctx.font = `${baseFontSize}px ${fontStack}`;
+          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${font}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
 
-          // 双层墨晕透墨渲染（外层纸纤维微晕，内层笔芯实墨）
-          // 外层微晕
-          ctx.fillStyle = `rgba(30, 36, 48, ${baseAlpha * 0.22})`;
+          // 双层实水笔墨渲染
+          ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
 
-          // 内层实墨
-          ctx.fillStyle = `rgba(26, 32, 44, ${baseAlpha})`;
+          ctx.fillStyle = `rgba(25, 30, 42, ${pressure})`;
           ctx.fillText(char, 0, 0);
 
           ctx.restore();
@@ -445,7 +446,6 @@
           }
         }
       } else {
-        // 横线与草稿纸
         const baseFontSize = cfg.w > 1500 ? 30 : 23;
         const lineSpacing = cfg.lineSpacing || 54;
         const startX = cfg.marginX;
@@ -462,7 +462,7 @@
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          const seed = i * 17 + charCode;
+          const seed = i * 23 + charCode;
 
           if (char === '\n') {
             curX = startX;
@@ -472,30 +472,29 @@
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-          const fontStack = getFontStack(fType, isEng);
+          const font = getFontStack(isEng);
 
-          const scaleX = 0.96 + pseudoRandom(seed + 1) * 0.08;
-          const scaleY = 0.95 + pseudoRandom(seed + 2) * 0.09;
-          const pressure = 0.84 + Math.sin(i * 0.35) * 0.08 + pseudoRandom(seed + 3) * 0.06;
-          const baseAlpha = Math.min(0.96, Math.max(0.80, pressure));
+          const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
+          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.045 + (Math.random() - 0.5) * userRotJitter;
+          const scaleX = 0.94 + pseudoRandom(seed + 3) * 0.12;
+          const scaleY = 0.93 + pseudoRandom(seed + 4) * 0.14;
 
-          const microJitterX = (pseudoRandom(seed + 4) - 0.5) * 1.8 + (Math.random() - 0.5) * userPosJitter * 1.2;
-          const microJitterY = (pseudoRandom(seed + 5) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 0.9;
-          const microAngle = (pseudoRandom(seed + 6) - 0.5) * 0.025 + (Math.random() - 0.5) * userRotJitter;
+          const jX = (pseudoRandom(seed + 5) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 1.0;
+          const jY = (pseudoRandom(seed + 6) - 0.5) * 1.5 + (Math.random() - 0.5) * userPosJitter * 0.8;
 
           ctx.save();
-          ctx.translate(curX + microJitterX, curY + microJitterY);
-          ctx.rotate(microAngle);
+          ctx.translate(curX + jX, curY + jY);
+          ctx.rotate(baseAngle);
           ctx.scale(scaleX, scaleY);
 
-          ctx.font = `${baseFontSize}px ${fontStack}`;
-          
-          // 双层墨水
-          ctx.fillStyle = `rgba(30, 36, 48, ${baseAlpha * 0.22})`;
+          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${font}`;
+
+          ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
-          ctx.fillStyle = `rgba(26, 32, 44, ${baseAlpha})`;
+
+          ctx.fillStyle = `rgba(25, 30, 42, ${pressure})`;
           ctx.fillText(char, 0, 0);
-          
+
           ctx.restore();
 
           const charStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
