@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
 
-  <!-- 连笔英文字库 -->
+  <!-- 连笔英文字库备用 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
@@ -122,7 +122,6 @@
       border-radius: 2px;
     }
 
-    /* 全屏放大预览灯箱弹窗样式 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -192,23 +191,37 @@
     <section class="control-panel">
       <div class="panel-section">
         <span class="section-title">文本内容</span>
-        <textarea class="text-input-area" id="manualTextInput">背景：急性肾损伤(AKI)是肝胆疾病手术患者术后常见且严重的并发症，与重症监护室(ICU)住院时间延长、医疗花费剧增及高死亡率密切相关。由于围手术期有效循环血容量波动、肝功能障碍及代谢紊乱之间存在复杂的非线性交互作用，传统临床评分标准难以实现早期精准预警。本研究旨在构建并验证一种兼具高精度与临床可解释性的机器学习预测模型，用于术后 AKI 的早期风险分层。</textarea>
+        <textarea class="text-input-area" id="manualTextInput">Background: Acute kidney injury (AKI) is a critical complication after hepatobiliary surgery. The nonlinear interaction between effective circulating blood volume fluctuation, hepatic dysfunction, and metabolic disorder poses significant challenges to conventional predictive tools. In this study, we established and validated an explainable machine learning framework to optimize risk stratification for postoperative AKI.</textarea>
       </div>
 
       <div class="panel-section">
         <div class="form-group">
           <label for="fontSelect">选择字型</label>
           <select class="form-select" id="fontSelect">
-            <option value="honglei-xiaozhitiao-qingchunti.woff" selected>鸿雷小纸条青春体</option>
-            <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
-            <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
-            <option value="xingshixin-yingbi-xingshu-jianti.woff">邢世新硬笔行书简体</option>
-            <option value="momo-yingbi-shouxieti.woff">默陌硬笔手写体</option>
-            <option value="momo-xinjian-shouxieti.woff">默陌信笺手写体</option>
-            <option value="jili-shouxie-jianti.woff">吉力手写简体</option>
-            <option value="hanyi-xindi-fangcaoti.woff">汉仪新蒂芳草体</option>
-            <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
-            <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
+            <optgroup label="—— 英文手写字库 (OTF) ——">
+              <option value="Adagio Pro.otf" selected>英文：Adagio Pro</option>
+              <option value="alagambe.otf">英文：alagambe</option>
+              <option value="Arianta Syahrini.otf">英文：Arianta Syahrini</option>
+              <option value="Darleston.otf">英文：Darleston</option>
+              <option value="Signaturia.otf">英文：Signaturia</option>
+              <option value="Evergreen-Light.otf">英文：Evergreen-Light</option>
+              <option value="Lafesta-Regular.otf">英文：Lafesta-Regular</option>
+              <option value="Everglow.otf">英文：Everglow</option>
+              <option value="Baekrajan.otf">英文：Baekrajan</option>
+              <option value="Morgana.otf">英文：Morgana</option>
+            </optgroup>
+            <optgroup label="—— 中文手写字库 (WOFF) ——">
+              <option value="honglei-xiaozhitiao-qingchunti.woff">鸿雷小纸条青春体</option>
+              <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
+              <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
+              <option value="xingshixin-yingbi-xingshu-jianti.woff">邢世新硬笔行书简体</option>
+              <option value="momo-yingbi-shouxieti.woff">默陌硬笔手写体</option>
+              <option value="momo-xinjian-shouxieti.woff">默陌信笺手写体</option>
+              <option value="jili-shouxie-jianti.woff">吉力手写简体</option>
+              <option value="hanyi-xindi-fangcaoti.woff">汉仪新蒂芳草体</option>
+              <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
+              <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
+            </optgroup>
           </select>
         </div>
 
@@ -219,7 +232,7 @@
         <div class="form-group" style="margin-top: 10px;">
           <label for="paperSelect">纸张背景（包含实拍版，供打印版）</label>
           <select class="form-select" id="paperSelect">
-            <option value="real_redline" selected>实拍-单红线信稿纸 (点击展开|新增格子组)</option>
+            <option value="real_redline" selected>实拍-单红线信稿纸 (推荐)</option>
             <option value="real_grid_red">实拍-红格子稿纸 (400字/页)</option>
             <option value="real_draft">草稿纸-高清实拍</option>
             <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
@@ -321,7 +334,6 @@
     const btnPreview = document.getElementById('btnPreview');
     const btnDownload = document.getElementById('btnDownload');
 
-    // 灯箱弹窗组件
     const previewModal = document.getElementById('previewModal');
     const modalImage = document.getElementById('modalImage');
     const btnModalClose = document.getElementById('btnModalClose');
@@ -341,13 +353,14 @@
       badgeContainer.style.color = '#1e40af';
 
       try {
-        const fontUrl = './' + fileName;
+        // 使用 encodeURI 自动处理文件名中的空格
+        const fontUrl = './' + encodeURI(fileName);
         const fixedFontName = 'Font_' + fileName.replace(/[^a-zA-Z0-9]/g, '_');
         const font = new FontFace(fixedFontName, `url("${fontUrl}")`);
         await font.load();
         document.fonts.add(font);
 
-        currentFontFamily = `'Caveat', '${fixedFontName}', cursive, sans-serif`;
+        currentFontFamily = `'${fixedFontName}', 'Caveat', cursive, sans-serif`;
         fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
@@ -711,35 +724,28 @@
       link.click();
     }
 
-    // 核心改进：点击“① 点击预览”，弹出全屏高清大图查看层
     btnPreview.onclick = function() {
       renderHandwriting();
-      // 获取当前 Canvas 高清 Base64 塞给弹窗
       modalImage.src = canvas.toDataURL('image/png');
       previewModal.style.display = 'flex';
     };
 
-    // 关闭预览弹窗
     btnModalClose.onclick = function() {
       previewModal.style.display = 'none';
     };
 
-    // 点击暗色背景也能快速关闭
     previewModal.onclick = function(e) {
       if (e.target === previewModal) {
         previewModal.style.display = 'none';
       }
     };
 
-    // 弹窗内的直接下载按钮
     btnModalDownload.onclick = function() {
       downloadCurrentCanvas();
     };
 
-    // 主界面的直接下载按钮
     btnDownload.onclick = downloadCurrentCanvas;
 
-    // 滑块与输入事件：实时响应，拖动立刻看变化
     textInput.oninput = renderHandwriting;
     fontSelect.onchange = function() { switchFont(this.value); };
     paperSelect.onchange = renderHandwriting;
@@ -759,6 +765,7 @@
       renderHandwriting();
     };
 
+    // 默认开局载入第一款英文手写字体
     switchFont(fontSelect.value);
   </script>
 </body>
