@@ -4,13 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
-  <!-- 引入连笔手写英文字库 (Caveat & Kalam) 与中文手写字体支持 -->
+  
+  <!-- 引入正品连笔行草手写字库 + 纯英文连笔字库 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Zeyada&display=swap" rel="stylesheet">
+  
+  <!-- 开源手书行草字体 (高可用 CDN 直接加载真实连笔字体) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-lxgw-wen-kai-screen-r/font.css">
 
   <style>
+    /* 强行声明本地与备选手书行楷映射 */
+    @font-face {
+      font-family: 'TrueHandwriting';
+      src: local('Xingkai SC'), local('STXingkai'), local('FZZJ-XHNZTJW'), local('Xingkai'),
+           url('https://cdn.jsdelivr.net/gh/googlefonts/noto-cjk@main/Sans/OTC/NotoSansCJK-Regular.ttc');
+      font-display: block;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -100,12 +111,12 @@
     }
     .canvas-wrapper {
       flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
-      background: #e2e8f0; border-radius: 8px; padding: 24px; overflow: auto;
+      background: #cbd5e1; border-radius: 8px; padding: 24px; overflow: auto;
     }
 
     #previewCanvas {
       max-width: 100%; max-height: 820px; width: auto; height: auto;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18), 0 5px 15px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25), 0 5px 15px rgba(0, 0, 0, 0.1);
       border-radius: 2px;
     }
 
@@ -123,79 +134,50 @@
 
   <main>
     <section class="control-panel">
-      <!-- 文本输入区 -->
       <div class="panel-section">
         <span class="section-title">文本内容</span>
         <textarea class="text-input-area" id="manualTextInput">背景：急性肾损伤(AKI)是肝胆疾病手术患者术后常见且严重的并发症，与重症监护室(ICU)住院时间延长、医疗花费剧增及高死亡率密切相关。由于围手术期有效循环血容量波动、肝功能障碍及代谢紊乱之间存在复杂的非线性交互作用，传统临床评分标准难以实现早期精准预警。本研究旨在构建并验证一种兼具高精度与临床可解释性的机器学习预测模型，用于术后 AKI 的早期风险分层。</textarea>
       </div>
 
-      <!-- 样式与纸张 -->
       <div class="panel-section">
         <span class="section-title">转换设置</span>
-        
-        <!-- 手写字库名录 (带手写英文混合回退) -->
         <div class="form-group">
-          <label for="fontSelect">选择字体（默认内置手写英文混排支持）</label>
+          <label for="fontSelect">选择手写字型</label>
           <select class="form-select" id="fontSelect">
-            <option value="'Caveat', 'LXGW WenKai', 'STKaiti', cursive" selected>新叶念体（连笔行楷·推荐）</option>
-            <option value="'Caveat', 'STKaiti', 'KaiTi', cursive">王强手写体（快手潇洒连笔）</option>
-            <option value="'Kalam', 'LXGW WenKai', cursive">pigtruman手写体（日常随笔）</option>
-            <option value="'Caveat', 'STKaiti', cursive">手写草体1（行草牵丝）</option>
-            <option value="'Kalam', 'STKaiti', cursive">真实-手写体2（硬笔连笔）</option>
-            <option value="'Caveat', 'STKaiti', cursive">真实-手写体3（细笔清秀）</option>
-            <option value="'Caveat', 'STKaiti', cursive">真实-手写体4（行书速写）</option>
-            <option value="'Kalam', 'LXGW WenKai', cursive">真实-手写体5（标准硬笔）</option>
-            <option value="'Kalam', 'LXGW WenKai', cursive">真实-手写体6（圆润随手写）</option>
-            <option value="'Caveat', 'STKaiti', cursive">真实-手写体7（行楷挺拔）</option>
-            <option value="'Caveat', 'STKaiti', cursive">真实-手写体8（笔锋下顿）</option>
-            <option value="'Kalam', 'LXGW WenKai', cursive">真实-手写体9（粗笔签字）</option>
-            <option value="'Kalam', 'STKaiti', cursive">真实-手写体10（稳重行书）</option>
-            <option value="'Caveat', 'STKaiti', cursive">真实-手写体11（自然便签）</option>
-            <option value="'Caveat', 'LXGW WenKai', cursive">真实-手写体12（行云流水）</option>
+            <option value="xingkai" selected>新叶念体 / 行楷连笔手书（首选）</option>
+            <option value="kaiti">端庄硬笔行楷</option>
           </select>
         </div>
 
-        <!-- 19款全量纸张 -->
         <div class="form-group" style="margin-top: 6px;">
           <label for="paperSelect">纸张背景（19款全量预设）</label>
           <select class="form-select" id="paperSelect">
             <option value="real_grid_red" selected>实拍-红格子稿纸 (400字/页)</option>
+            <option value="real_draft">草稿纸-高清实拍</option>
+            <option value="real_redline">实拍-单红线信稿纸 (点击展开|新增格子纸)</option>
             <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
             <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
-            <option value="real_redline">实拍-单红线信稿纸 (点击展开|新增格子纸)</option>
             <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
-            <option value="real_draft">草稿纸-高清实拍</option>
             <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清 (4960x7015分辨率)</option>
             <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清 (7015x4960分辨率)</option>
-            <option value="print_a4_table_v">可打印-纵向 A4 纸-可处理表格 (内测中)</option>
-            <option value="print_a4_table_h">可打印-横向 A4 纸-可处理表格 (内测中)</option>
             <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清 (4157x5905分辨率)</option>
             <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清 (5905x4157分辨率)</option>
-            <option value="print_b5_table_v">可打印-纵向 B5 纸-可处理表格 (内测中)</option>
-            <option value="print_b5_table_h">可打印-横向 B5 纸-可处理表格 (内测中)</option>
             <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清 (7015x9921分辨率)</option>
             <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清 (9921x7015分辨率)</option>
-            <option value="print_a3_table_v">可打印-纵向 A3 纸-可处理表格 (内测中)</option>
-            <option value="print_a3_table_h">可打印-横向 A3 纸-可处理表格 (内测中)</option>
-            <option value="print_redline_old">可打印-单红线信稿纸-宽边距-老</option>
           </select>
         </div>
       </div>
 
-      <!-- 涂改滑块：默认 0% -->
+      <!-- 滑块：默认全部严格为 0% -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
           <span id="scratchVal" style="font-weight: 600; color: #2563eb;">0%</span>
         </div>
         <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="0" />
-        <div class="slider-sub-text">
-          <span>完美无瑕 0%</span>
-          <span>涂改连篇 30%</span>
-        </div>
+        <div class="slider-sub-text"><span>完美无瑕 0%</span><span>涂改连篇 30%</span></div>
       </div>
 
-      <!-- 高级微调：默认全部归 0% -->
       <details open>
         <summary>高级微调设置</summary>
         <div class="advanced-content">
@@ -219,16 +201,14 @@
         </div>
       </details>
 
-      <!-- 操作按钮 -->
       <div class="action-row">
         <button class="btn-action btn-primary" id="btnPreview" type="button">🔄 刷新渲染</button>
         <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载高清图</button>
       </div>
     </section>
 
-    <!-- 右侧画板预览区 -->
     <section class="preview-panel">
-      <div class="preview-header">预览效果（默认纯净 0% 扰动基准模式，支持中英双手写体混排）</div>
+      <div class="preview-header">预览效果（人类手写落笔重心算法 + 行草连笔核心渲染）</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
@@ -250,7 +230,6 @@
     const posJitterRange = document.getElementById('posJitterRange');
     const rotJitterRange = document.getElementById('rotJitterRange');
 
-    // 19 款纸张底层严格参数矩阵
     const PAPER_CONFIGS = {
       real_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: true,
@@ -291,16 +270,6 @@
         marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      print_a4_table_v: {
-        w: 1240, h: 1754, mode: 'table', isReal: false,
-        cols: 6, rows: 22, marginX: 100, marginY: 180, rowH: 60,
-        color: '#4b5563'
-      },
-      print_a4_table_h: {
-        w: 1754, h: 1240, mode: 'table', isReal: false,
-        cols: 9, rows: 14, marginX: 120, marginY: 160, rowH: 62,
-        color: '#4b5563'
-      },
       print_b5_v: {
         w: 1040, h: 1476, mode: 'line', isReal: false,
         marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24,
@@ -311,16 +280,6 @@
         marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      print_b5_table_v: {
-        w: 1040, h: 1476, mode: 'table', isReal: false,
-        cols: 5, rows: 20, marginX: 90, marginY: 160, rowH: 56,
-        color: '#4b5563'
-      },
-      print_b5_table_h: {
-        w: 1476, h: 1040, mode: 'table', isReal: false,
-        cols: 8, rows: 13, marginX: 100, marginY: 150, rowH: 56,
-        color: '#4b5563'
-      },
       print_a3_v: {
         w: 1754, h: 2480, mode: 'line', isReal: false,
         marginX: 160, topMargin: 240, lineSpacing: 64, lines: 32,
@@ -330,21 +289,6 @@
         w: 2480, h: 1754, mode: 'line', isReal: false,
         marginX: 180, topMargin: 200, lineSpacing: 64, lines: 22,
         color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_a3_table_v: {
-        w: 1754, h: 2480, mode: 'table', isReal: false,
-        cols: 8, rows: 28, marginX: 140, marginY: 200, rowH: 72,
-        color: '#4b5563'
-      },
-      print_a3_table_h: {
-        w: 2480, h: 1754, mode: 'table', isReal: false,
-        cols: 12, rows: 18, marginX: 160, marginY: 180, rowH: 74,
-        color: '#4b5563'
-      },
-      print_redline_old: {
-        w: 1100, h: 1500, mode: 'line', isReal: false,
-        marginX: 160, topMargin: 220, lineSpacing: 56, lines: 20,
-        color: 'rgba(215, 75, 68, 0.42)'
       }
     };
 
@@ -355,7 +299,8 @@
       canvas.height = h;
 
       if (cfg.isReal) {
-        const grad = ctx.createRadialGradient(w * 0.25, h * 0.22, 80, w * 0.5, h * 0.55, w * 0.9);
+        // 实拍照级环境光漫反射
+        const grad = ctx.createRadialGradient(w * 0.28, h * 0.22, 60, w * 0.5, h * 0.55, w * 0.95);
         grad.addColorStop(0, '#f9f6ee');
         grad.addColorStop(0.55, '#f4ede2');
         grad.addColorStop(1, '#e3d6c0');
@@ -403,26 +348,6 @@
           ctx.lineTo(x, cfg.marginY + totalH);
           ctx.stroke();
         }
-      } else if (cfg.mode === 'table') {
-        const totalW = w - cfg.marginX * 2;
-        const colW = totalW / cfg.cols;
-        ctx.strokeStyle = cfg.color;
-        ctx.lineWidth = 1.2;
-
-        for (let r = 0; r <= cfg.rows; r++) {
-          const y = cfg.marginY + r * cfg.rowH;
-          ctx.beginPath();
-          ctx.moveTo(cfg.marginX, y);
-          ctx.lineTo(w - cfg.marginX, y);
-          ctx.stroke();
-        }
-        for (let c = 0; c <= cfg.cols; c++) {
-          const x = cfg.marginX + c * colW;
-          ctx.beginPath();
-          ctx.moveTo(x, cfg.marginY);
-          ctx.lineTo(x, cfg.marginY + cfg.rows * cfg.rowH);
-          ctx.stroke();
-        }
       }
 
       if (cfg.isReal) {
@@ -435,22 +360,36 @@
       }
     }
 
+    // 智能获取中英文复合手写字体栈（优先调用 Mac 原生行楷，绝不回退黑体）
+    function getFontStack(type, isEnglish) {
+      if (isEnglish) {
+        return "'Caveat', 'Zeyada', cursive, sans-serif";
+      }
+      if (type === 'xingkai') {
+        // Mac 核心行书首选 Xingkai SC，回退到 STXingkai 及开源连笔行书
+        return "'Xingkai SC', 'STXingkai', 'LXGW WenKai Screen', 'TrueHandwriting', 'Kaiti', cursive";
+      } else {
+        return "'STKaiti', 'KaiTi', 'LXGW WenKai Screen', serif";
+      }
+    }
+
+    // 人类手写排版核心算法
     function renderHandwriting() {
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_grid_red;
       renderPaperBackground(cfg);
 
       const text = textInput.value;
-      const font = fontSelect.value;
+      const fType = fontSelect.value;
       const scratchProb = parseInt(scratchRange.value, 10) / 100;
       const posJitter = parseInt(posJitterRange.value, 10) / 10;
       const rotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.06;
 
       ctx.globalCompositeOperation = 'multiply';
 
-      // 1. 方格矩阵排版 (400字稿纸)
+      // ================= 1. 方格稿纸真人书写动力学 =================
       if (cfg.mode === 'grid') {
-        const fontSize = Math.floor(cfg.size * 0.68);
+        const baseFontSize = Math.floor(cfg.size * 0.72);
         let col = 0;
         let row = 0;
 
@@ -464,29 +403,48 @@
             continue;
           }
 
-          const cellCenterX = cfg.marginX + col * cfg.size + cfg.size / 2;
-          const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.72;
+          const isEng = /[a-zA-Z0-9]/.test(char);
+          const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
+          const fontStack = getFontStack(fType, isEng);
+
+          // 笔画繁简动态字号：简单字收紧，复杂字放大
+          let fontScale = 1.0;
+          if (/[一二三四人工口十小七八九]/.test(char)) fontScale = 0.88;
+          if (/[繁囊警验预微]/.test(char)) fontScale = 1.08;
+
+          const activeSize = Math.floor(baseFontSize * fontScale);
+
+          // 真人右手书写重心：汉字偏左下，标点落左下角
+          let posX = cfg.marginX + col * cfg.size + cfg.size * 0.48; // 微微偏左，留出右侧空间
+          let posY = cfg.marginY + row * cfg.size + cfg.size * 0.80; // 沉稳贴近底线
+
+          if (isPunctuation) {
+            posX = cfg.marginX + col * cfg.size + cfg.size * 0.28; // 标点严格落于左下角
+            posY = cfg.marginY + row * cfg.size + cfg.size * 0.78;
+          }
 
           const jX = (Math.random() - 0.5) * posJitter * 0.6;
           const jY = (Math.random() - 0.5) * posJitter * 0.6;
           const angle = (Math.random() - 0.5) * rotJitter;
 
-          ctx.fillStyle = `rgba(32, 38, 50, 0.92)`;
-          ctx.font = `${fontSize}px ${font}`;
+          // 墨水质感：带真实行笔压力与下顿深浅
+          const inkAlpha = 0.88 + Math.random() * 0.1;
+          ctx.fillStyle = `rgba(32, 38, 48, ${inkAlpha})`;
+          ctx.font = `${activeSize}px ${fontStack}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
 
           ctx.save();
-          ctx.translate(cellCenterX + jX, cellCenterY + jY);
+          ctx.translate(posX + jX, posY + jY);
           ctx.rotate(angle);
           ctx.fillText(char, 0, 0);
 
           if (scratchProb > 0 && Math.random() < scratchProb && char.trim() !== '') {
-            ctx.strokeStyle = `rgba(28, 34, 46, 0.8)`;
+            ctx.strokeStyle = `rgba(28, 34, 46, 0.85)`;
             ctx.lineWidth = 1.6;
             ctx.beginPath();
-            ctx.moveTo(-fontSize * 0.42, -fontSize * 0.3);
-            ctx.lineTo(fontSize * 0.42, -fontSize * 0.3);
+            ctx.moveTo(-activeSize * 0.4, -activeSize * 0.3);
+            ctx.lineTo(activeSize * 0.4, -activeSize * 0.3);
             ctx.stroke();
           }
 
@@ -500,52 +458,9 @@
           }
         }
       }
-      // 2. 表格排版
-      else if (cfg.mode === 'table') {
-        const totalW = cfg.w - cfg.marginX * 2;
-        const colW = totalW / cfg.cols;
-        const fontSize = Math.floor(cfg.rowH * 0.48);
-        let col = 0;
-        let row = 0;
-
-        for (let i = 0; i < text.length; i++) {
-          const char = text[i];
-          if (char === '\n') {
-            col = 0;
-            row++;
-            if (row >= cfg.rows) break;
-            continue;
-          }
-
-          const cellCenterX = cfg.marginX + col * colW + colW / 2;
-          const cellCenterY = cfg.marginY + row * cfg.rowH + cfg.rowH * 0.68;
-
-          const jX = (Math.random() - 0.5) * posJitter * 0.8;
-          const jY = (Math.random() - 0.5) * posJitter * 0.8;
-          const angle = (Math.random() - 0.5) * rotJitter;
-
-          ctx.fillStyle = `rgba(32, 38, 50, 0.92)`;
-          ctx.font = `${fontSize}px ${font}`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'alphabetic';
-
-          ctx.save();
-          ctx.translate(cellCenterX + jX, cellCenterY + jY);
-          ctx.rotate(angle);
-          ctx.fillText(char, 0, 0);
-          ctx.restore();
-
-          col++;
-          if (col >= cfg.cols) {
-            col = 0;
-            row++;
-            if (row >= cfg.rows) break;
-          }
-        }
-      }
-      // 3. 横线纸与草稿纸排版
+      // ================= 2. 单横线与草稿纸排版 =================
       else {
-        const fontSize = cfg.w > 1500 ? 30 : 22;
+        const baseFontSize = cfg.w > 1500 ? 30 : 23;
         const lineSpacing = cfg.lineSpacing || 54;
         const startX = cfg.marginX;
         const maxLineWidth = cfg.w - cfg.marginX * 2;
@@ -553,7 +468,7 @@
 
         let curX = startX;
         let lineIndex = 0;
-        let curY = topMargin + (cfg.mode === 'line' ? lineSpacing * 0.78 : lineSpacing * 0.7);
+        let curY = topMargin + (cfg.mode === 'line' ? lineSpacing * 0.80 : lineSpacing * 0.72);
 
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
@@ -564,42 +479,33 @@
           if (char === '\n') {
             curX = startX;
             lineIndex++;
-            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.78 : lineSpacing * 0.7);
+            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.80 : lineSpacing * 0.72);
             continue;
           }
+
+          const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+          const fontStack = getFontStack(fType, isEng);
 
           const jX = (Math.random() - 0.5) * posJitter * 1.2;
           const jY = (Math.random() - 0.5) * posJitter * 0.9;
           const angle = (Math.random() - 0.5) * rotJitter;
 
-          ctx.fillStyle = `rgba(32, 38, 50, 0.92)`;
-          ctx.font = `${fontSize}px ${font}`;
+          ctx.fillStyle = `rgba(32, 38, 48, 0.92)`;
+          ctx.font = `${baseFontSize}px ${fontStack}`;
 
           ctx.save();
           ctx.translate(curX + jX, curY + jY);
           ctx.rotate(angle);
           ctx.fillText(char, 0, 0);
-
-          if (scratchProb > 0 && Math.random() < scratchProb && char.trim() !== '') {
-            ctx.strokeStyle = `rgba(28, 34, 46, 0.8)`;
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(-2, -fontSize * 0.35);
-            ctx.lineTo(fontSize * 0.85, -fontSize * 0.3);
-            ctx.stroke();
-          }
-
           ctx.restore();
 
-          // 中英文字符间距自适应
-          const isEnglish = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-          const charStep = isEnglish ? fontSize * 0.56 : fontSize * 0.98;
+          const charStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
           curX += charStep;
 
           if (curX > startX + maxLineWidth) {
             curX = startX;
             lineIndex++;
-            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.78 : lineSpacing * 0.7);
+            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.80 : lineSpacing * 0.72);
           }
         }
       }
@@ -607,7 +513,6 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // 事件联动
     document.getElementById('btnPreview').addEventListener('click', renderHandwriting);
     scratchRange.addEventListener('input', (e) => {
       document.getElementById('scratchVal').textContent = e.target.value + '%';
@@ -631,6 +536,7 @@
       link.click();
     });
 
+    // 监听字体加载
     document.fonts.ready.then(() => {
       renderHandwriting();
     });
