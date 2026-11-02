@@ -256,8 +256,11 @@
 
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
 
-    // 核心改进 1：固定全局伪随机基准种子，彻底根绝“每次点击预览跳变”的 Bug
-    const BASE_SEED = 20261102;
+    // 严谨纯数学伪随机数生成器（完全杜绝 Math.random() 的浮动，确保相同输入下结果绝对恒定）
+    function deterministicRandom(seed) {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    }
 
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
@@ -267,12 +270,13 @@
 
       try {
         const fontUrl = './' + fileName;
-        const uniqueFontName = 'Font_' + Date.now();
-        const font = new FontFace(uniqueFontName, `url("${fontUrl}")`);
+        // 固定名称，防止载入时因时间戳变更造成重绘抖动
+        const fixedFontName = 'Font_' + fileName.replace(/[^a-zA-Z0-9]/g, '_');
+        const font = new FontFace(fixedFontName, `url("${fontUrl}")`);
         await font.load();
         document.fonts.add(font);
 
-        currentFontFamily = `'Caveat', '${uniqueFontName}', cursive, sans-serif`;
+        currentFontFamily = `'Caveat', '${fixedFontName}', cursive, sans-serif`;
         fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
@@ -417,16 +421,11 @@
       }
     }
 
-    function pseudoRandom(seed) {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
-    }
-
     function drawScratch(centerX, centerY, size, seed) {
-      const type = Math.floor(pseudoRandom(seed + 88) * 3);
+      const type = Math.floor(deterministicRandom(seed + 88) * 3);
       ctx.save();
       ctx.strokeStyle = 'rgba(25, 30, 42, 0.88)';
-      ctx.lineWidth = 1.8 + pseudoRandom(seed + 89) * 0.8;
+      ctx.lineWidth = 1.8 + deterministicRandom(seed + 89) * 0.8;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
@@ -483,8 +482,8 @@
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          // 纯确定性伪随机数，无论点多少次渲染完全定格不动
-          const seed = BASE_SEED + i * 47 + charCode;
+          // 确定性唯一哈希种子：仅由当前字符的下标和字符编码决定
+          const seed = i * 137 + charCode * 17;
 
           if (char === '\n') {
             col = 0;
@@ -496,24 +495,20 @@
           const isEng = /[a-zA-Z0-9]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
 
-          // 核心改进 2：笔画多维紊乱（字形胖瘦比畸变 + 手腕横纵斜切 + 整体微摆角）
-          const scaleX = 1.0 + (pseudoRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
-          const scaleY = 1.0 + (pseudoRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
-          const skewX = (pseudoRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
-          const skewY = (pseudoRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
-          const charAngle = (pseudoRandom(seed + 2) - 0.5) * (0.28 * strokeChaos);
+          const scaleX = 1.0 + (deterministicRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
+          const scaleY = 1.0 + (deterministicRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
+          const skewX = (deterministicRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
+          const skewY = (deterministicRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
+          const charAngle = (deterministicRandom(seed + 2) - 0.5) * (0.28 * strokeChaos);
+          const strokeBreath = (deterministicRandom(seed + 10) - 0.5) * strokeChaos;
 
-          // 笔画粗细轻重（顿笔与墨水深度）：随紊乱度呈现 0.8 到 1.3 的墨水呼吸感
-          const strokeBreath = (pseudoRandom(seed + 10) - 0.5) * strokeChaos;
-
-          // 位置乱乱度（二维中心微浮动）
           const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
           const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
 
-          const jX = (pseudoRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
-          const jY = (pseudoRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
+          const jX = (deterministicRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
+          const jY = (deterministicRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
 
-          const pressure = 0.88 + (pseudoRandom(seed + 1) - 0.5) * 0.18;
+          const pressure = 0.88 + (deterministicRandom(seed + 1) - 0.5) * 0.18;
 
           ctx.save();
           ctx.translate(cellCenterX + jX, cellCenterY + jY);
@@ -525,14 +520,12 @@
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          // 如果笔画较重，叠加一层微描边，实现真实的“下笔粗细不均”
           if (strokeBreath > 0.15) {
             ctx.lineWidth = 0.6 * (strokeBreath / 0.5);
             ctx.strokeStyle = `rgba(25, 30, 42, ${pressure * 0.4})`;
             ctx.strokeText(char, 0, 0);
           }
 
-          // 墨迹立体阴影与实墨
           ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
 
@@ -542,7 +535,7 @@
           ctx.restore();
 
           if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
-            if (pseudoRandom(seed + 77) < scratchProb) {
+            if (deterministicRandom(seed + 77) < scratchProb) {
               drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
             }
           }
@@ -555,7 +548,6 @@
           }
         }
       } else {
-        // 单红线信笺纸模式：最逼真手写流
         const baseFontSize = cfg.w > 1500 ? 32 : 25;
         const lineSpacing = cfg.lineSpacing || 54;
         const startX = cfg.marginX;
@@ -565,43 +557,41 @@
         let curX = startX;
         let lineIndex = 0;
 
-        // 行级慢正弦波浪（人手书写从左往右自然的整行微翘或微沉）
-        let lineWave = (pseudoRandom(BASE_SEED + lineIndex * 13) - 0.5) * (14.0 * posChaos);
+        // 确定性行波浪（仅与当前行号严格绑定）
+        let lineWave = (deterministicRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
 
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          const seed = BASE_SEED + i * 53 + charCode;
+          const seed = i * 151 + charCode * 23;
 
           if (char === '\n') {
             curX = startX;
             lineIndex++;
-            lineWave = (pseudoRandom(BASE_SEED + lineIndex * 13) - 0.5) * (14.0 * posChaos);
+            lineWave = (deterministicRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
             continue;
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
 
-          // 笔画多维紊乱
-          const scaleX = 1.0 + (pseudoRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
-          const scaleY = 1.0 + (pseudoRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
-          const skewX = (pseudoRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
-          const skewY = (pseudoRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
-          const charAngle = (pseudoRandom(seed + 2) - 0.5) * (0.30 * strokeChaos);
-          const strokeBreath = (pseudoRandom(seed + 10) - 0.5) * strokeChaos;
+          const scaleX = 1.0 + (deterministicRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
+          const scaleY = 1.0 + (deterministicRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
+          const skewX = (deterministicRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
+          const skewY = (deterministicRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
+          const charAngle = (deterministicRandom(seed + 2) - 0.5) * (0.30 * strokeChaos);
+          const strokeBreath = (deterministicRandom(seed + 10) - 0.5) * strokeChaos;
 
-          // 位置乱乱度（字间距不匀 + 单字高低错落 + 整行微波浪）
-          const jX = (pseudoRandom(seed + 6) - 0.5) * (baseFontSize * 0.40 * posChaos);
-          const jY = (pseudoRandom(seed + 7) - 0.5) * (baseFontSize * 0.55 * posChaos) + lineWave;
+          const jX = (deterministicRandom(seed + 6) - 0.5) * (baseFontSize * 0.40 * posChaos);
+          const jY = (deterministicRandom(seed + 7) - 0.5) * (baseFontSize * 0.55 * posChaos) + lineWave;
 
           const baseStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
-          const charStep = baseStep * (1.0 + (pseudoRandom(seed + 15) - 0.5) * (0.45 * posChaos));
+          const charStep = baseStep * (1.0 + (deterministicRandom(seed + 15) - 0.5) * (0.45 * posChaos));
 
           const curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.72 : lineSpacing * 0.65);
           const charCenterX = curX + charStep * 0.5;
           const charCenterY = curY;
 
-          const pressure = 0.88 + (pseudoRandom(seed + 1) - 0.5) * 0.18;
+          const pressure = 0.88 + (deterministicRandom(seed + 1) - 0.5) * 0.18;
 
           ctx.save();
           ctx.translate(charCenterX + jX, charCenterY + jY);
@@ -612,7 +602,6 @@
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          // 墨水粗细顿笔微调
           if (strokeBreath > 0.15) {
             ctx.lineWidth = 0.6 * (strokeBreath / 0.5);
             ctx.strokeStyle = `rgba(25, 30, 42, ${pressure * 0.4})`;
@@ -628,7 +617,7 @@
           ctx.restore();
 
           if (scratchProb > 0 && !isEng && char.trim() !== '') {
-            if (pseudoRandom(seed + 77) < scratchProb) {
+            if (deterministicRandom(seed + 77) < scratchProb) {
               drawScratch(charCenterX + jX, charCenterY + jY, baseFontSize * 1.3, seed);
             }
           }
@@ -638,7 +627,7 @@
           if (curX > startX + maxLineWidth) {
             curX = startX;
             lineIndex++;
-            lineWave = (pseudoRandom(BASE_SEED + lineIndex * 13) - 0.5) * (14.0 * posChaos);
+            lineWave = (deterministicRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
           }
         }
       }
@@ -646,7 +635,7 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // 核心改进 3：点击“① 点击预览”，执行确定性渲染，画面绝对定格稳定，绝不再随机跳乱
+    // 核心绑定：点击预览执行定格重绘，只要参数和文本没变，画面像素 100% 保持不动
     btnPreview.onclick = function() {
       renderHandwriting();
     };
@@ -677,7 +666,7 @@
       link.click();
     };
 
-    // 初始化默认加载
+    // 启动初始加载
     switchFont(fontSelect.value);
   </script>
 </body>
