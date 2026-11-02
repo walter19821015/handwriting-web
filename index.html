@@ -130,7 +130,7 @@
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊 · 公网直连版</div>
+    <div class="brand">✍️ 手写模拟工坊 · 全公网正式版</div>
   </header>
 
   <main>
@@ -143,7 +143,7 @@
       <div class="panel-section">
         <span class="section-title">手写字体</span>
         <div class="font-badge" id="badgeContainer">
-          <span>字体：</span><strong id="fontStatusMsg">正在从仓库加载 handwrite.ttf...</strong>
+          <span>字体：</span><strong id="fontStatusMsg">正在加载鸿雷小纸条青春体...</strong>
         </div>
 
         <div class="form-group">
@@ -165,7 +165,6 @@
         </div>
       </div>
 
-      <!-- 严格保持默认 0% 基准 -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
@@ -228,34 +227,47 @@
     const fontStatusMsg = document.getElementById('fontStatusMsg');
     const badgeContainer = document.getElementById('badgeContainer');
 
-    // 核心强制字体族名
-    const FONT_NAME = 'ActiveHandwriting';
-    const currentFontFamily = `'Caveat', '${FONT_NAME}', cursive, sans-serif`;
+    const FONT_NAME = 'HongLeiFont';
+    let currentFontFamily = `'Caveat', '${FONT_NAME}', cursive, sans-serif`;
 
-    // 强制使用 ArrayBuffer 读取文件并挂载，保证100%解码完成后才画画
-    async function loadRepoFont() {
-      try {
-        fontStatusMsg.textContent = '⏳ 正在下载并装载 handwrite.ttf...';
-        const res = await fetch('./handwrite.ttf');
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const buffer = await res.arrayBuffer();
-        
-        const font = new FontFace(FONT_NAME, buffer);
-        await font.load();
-        document.fonts.add(font);
+    // 候选直链（自动兼容拼音命名与 default 命名）
+    const candidateUrls = [
+      'https://github.com/walter19821015/handwriting-web/releases/download/v1.0/honglei-xiaozhitiao-qingchunti.ttf',
+      'https://github.com/walter19821015/handwriting-web/releases/download/v1.0/hongleixiaozhitiaoqingchunti.ttf',
+      'https://github.com/walter19821015/handwriting-web/releases/download/v1.0/default.ttf'
+    ];
 
-        fontStatusMsg.textContent = '✅ handwrite.ttf 真实字模已成功注入！';
+    async function loadFont() {
+      let loaded = false;
+      for (const url of candidateUrls) {
+        try {
+          const font = new FontFace(FONT_NAME, `url("${url}")`);
+          await font.load();
+          document.fonts.add(font);
+          loaded = true;
+          break;
+        } catch (e) {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const buf = await res.arrayBuffer();
+            const font = new FontFace(FONT_NAME, buf);
+            await font.load();
+            document.fonts.add(font);
+            loaded = true;
+            break;
+          } catch (e2) {}
+        }
+      }
+
+      if (loaded) {
+        fontStatusMsg.textContent = '✅ 鸿雷小纸条青春体已就绪 (公网生效)';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
         badgeContainer.style.color = '#15803d';
-
-        // 字体已完全就绪，正式执行绘制
         renderHandwriting();
-      } catch (e) {
-        fontStatusMsg.textContent = '❌ 加载失败: ' + e.message;
-        badgeContainer.style.background = '#fef2f2';
-        badgeContainer.style.borderColor = '#fecaca';
-        badgeContainer.style.color = '#dc2626';
+      } else {
+        fontStatusMsg.textContent = '⚠️ 字体文件拉取中，先使用备选字型';
         renderHandwriting();
       }
     }
@@ -552,8 +564,7 @@
       link.click();
     });
 
-    // 核心启动入口
-    loadRepoFont();
+    loadFont();
   </script>
 </body>
 </html>
