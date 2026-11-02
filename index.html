@@ -143,7 +143,7 @@
       <div class="panel-section">
         <span class="section-title">手写字体</span>
         <div class="font-badge" id="badgeContainer">
-          <span>字体：</span><strong id="fontStatusMsg">正在加载鸿雷小纸条青春体...</strong>
+          <span>字体：</span><strong id="fontStatusMsg">正在同步真实手写字库...</strong>
         </div>
 
         <div class="form-group">
@@ -165,6 +165,7 @@
         </div>
       </div>
 
+      <!-- 默认 0% 基准 -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
@@ -230,44 +231,33 @@
     const FONT_NAME = 'HongLeiFont';
     let currentFontFamily = `'Caveat', '${FONT_NAME}', cursive, sans-serif`;
 
-    // 候选直链（自动兼容拼音命名与 default 命名）
-    const candidateUrls = [
-      'https://github.com/walter19821015/handwriting-web/releases/download/v1.0/honglei-xiaozhitiao-qingchunti.ttf',
-      'https://github.com/walter19821015/handwriting-web/releases/download/v1.0/hongleixiaozhitiaoqingchunti.ttf',
-      'https://github.com/walter19821015/handwriting-web/releases/download/v1.0/default.ttf'
-    ];
+    // 严格绑定你命名的字体文件：honglei-xiaozhitiao-qingchunti.ttf
+    const CDN_FONT_URL = 'https://cdn.jsdelivr.net/gh/walter19821015/handwriting-web@v1.0/honglei-xiaozhitiao-qingchunti.ttf';
 
-    async function loadFont() {
-      let loaded = false;
-      for (const url of candidateUrls) {
-        try {
-          const font = new FontFace(FONT_NAME, `url("${url}")`);
-          await font.load();
-          document.fonts.add(font);
-          loaded = true;
-          break;
-        } catch (e) {
-          try {
-            const res = await fetch(url);
-            if (!res.ok) continue;
-            const buf = await res.arrayBuffer();
-            const font = new FontFace(FONT_NAME, buf);
-            await font.load();
-            document.fonts.add(font);
-            loaded = true;
-            break;
-          } catch (e2) {}
-        }
-      }
+    async function loadCdnFont() {
+      try {
+        fontStatusMsg.textContent = '⏳ 正在拉取 CDN 字体二进制...';
+        
+        const res = await fetch(CDN_FONT_URL);
+        if (!res.ok) throw new Error('CDN HTTP ' + res.status);
+        const buf = await res.arrayBuffer();
 
-      if (loaded) {
-        fontStatusMsg.textContent = '✅ 鸿雷小纸条青春体已就绪 (公网生效)';
+        const font = new FontFace(FONT_NAME, buf);
+        await font.load();
+        document.fonts.add(font);
+
+        fontStatusMsg.textContent = '✅ 鸿雷小纸条青春体已挂载（全公网生效）';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
         badgeContainer.style.color = '#15803d';
+
+        // 字体彻底装载到内存后，立即下笔绘制
         renderHandwriting();
-      } else {
-        fontStatusMsg.textContent = '⚠️ 字体文件拉取中，先使用备选字型';
+      } catch (err) {
+        fontStatusMsg.textContent = '❌ 加载失败: ' + err.message;
+        badgeContainer.style.background = '#fef2f2';
+        badgeContainer.style.borderColor = '#fecaca';
+        badgeContainer.style.color = '#dc2626';
         renderHandwriting();
       }
     }
@@ -564,7 +554,7 @@
       link.click();
     });
 
-    loadFont();
+    loadCdnFont();
   </script>
 </body>
 </html>
