@@ -122,6 +122,60 @@
       border-radius: 2px;
     }
 
+    /* 全屏放大预览灯箱弹窗样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .modal-img-wrapper {
+      max-height: 84vh;
+      overflow: auto;
+      border-radius: 6px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      background: #cbd5e1;
+      padding: 10px;
+    }
+    #modalImage {
+      display: block;
+      max-height: 80vh;
+      width: auto;
+      border-radius: 2px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 16px;
+    }
+    .modal-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+    .modal-btn-close { background: #475569; color: #ffffff; }
+    .modal-btn-close:hover { background: #334155; }
+    .modal-btn-download { background: #16a34a; color: #ffffff; }
+    .modal-btn-download:hover { background: #15803d; }
+
     footer {
       background: #ffffff; border-top: 1px solid #e5e7eb; padding: 14px 28px;
       text-align: center; font-size: 12px; color: #9ca3af;
@@ -223,12 +277,25 @@
     </section>
 
     <section class="preview-panel">
-      <div class="preview-header">预览效果</div>
+      <div class="preview-header">主视窗实时排版（拖动滑块实时响应）</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
     </section>
   </main>
+
+  <!-- 全屏高清放大预览灯箱 -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal-content">
+      <div class="modal-img-wrapper">
+        <img id="modalImage" src="" alt="高清手写预览" />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-close" id="btnModalClose">✕ 关闭预览</button>
+        <button class="modal-btn modal-btn-download" id="btnModalDownload">📥 满意，直接下载</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <span>手写字迹生成系统 · 纯前端渲染</span>
@@ -254,9 +321,14 @@
     const btnPreview = document.getElementById('btnPreview');
     const btnDownload = document.getElementById('btnDownload');
 
+    // 灯箱弹窗组件
+    const previewModal = document.getElementById('previewModal');
+    const modalImage = document.getElementById('modalImage');
+    const btnModalClose = document.getElementById('btnModalClose');
+    const btnModalDownload = document.getElementById('btnModalDownload');
+
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
 
-    // 严谨纯数学伪随机数生成器（完全杜绝 Math.random() 的浮动，确保相同输入下结果绝对恒定）
     function deterministicRandom(seed) {
       const x = Math.sin(seed) * 10000;
       return x - Math.floor(x);
@@ -270,7 +342,6 @@
 
       try {
         const fontUrl = './' + fileName;
-        // 固定名称，防止载入时因时间戳变更造成重绘抖动
         const fixedFontName = 'Font_' + fileName.replace(/[^a-zA-Z0-9]/g, '_');
         const font = new FontFace(fixedFontName, `url("${fontUrl}")`);
         await font.load();
@@ -482,7 +553,6 @@
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          // 确定性唯一哈希种子：仅由当前字符的下标和字符编码决定
           const seed = i * 137 + charCode * 17;
 
           if (char === '\n') {
@@ -557,7 +627,6 @@
         let curX = startX;
         let lineIndex = 0;
 
-        // 确定性行波浪（仅与当前行号严格绑定）
         let lineWave = (deterministicRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
 
         for (let i = 0; i < text.length; i++) {
@@ -635,11 +704,42 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // 核心绑定：点击预览执行定格重绘，只要参数和文本没变，画面像素 100% 保持不动
+    function downloadCurrentCanvas() {
+      const link = document.createElement('a');
+      link.download = `手写文稿-${paperSelect.value}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // 核心改进：点击“① 点击预览”，弹出全屏高清大图查看层
     btnPreview.onclick = function() {
       renderHandwriting();
+      // 获取当前 Canvas 高清 Base64 塞给弹窗
+      modalImage.src = canvas.toDataURL('image/png');
+      previewModal.style.display = 'flex';
     };
 
+    // 关闭预览弹窗
+    btnModalClose.onclick = function() {
+      previewModal.style.display = 'none';
+    };
+
+    // 点击暗色背景也能快速关闭
+    previewModal.onclick = function(e) {
+      if (e.target === previewModal) {
+        previewModal.style.display = 'none';
+      }
+    };
+
+    // 弹窗内的直接下载按钮
+    btnModalDownload.onclick = function() {
+      downloadCurrentCanvas();
+    };
+
+    // 主界面的直接下载按钮
+    btnDownload.onclick = downloadCurrentCanvas;
+
+    // 滑块与输入事件：实时响应，拖动立刻看变化
     textInput.oninput = renderHandwriting;
     fontSelect.onchange = function() { switchFont(this.value); };
     paperSelect.onchange = renderHandwriting;
@@ -659,14 +759,6 @@
       renderHandwriting();
     };
 
-    btnDownload.onclick = function() {
-      const link = document.createElement('a');
-      link.download = `手写文稿-${paperSelect.value}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    };
-
-    // 启动初始加载
     switchFont(fontSelect.value);
   </script>
 </body>
