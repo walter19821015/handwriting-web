@@ -165,7 +165,6 @@
         </div>
       </div>
 
-      <!-- 默认 0% 基准 -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
@@ -231,15 +230,15 @@
     const FONT_NAME = 'HongLeiFont';
     let currentFontFamily = `'Caveat', '${FONT_NAME}', cursive, sans-serif`;
 
-    // 严格绑定你命名的字体文件：honglei-xiaozhitiao-qingchunti.ttf
+    // 核心切换：采用 jsDelivr 全球开放 CDN，彻底消灭 CORS 跨域报错
     const CDN_FONT_URL = 'https://cdn.jsdelivr.net/gh/walter19821015/handwriting-web@v1.0/honglei-xiaozhitiao-qingchunti.ttf';
 
     async function loadCdnFont() {
       try {
-        fontStatusMsg.textContent = '⏳ 正在拉取 CDN 字体二进制...';
+        fontStatusMsg.textContent = '⏳ 正在加载鸿雷小纸条青春体...';
         
         const res = await fetch(CDN_FONT_URL);
-        if (!res.ok) throw new Error('CDN HTTP ' + res.status);
+        if (!res.ok) throw new Error('HTTP 状态码: ' + res.status);
         const buf = await res.arrayBuffer();
 
         const font = new FontFace(FONT_NAME, buf);
@@ -251,7 +250,7 @@
         badgeContainer.style.borderColor = '#bbf7d0';
         badgeContainer.style.color = '#15803d';
 
-        // 字体彻底装载到内存后，立即下笔绘制
+        // 真实字模加载完毕，直接执行渲染
         renderHandwriting();
       } catch (err) {
         fontStatusMsg.textContent = '❌ 加载失败: ' + err.message;
@@ -554,6 +553,7 @@
       link.click();
     });
 
+    // 启动 CDN 加载
     loadCdnFont();
   </script>
 </body>
