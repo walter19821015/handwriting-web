@@ -11,13 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* 核心：直接读取同源仓库中的 handwrite.ttf */
-    @font-face {
-      font-family: 'HandwriteCloud';
-      src: url('./handwrite.ttf') format('truetype');
-      font-display: swap;
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -73,31 +66,33 @@
     }
 
     .font-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 12px;
       background: #eff6ff;
       border: 1px solid #bfdbfe;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 12px;
       color: #1e40af;
+      line-height: 1.4;
     }
 
     .file-input-box {
       border: 1px dashed #2563eb;
-      background: #eff6ff;
+      background: #f8fafc;
       border-radius: 8px;
       padding: 10px;
       text-align: center;
       cursor: pointer;
       font-size: 12px;
-      color: #1d4ed8;
+      color: #2563eb;
       display: flex;
       flex-direction: column;
       gap: 4px;
       margin-top: 6px;
     }
+    .file-input-box:hover { background: #eff6ff; }
     .file-input-box input { display: none; }
 
     .form-group { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
@@ -164,13 +159,14 @@
       </div>
 
       <div class="panel-section">
-        <span class="section-title">手写字体状态</span>
-        <div class="font-badge">
-          <span>状态：</span><strong id="fontStatusMsg">正在加载 handwrite.ttf...</strong>
+        <span class="section-title">手写字体装载引擎</span>
+        <div class="font-badge" id="badgeContainer">
+          <div><strong>公网字体状态：</strong><span id="fontStatusMsg">正在探测仓库字体文件...</span></div>
+          <div id="fontDetailMsg" style="font-size: 11px; opacity: 0.85;"></div>
         </div>
 
         <label class="file-input-box">
-          <span id="localFontLabel">📁 本地备用上传（支持随时更换本地ttf预览）</span>
+          <span id="localFontLabel">📂 点击直接载入本地字体文件 (.ttf)</span>
           <input type="file" id="localFontInput" accept=".ttf,.otf,.woff,.woff2" />
         </label>
 
@@ -254,44 +250,74 @@
     const posJitterRange = document.getElementById('posJitterRange');
     const rotJitterRange = document.getElementById('rotJitterRange');
     const fontStatusMsg = document.getElementById('fontStatusMsg');
+    const fontDetailMsg = document.getElementById('fontDetailMsg');
+    const badgeContainer = document.getElementById('badgeContainer');
     const localFontInput = document.getElementById('localFontInput');
     const localFontLabel = document.getElementById('localFontLabel');
 
-    let currentFontFamily = "'Caveat', 'HandwriteCloud', cursive";
+    let currentFontFamily = "'Caveat', cursive, sans-serif";
 
-    // 检查并加载仓库同源 handwrite.ttf
-    async function initFont() {
-      try {
-        const testFont = new FontFace('HandwriteCloud', "url('./handwrite.ttf')");
-        await testFont.load();
-        document.fonts.add(testFont);
-        fontStatusMsg.textContent = '✅ 手写字体已就绪 (公网同源自载)';
-        fontStatusMsg.parentElement.style.background = '#f0fdf4';
-        fontStatusMsg.parentElement.style.borderColor = '#bbf7d0';
-        fontStatusMsg.parentElement.style.color = '#15803d';
-      } catch (err) {
-        fontStatusMsg.textContent = '⚠️ 正在读取 handwrite.ttf...';
-        fontStatusMsg.parentElement.style.background = '#fffbeb';
-        fontStatusMsg.parentElement.style.borderColor = '#fef3c7';
-        fontStatusMsg.parentElement.style.color = '#b45309';
+    // 智能探测候选列表（兼容各种可能的文件名与大写扩展名）
+    const candidateUrls = [
+      './handwrite.ttf',
+      './handwrite.TTF',
+      './鸿雷小纸条青春体.ttf',
+      encodeURI('./鸿雷小纸条青春体.ttf')
+    ];
+
+    async function tryLoadFont(url) {
+      const response = await fetch(url, { method: 'HEAD' });
+      if (!response.ok) throw new Error('File not found: ' + url);
+      const font = new FontFace('HandwriteAutoLoaded', `url("${url}")`);
+      await font.load();
+      document.fonts.add(font);
+      return url;
+    }
+
+    async function initFontSystem() {
+      let loadedUrl = null;
+
+      for (const url of candidateUrls) {
+        try {
+          loadedUrl = await tryLoadFont(url);
+          break;
+        } catch (e) {
+          // 继续尝试下一个
+        }
+      }
+
+      if (loadedUrl) {
+        currentFontFamily = "'Caveat', 'HandwriteAutoLoaded', cursive";
+        fontStatusMsg.textContent = '✅ 已成功挂载公网字体';
+        fontDetailMsg.textContent = `成功从路径 [ ${loadedUrl} ] 自动加载`;
+        badgeContainer.style.background = '#f0fdf4';
+        badgeContainer.style.borderColor = '#bbf7d0';
+        badgeContainer.style.color = '#15803d';
+      } else {
+        fontStatusMsg.textContent = '⚠️ 暂未在仓库中读到字体文件';
+        fontDetailMsg.textContent = '建议确认仓库根目录下是否存在 handwrite.ttf，或通过下方按钮本地载入';
+        badgeContainer.style.background = '#fffbeb';
+        badgeContainer.style.borderColor = '#fef3c7';
+        badgeContainer.style.color = '#b45309';
       }
       renderHandwriting();
     }
 
-    // 本地临时选择字体直接预览
     localFontInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
       try {
         const buffer = await file.arrayBuffer();
-        const customFont = new FontFace('LocalHandFont', buffer);
+        const customFont = new FontFace('LocalActiveFont', buffer);
         await customFont.load();
         document.fonts.add(customFont);
-        currentFontFamily = "'Caveat', 'LocalHandFont', cursive";
-        localFontLabel.textContent = `✅ 正在使用本地字体: ${file.name}`;
+        currentFontFamily = "'Caveat', 'LocalActiveFont', cursive";
+        localFontLabel.textContent = `✅ 已加载本地字体: ${file.name}`;
+        localFontLabel.parentElement.style.borderColor = '#16a34a';
+        localFontLabel.parentElement.style.color = '#16a34a';
         renderHandwriting();
       } catch (err) {
-        localFontLabel.textContent = '❌ 文件解析失败，请确认是否为 .ttf 格式';
+        localFontLabel.textContent = '❌ 字体解析错误，请确认文件完整性';
       }
     });
 
@@ -587,7 +613,7 @@
       link.click();
     });
 
-    initFont();
+    initFontSystem();
   </script>
 </body>
 </html>
