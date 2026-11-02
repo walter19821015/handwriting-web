@@ -145,6 +145,15 @@
           <label for="fontSelect">手写字型选择</label>
           <select class="form-select" id="fontSelect">
             <option value="honglei-xiaozhitiao-qingchunti.woff" selected>鸿雷小纸条青春体</option>
+            <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
+            <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
+            <option value="xingshixin-yingbi-xingshu-jianti.woff">邢世新硬笔行书简体</option>
+            <option value="momo-yingbi-shouxieti.woff">默陌硬笔手写体</option>
+            <option value="momo-xinjian-shouxieti.woff">默陌信笺手写体</option>
+            <option value="jili-shouxie-jianti.woff">吉力手写简体</option>
+            <option value="hanyi-xindi-fangcaoti.woff">汉仪新蒂芳草体</option>
+            <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
+            <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
           </select>
         </div>
 
@@ -236,7 +245,7 @@
 
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
 
-    // 严格从当前仓库根目录读取同源字体，无任何外部 CDN 依赖和跨域拦截
+    // 切换字体函数：每次切换选项，动态加载对应 woff 文件并即时重绘
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
       badgeContainer.style.background = '#eff6ff';
@@ -245,10 +254,13 @@
 
       try {
         const fontUrl = './' + fileName;
-        const font = new FontFace('DynamicHandFont', `url("${fontUrl}")`);
+        // 生成唯一字体族名称，确保多次切换时绝对刷新
+        const uniqueFontName = 'Font_' + Date.now();
+        const font = new FontFace(uniqueFontName, `url("${fontUrl}")`);
         await font.load();
         document.fonts.add(font);
 
+        currentFontFamily = `'Caveat', '${uniqueFontName}', cursive, sans-serif`;
         fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
