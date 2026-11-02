@@ -297,7 +297,6 @@
     </section>
   </main>
 
-  <!-- 全屏高清放大预览灯箱 -->
   <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
       <div class="modal-img-wrapper">
@@ -353,7 +352,6 @@
       badgeContainer.style.color = '#1e40af';
 
       try {
-        // 使用 encodeURI 自动处理文件名中的空格
         const fontUrl = './' + encodeURI(fileName);
         const fixedFontName = 'Font_' + fileName.replace(/[^a-zA-Z0-9]/g, '_');
         const font = new FontFace(fixedFontName, `url("${fontUrl}")`);
@@ -617,6 +615,7 @@
 
           ctx.restore();
 
+          // 核心修复：彻底解除 !isEng 限制，英文字母同样支持涂改
           if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
             if (deterministicRandom(seed + 77) < scratchProb) {
               drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
@@ -655,6 +654,7 @@
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+          const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
 
           const scaleX = 1.0 + (deterministicRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
           const scaleY = 1.0 + (deterministicRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
@@ -698,7 +698,8 @@
 
           ctx.restore();
 
-          if (scratchProb > 0 && !isEng && char.trim() !== '') {
+          // 核心修复：英文与中文完全统一，只要非标点符号且非空格，拉动滑块立刻涂改划线！
+          if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
             if (deterministicRandom(seed + 77) < scratchProb) {
               drawScratch(charCenterX + jX, charCenterY + jY, baseFontSize * 1.3, seed);
             }
@@ -765,7 +766,6 @@
       renderHandwriting();
     };
 
-    // 默认开局载入第一款英文手写字体
     switchFont(fontSelect.value);
   </script>
 </body>
