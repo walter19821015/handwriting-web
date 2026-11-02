@@ -122,48 +122,63 @@
       border-radius: 2px;
     }
 
+    /* 高清巨幅预览灯箱 */
     .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(4px);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(6px);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 9999;
+      padding: 20px;
     }
     .modal-content {
       position: relative;
-      max-width: 90vw;
-      max-height: 92vh;
+      width: 92vw;
+      max-width: 1100px;
+      height: 94vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 18px 24px;
       gap: 14px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
     }
     .modal-img-wrapper {
-      max-height: 84vh;
-      overflow: auto;
-      border-radius: 6px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-      background: #cbd5e1;
-      padding: 10px;
+      flex: 1;
+      width: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 20px 10px;
     }
     #modalImage {
       display: block;
-      max-height: 80vh;
-      width: auto;
-      border-radius: 2px;
+      width: 950px;
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border-radius: 4px;
     }
     .modal-actions {
       display: flex;
-      gap: 16px;
+      gap: 20px;
+      width: 100%;
+      justify-content: center;
+      padding-top: 6px;
     }
     .modal-btn {
-      padding: 10px 20px;
+      padding: 11px 28px;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 500;
@@ -297,6 +312,7 @@
     </section>
   </main>
 
+  <!-- 高清大图预览灯箱 -->
   <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
       <div class="modal-img-wrapper">
@@ -340,9 +356,13 @@
 
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
 
-    function deterministicRandom(seed) {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
+    // 强化版整数散列生成器，确保 0~1 均匀散列，杜绝英文编码聚集在固定区间的缺陷
+    function hashRandom(seed) {
+      let h = (seed ^ 0xdeadbeef) >>> 0;
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h ^= h >>> 16;
+      return (h >>> 0) / 4294967296;
     }
 
     async function switchFont(fileName) {
@@ -504,10 +524,10 @@
     }
 
     function drawScratch(centerX, centerY, size, seed) {
-      const type = Math.floor(deterministicRandom(seed + 88) * 3);
+      const type = Math.floor(hashRandom(seed + 88) * 3);
       ctx.save();
       ctx.strokeStyle = 'rgba(25, 30, 42, 0.88)';
-      ctx.lineWidth = 1.8 + deterministicRandom(seed + 89) * 0.8;
+      ctx.lineWidth = 1.8 + hashRandom(seed + 89) * 0.8;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
@@ -576,20 +596,20 @@
           const isEng = /[a-zA-Z0-9]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
 
-          const scaleX = 1.0 + (deterministicRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
-          const scaleY = 1.0 + (deterministicRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
-          const skewX = (deterministicRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
-          const skewY = (deterministicRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
-          const charAngle = (deterministicRandom(seed + 2) - 0.5) * (0.28 * strokeChaos);
-          const strokeBreath = (deterministicRandom(seed + 10) - 0.5) * strokeChaos;
+          const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
+          const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
+          const skewX = (hashRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
+          const skewY = (hashRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
+          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.28 * strokeChaos);
+          const strokeBreath = (hashRandom(seed + 10) - 0.5) * strokeChaos;
 
           const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
           const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
 
-          const jX = (deterministicRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
-          const jY = (deterministicRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
+          const jX = (hashRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
+          const jY = (hashRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
 
-          const pressure = 0.88 + (deterministicRandom(seed + 1) - 0.5) * 0.18;
+          const pressure = 0.88 + (hashRandom(seed + 1) - 0.5) * 0.18;
 
           ctx.save();
           ctx.translate(cellCenterX + jX, cellCenterY + jY);
@@ -615,9 +635,9 @@
 
           ctx.restore();
 
-          // 核心修复：彻底解除 !isEng 限制，英文字母同样支持涂改
+          // 散列涂改判定
           if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
-            if (deterministicRandom(seed + 77) < scratchProb) {
+            if (hashRandom(seed * 7 + 991) < scratchProb) {
               drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
             }
           }
@@ -639,7 +659,7 @@
         let curX = startX;
         let lineIndex = 0;
 
-        let lineWave = (deterministicRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
+        let lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
 
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
@@ -649,31 +669,31 @@
           if (char === '\n') {
             curX = startX;
             lineIndex++;
-            lineWave = (deterministicRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
+            lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
             continue;
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
 
-          const scaleX = 1.0 + (deterministicRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
-          const scaleY = 1.0 + (deterministicRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
-          const skewX = (deterministicRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
-          const skewY = (deterministicRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
-          const charAngle = (deterministicRandom(seed + 2) - 0.5) * (0.30 * strokeChaos);
-          const strokeBreath = (deterministicRandom(seed + 10) - 0.5) * strokeChaos;
+          const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
+          const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
+          const skewX = (hashRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
+          const skewY = (hashRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
+          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.30 * strokeChaos);
+          const strokeBreath = (hashRandom(seed + 10) - 0.5) * strokeChaos;
 
-          const jX = (deterministicRandom(seed + 6) - 0.5) * (baseFontSize * 0.40 * posChaos);
-          const jY = (deterministicRandom(seed + 7) - 0.5) * (baseFontSize * 0.55 * posChaos) + lineWave;
+          const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.40 * posChaos);
+          const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.55 * posChaos) + lineWave;
 
           const baseStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
-          const charStep = baseStep * (1.0 + (deterministicRandom(seed + 15) - 0.5) * (0.45 * posChaos));
+          const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.45 * posChaos));
 
           const curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.72 : lineSpacing * 0.65);
           const charCenterX = curX + charStep * 0.5;
           const charCenterY = curY;
 
-          const pressure = 0.88 + (deterministicRandom(seed + 1) - 0.5) * 0.18;
+          const pressure = 0.88 + (hashRandom(seed + 1) - 0.5) * 0.18;
 
           ctx.save();
           ctx.translate(charCenterX + jX, charCenterY + jY);
@@ -698,9 +718,9 @@
 
           ctx.restore();
 
-          // 核心修复：英文与中文完全统一，只要非标点符号且非空格，拉动滑块立刻涂改划线！
+          // 核心修复：采用 MurmurHash 强化散列，拉动滑块时错误位置随概率均匀分布并线性递增
           if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
-            if (deterministicRandom(seed + 77) < scratchProb) {
+            if (hashRandom(seed * 11 + 104729) < scratchProb) {
               drawScratch(charCenterX + jX, charCenterY + jY, baseFontSize * 1.3, seed);
             }
           }
@@ -710,7 +730,7 @@
           if (curX > startX + maxLineWidth) {
             curX = startX;
             lineIndex++;
-            lineWave = (deterministicRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
+            lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
           }
         }
       }
