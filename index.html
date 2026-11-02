@@ -53,7 +53,7 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
-      max-height: calc(100vh - 120px);
+      max-height: calc(100vh - 100px);
       overflow-y: auto;
     }
 
@@ -122,7 +122,7 @@
       border-radius: 2px;
     }
 
-    /* 巨幅竖屏滚动灯箱弹窗 */
+    /* 巨幅竖屏长图预览浮层 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -153,7 +153,6 @@
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
       border-radius: 4px;
     }
-    /* 底部悬浮控制栏 */
     .modal-floating-bar {
       position: fixed;
       bottom: 24px;
@@ -184,11 +183,6 @@
     .modal-btn-close:hover { background: #334155; }
     .modal-btn-download { background: #16a34a; color: #ffffff; }
     .modal-btn-download:hover { background: #15803d; }
-
-    footer {
-      background: #ffffff; border-top: 1px solid #e5e7eb; padding: 14px 28px;
-      text-align: center; font-size: 12px; color: #9ca3af;
-    }
   </style>
 </head>
 <body>
@@ -201,27 +195,15 @@
     <section class="control-panel">
       <div class="panel-section">
         <span class="section-title">文本内容</span>
-        <textarea class="text-input-area" id="manualTextInput">Background: Acute kidney injury (AKI) is a critical complication after hepatobiliary surgery. The nonlinear interaction between effective circulating blood volume fluctuation, hepatic dysfunction, and metabolic disorder poses significant challenges to conventional predictive tools. In this study, we established and validated an explainable machine learning framework to optimize risk stratification for postoperative AKI.</textarea>
+        <textarea class="text-input-area" id="manualTextInput">背景：急性肾损伤(AKI)是肝胆疾病手术患者术后常见且严重的并发症，与重症监护室(ICU)住院时间延长、医疗花费剧增及高死亡率密切相关。由于围手术期有效循环血容量波动、肝功能障碍及代谢紊乱之间存在复杂的非线性交互作用，传统临床评分标准难以实现早期精准预警。本研究旨在构建并验证一种兼具高精度与临床可解释性的机器学习预测模型，用于术后 AKI 的早期风险分层。</textarea>
       </div>
 
       <div class="panel-section">
         <div class="form-group">
           <label for="fontSelect">选择字型</label>
           <select class="form-select" id="fontSelect">
-            <optgroup label="—— 英文手写字库 (OTF) ——">
-              <option value="Adagio Pro.otf" selected>英文：Adagio Pro</option>
-              <option value="alagambe.otf">英文：alagambe</option>
-              <option value="Arianta Syahrini.otf">英文：Arianta Syahrini</option>
-              <option value="Darleston.otf">英文：Darleston</option>
-              <option value="Signaturia.otf">英文：Signaturia</option>
-              <option value="Evergreen-Light.otf">英文：Evergreen-Light</option>
-              <option value="Lafesta-Regular.otf">英文：Lafesta-Regular</option>
-              <option value="Everglow.otf">英文：Everglow</option>
-              <option value="Baekrajan.otf">英文：Baekrajan</option>
-              <option value="Morgana.otf">英文：Morgana</option>
-            </optgroup>
             <optgroup label="—— 中文手写字库 (WOFF) ——">
-              <option value="honglei-xiaozhitiao-qingchunti.woff">鸿雷小纸条青春体</option>
+              <option value="honglei-xiaozhitiao-qingchunti.woff" selected>鸿雷小纸条青春体</option>
               <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
               <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
               <option value="xingshixin-yingbi-xingshu-jianti.woff">邢世新硬笔行书简体</option>
@@ -231,6 +213,18 @@
               <option value="hanyi-xindi-fangcaoti.woff">汉仪新蒂芳草体</option>
               <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
               <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
+            </optgroup>
+            <optgroup label="—— 英文手写字库 (OTF) ——">
+              <option value="Adagio Pro.otf">英文：Adagio Pro</option>
+              <option value="alagambe.otf">英文：alagambe</option>
+              <option value="Arianta Syahrini.otf">英文：Arianta Syahrini</option>
+              <option value="Darleston.otf">英文：Darleston</option>
+              <option value="Signaturia.otf">英文：Signaturia</option>
+              <option value="Evergreen-Light.otf">英文：Evergreen-Light</option>
+              <option value="Lafesta-Regular.otf">英文：Lafesta-Regular</option>
+              <option value="Everglow.otf">英文：Everglow</option>
+              <option value="Baekrajan.otf">英文：Baekrajan</option>
+              <option value="Morgana.otf">英文：Morgana</option>
             </optgroup>
           </select>
         </div>
@@ -274,9 +268,9 @@
           <div class="slider-group">
             <div class="slider-label-row">
               <span>文字位置乱乱度</span>
-              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">10%</span>
+              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
             </div>
-            <input type="range" class="slider-range" id="posJitterRange" min="0" max="100" value="10" />
+            <input type="range" class="slider-range" id="posJitterRange" min="0" max="100" value="0" />
             <div class="slider-sub-text"><span>整齐排列 0%</span><span>凌乱不堪 100%</span></div>
             <div class="slider-tip">推荐值: 10%（模拟自然书写不规则性）</div>
           </div>
@@ -284,9 +278,9 @@
           <div class="slider-group">
             <div class="slider-label-row">
               <span>字体笔画紊乱度</span>
-              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">15%</span>
+              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
             </div>
-            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="100" value="15" />
+            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="100" value="0" />
             <div class="slider-sub-text"><span>工整清晰 0%</span><span>歪七扭八 100%</span></div>
             <div class="slider-tip">推荐值: 5%（模拟笔画书写不规则性）</div>
           </div>
@@ -312,16 +306,11 @@
     <div class="modal-container">
       <img id="modalImage" src="" alt="高清大图手写预览" />
     </div>
-    <!-- 悬浮操作栏 -->
     <div class="modal-floating-bar">
       <button class="modal-btn modal-btn-close" id="btnModalClose">✕ 关闭预览</button>
       <button class="modal-btn modal-btn-download" id="btnModalDownload">📥 满意，直接下载</button>
     </div>
   </div>
-
-  <footer>
-    <span>手写字迹生成系统 · 纯前端渲染</span>
-  </footer>
 
   <script>
     const canvas = document.getElementById('previewCanvas');
@@ -736,20 +725,17 @@
       link.click();
     }
 
-    // 核心改进：点击“① 点击预览”，打开竖向卷轴全景特写层
     btnPreview.onclick = function() {
       renderHandwriting();
       modalImage.src = canvas.toDataURL('image/png');
       previewModal.style.display = 'flex';
-      previewModal.scrollTop = 0; // 每次打开自动置顶
+      previewModal.scrollTop = 0;
     };
 
-    // 关闭预览
     btnModalClose.onclick = function() {
       previewModal.style.display = 'none';
     };
 
-    // 点击深色边缘遮罩也能关闭
     previewModal.onclick = function(e) {
       if (e.target === previewModal) {
         previewModal.style.display = 'none';
@@ -781,6 +767,7 @@
       renderHandwriting();
     };
 
+    // 默认开局加载：鸿雷小纸条青春体
     switchFont(fontSelect.value);
   </script>
 </body>
