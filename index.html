@@ -4,16 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
-  <!-- 引入自然手写连笔字体库 -->
+  <!-- 引入连笔行书手写字体 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" />
   <style>
-    /* 引入开源行书手写字体 */
-    @font-face {
-      font-family: 'HandWriteXing';
-      src: url('https://cdn.jsdelivr.net/gh/googlefonts/noto-cjk@main/Sans/OTC/NotoSansCJK-Regular.ttc') format('truetype');
-      font-display: swap;
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -38,7 +31,7 @@
     main {
       flex: 1;
       display: flex;
-      max-width: 1480px;
+      max-width: 1560px;
       width: 100%;
       margin: 0 auto;
       padding: 24px;
@@ -46,7 +39,7 @@
     }
 
     .control-panel {
-      width: 440px;
+      width: 450px;
       flex-shrink: 0;
       background: #ffffff;
       border: 1px solid #e5e7eb;
@@ -56,6 +49,8 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
     }
 
     .panel-section { display: flex; flex-direction: column; gap: 8px; }
@@ -67,14 +62,6 @@
       border: 1px solid #d1d5db; background: #ffffff; cursor: pointer; color: #4b5563;
     }
     .btn-tab.active { background: #2563eb; border-color: #2563eb; color: #ffffff; }
-
-    .file-input-wrapper {
-      border: 1px dashed #d1d5db; border-radius: 8px; padding: 14px;
-      text-align: center; background: #fafafa; position: relative;
-    }
-    .file-input-wrapper input[type="file"] {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
-    }
 
     .text-input-area {
       width: 100%; height: 110px; padding: 10px; border: 1px solid #d1d5db;
@@ -116,10 +103,11 @@
     }
     .canvas-wrapper {
       flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
-      background: #475569; border-radius: 8px; padding: 24px; overflow: auto;
+      background: #334155; border-radius: 8px; padding: 24px; overflow: auto;
     }
     #previewCanvas {
-      max-width: 100%; height: auto; box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4); border-radius: 4px;
+      max-width: 100%; max-height: 800px; width: auto; height: auto;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45); border-radius: 2px;
     }
 
     footer {
@@ -136,86 +124,98 @@
 
   <main>
     <section class="control-panel">
+      <!-- 文本输入区 -->
       <div class="panel-section">
         <span class="section-title">文本内容</span>
-        <div class="tab-buttons">
-          <button class="btn-tab active" id="tabTextBtn" type="button">直接输入文字</button>
-          <button class="btn-tab" id="tabUploadBtn" type="button">选择文件</button>
-        </div>
-
         <textarea class="text-input-area" id="manualTextInput">背景：急性肾损伤(AKI)是肝胆疾病手术患者术后常见且严重的并发症，与重症监护室(ICU)住院时间延长、医疗花费剧增及高死亡率密切相关。由于围手术期有效循环血容量波动、肝功能障碍及代谢紊乱之间存在复杂的非线性交互作用，传统临床评分标准难以实现早期精准预警。本研究旨在构建并验证一种兼具高精度与临床可解释性的机器学习预测模型，用于术后 AKI 的早期风险分层。</textarea>
-
-        <div class="file-input-wrapper" id="uploadArea" style="display: none;">
-          <input type="file" id="docFileInput" accept=".docx,.txt" />
-          <div style="font-size: 13px; color: #4b5563;" id="fileNameDisplay">点击上传 .txt / .docx</div>
-        </div>
       </div>
 
+      <!-- 样式与纸张 -->
       <div class="panel-section">
         <span class="section-title">转换设置</span>
         <div class="form-group">
           <label for="fontSelect">手写字型风格</label>
           <select class="form-select" id="fontSelect">
-            <option value="'LXGW WenKai', 'STKaiti', cursive">霞鹜文楷（手写清秀风格）</option>
-            <option value="'Kaiti', 'STKaiti', serif">经典毛笔硬笔行楷</option>
-            <option value="-apple-system, sans-serif">手写素描体</option>
+            <option value="'LXGW WenKai', 'STKaiti', cursive">自然行楷笔势（新叶念体风格）</option>
+            <option value="'Kaiti', 'STKaiti', serif">工整硬笔行楷</option>
           </select>
         </div>
 
         <div class="form-group" style="margin-top: 6px;">
-          <label for="paperSelect">纸张背景</label>
+          <label for="paperSelect">纸张背景（包含实拍版、供打印版）</label>
           <select class="form-select" id="paperSelect">
-            <option value="red-line">实拍感 - 单红线信稿纸（真实红线）</option>
-            <option value="blank">自然牛皮微黄纸</option>
+            <option value="real_grid_red">实拍-红格子稿纸 (400 字/页)</option>
+            <option value="print_grid_black">可打印-黑格子稿纸 (400 字/页)-高清</option>
+            <option value="print_grid_red">可打印-红格子稿纸 (400 字/页)-高清</option>
+            <option value="real_redline" selected>实拍-单红线信稿纸 (点击展开|新增格子纸)</option>
+            <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
+            <option value="real_draft">草稿纸-高清实拍</option>
+            <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清 (4960x7015分辨率)</option>
+            <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清 (7015x4960分辨率)</option>
+            <option value="print_a4_table_v">可打印-纵向 A4 纸-可处理表格 (内测中)</option>
+            <option value="print_a4_table_h">可打印-横向 A4 纸-可处理表格 (内测中)</option>
+            <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清 (4157x5905分辨率)</option>
+            <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清 (5905x4157分辨率)</option>
+            <option value="print_b5_table_v">可打印-纵向 B5 纸-可处理表格 (内测中)</option>
+            <option value="print_b5_table_h">可打印-横向 B5 纸-可处理表格 (内测中)</option>
+            <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清 (7015x9921分辨率)</option>
+            <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清 (9921x7015分辨率)</option>
+            <option value="print_a3_table_v">可打印-纵向 A3 纸-可处理表格 (内测中)</option>
+            <option value="print_a3_table_h">可打印-横向 A3 纸-可处理表格 (内测中)</option>
+            <option value="print_redline_old">可打印-单红线信稿纸-宽边距-老</option>
           </select>
         </div>
       </div>
 
+      <!-- 涂改滑块 -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
-          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">2%</span>
+          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">3%</span>
         </div>
-        <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="2" />
+        <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="3" />
         <div class="slider-sub-text">
           <span>完美无瑕 0%</span>
           <span>涂改连篇 30%</span>
         </div>
       </div>
 
+      <!-- 高级微调 -->
       <details open>
         <summary>高级微调设置</summary>
         <div class="advanced-content">
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>文字位置起伏度 (抖动)</span>
-              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">12%</span>
+              <span>文字位置凌乱度 (上下浮动)</span>
+              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">10%</span>
             </div>
-            <input type="range" class="slider-range" id="posJitterRange" min="0" max="40" value="12" />
+            <input type="range" class="slider-range" id="posJitterRange" min="0" max="40" value="10" />
             <div class="slider-sub-text"><span>整齐排列 0%</span><span>错落自然 40%</span></div>
           </div>
 
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>字体歪扭角度 (旋转)</span>
-              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">8%</span>
+              <span>字体笔画凌乱度 (歪扭)</span>
+              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">5%</span>
             </div>
-            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="25" value="8" />
-            <div class="slider-sub-text"><span>工整垂直 0%</span><span>自然倾角 25%</span></div>
+            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="25" value="5" />
+            <div class="slider-sub-text"><span>工整垂直 0%</span><span>歪七扭八 25%</span></div>
           </div>
         </div>
       </details>
 
+      <!-- 操作按钮 -->
       <div class="action-row">
         <button class="btn-action btn-primary" id="btnPreview" type="button">🔄 刷新渲染</button>
         <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载高清图</button>
       </div>
     </section>
 
+    <!-- 右侧画板预览区 -->
     <section class="preview-panel">
-      <div class="preview-header">预览效果（已适配手写行距与真实下笔墨迹）</div>
+      <div class="preview-header">预览效果（已全面支持 19 款实拍及打印纸型算法）</div>
       <div class="canvas-wrapper">
-        <canvas id="previewCanvas" width="960" height="1360"></canvas>
+        <canvas id="previewCanvas"></canvas>
       </div>
     </section>
   </main>
@@ -235,71 +235,171 @@
     const posJitterRange = document.getElementById('posJitterRange');
     const rotJitterRange = document.getElementById('rotJitterRange');
 
-    function drawPaper(paperType) {
-      const w = canvas.width;
-      const h = canvas.height;
+    // 19 款纸张核心尺寸与渲染参数配置字典
+    const PAPER_PRESETS = {
+      // 1. 实拍红格子 (400字: 20列 x 20行)
+      real_grid_red: { w: 1000, h: 1400, type: 'grid', isReal: true, gridColor: 'rgba(215, 75, 68, 0.42)', cols: 20, rows: 20, marginX: 90, marginY: 170, size: 41 },
+      // 2. 打印黑格子 (400字)
+      print_grid_black: { w: 1200, h: 1680, type: 'grid', isReal: false, gridColor: 'rgba(50, 50, 50, 0.4)', cols: 20, rows: 20, marginX: 110, marginY: 200, size: 49 },
+      // 3. 打印红格子 (400字)
+      print_grid_red: { w: 1200, h: 1680, type: 'grid', isReal: false, gridColor: 'rgba(220, 60, 50, 0.45)', cols: 20, rows: 20, marginX: 110, marginY: 200, size: 49 },
+      // 4. 实拍单红线信稿纸
+      real_redline: { w: 1000, h: 1420, type: 'line', isReal: true, lineColor: 'rgba(218, 80, 72, 0.38)', lineSpacing: 50, marginX: 95, topMargin: 170, lines: 23 },
+      // 5. 打印单红线 A4-新
+      print_redline_a4_new: { w: 1240, h: 1754, type: 'line', isReal: false, lineColor: 'rgba(225, 70, 60, 0.42)', lineSpacing: 58, marginX: 110, topMargin: 190, lines: 25 },
+      // 6. 草稿纸实拍 (纯净无格线实拍光影)
+      real_draft: { w: 1000, h: 1420, type: 'blank', isReal: true, marginX: 100, topMargin: 160, lineSpacing: 48 },
+      // 7. 打印 A4 纵向 (高分辨率)
+      print_a4_v: { w: 1240, h: 1754, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 54, marginX: 100, topMargin: 180, lines: 27 },
+      // 8. 打印 A4 横向
+      print_a4_h: { w: 1754, h: 1240, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 54, marginX: 120, topMargin: 160, lines: 18 },
+      // 9. 纵向 A4 表格
+      print_a4_table_v: { w: 1240, h: 1754, type: 'table', isReal: false, cols: 6, rows: 22, marginX: 90, marginY: 150 },
+      // 10. 横向 A4 表格
+      print_a4_table_h: { w: 1754, h: 1240, type: 'table', isReal: false, cols: 9, rows: 14, marginX: 110, marginY: 140 },
+      // 11. 打印 B5 纵向
+      print_b5_v: { w: 1040, h: 1476, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 50, marginX: 90, topMargin: 160, lines: 24 },
+      // 12. 打印 B5 横向
+      print_b5_h: { w: 1476, h: 1040, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 50, marginX: 110, topMargin: 140, lines: 16 },
+      // 13. 纵向 B5 表格
+      print_b5_table_v: { w: 1040, h: 1476, type: 'table', isReal: false, cols: 5, rows: 20, marginX: 80, marginY: 140 },
+      // 14. 横向 B5 表格
+      print_b5_table_h: { w: 1476, h: 1040, type: 'table', isReal: false, cols: 8, rows: 13, marginX: 90, marginY: 130 },
+      // 15. 打印 A3 纵向
+      print_a3_v: { w: 1754, h: 2480, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 64, marginX: 140, topMargin: 240, lines: 32 },
+      // 16. 打印 A3 横向
+      print_a3_h: { w: 2480, h: 1754, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 64, marginX: 180, topMargin: 200, lines: 22 },
+      // 17. 纵向 A3 表格
+      print_a3_table_v: { w: 1754, h: 2480, type: 'table', isReal: false, cols: 8, rows: 28, marginX: 120, marginY: 180 },
+      // 18. 横向 A3 表格
+      print_a3_table_h: { w: 2480, h: 1754, type: 'table', isReal: false, cols: 12, rows: 18, marginX: 150, marginY: 160 },
+      // 19. 打印单红线-宽边距-老
+      print_redline_old: { w: 1100, h: 1500, type: 'line', isReal: false, lineColor: 'rgba(215, 75, 68, 0.42)', lineSpacing: 56, marginX: 160, topMargin: 220, lines: 20 }
+    };
 
-      // 1. 实拍光影底色（微斜光感）
-      const bgGrad = ctx.createRadialGradient(w * 0.25, h * 0.2, 50, w * 0.5, h * 0.5, w);
-      if (paperType === 'red-line') {
-        bgGrad.addColorStop(0, '#faf6ee');
-        bgGrad.addColorStop(0.65, '#f4ece1');
-        bgGrad.addColorStop(1, '#e3d7c5');
+    // 绘制对应纸张背景
+    function drawPaper(cfg) {
+      const w = cfg.w;
+      const h = cfg.h;
+      canvas.width = w;
+      canvas.height = h;
+
+      if (cfg.isReal) {
+        // 实拍版底色：自然光照扩散渐变
+        const bgGrad = ctx.createRadialGradient(w * 0.28, h * 0.22, 60, w * 0.5, h * 0.55, w * 0.95);
+        bgGrad.addColorStop(0, '#f9f6ef');
+        bgGrad.addColorStop(0.5, '#f4ece2');
+        bgGrad.addColorStop(1, '#e3d6c1');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // 实拍右侧折痕阴影
+        const fold = ctx.createLinearGradient(w * 0.74, 0, w * 0.81, 0);
+        fold.addColorStop(0, 'rgba(0,0,0,0)');
+        fold.addColorStop(0.5, 'rgba(65, 45, 25, 0.045)');
+        fold.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = fold;
+        ctx.fillRect(0, 0, w, h);
       } else {
-        bgGrad.addColorStop(0, '#fdfbf7');
-        bgGrad.addColorStop(1, '#ebe4d5');
+        // 打印版底色：纯净微米白
+        ctx.fillStyle = '#fdfdfb';
+        ctx.fillRect(0, 0, w, h);
       }
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, w, h);
 
-      // 2. 真实红线信纸格线（更细、微透、自然微弯）
-      if (paperType === 'red-line') {
-        const topMargin = 160;
-        const lineSpacing = 52;
-        const totalLines = 22;
-
-        ctx.strokeStyle = 'rgba(215, 80, 75, 0.38)';
-        ctx.lineWidth = 1.0;
-
-        for (let i = 0; i < totalLines; i++) {
-          const y = topMargin + i * lineSpacing;
+      // 线条与网格绘制
+      if (cfg.type === 'line') {
+        ctx.strokeStyle = cfg.lineColor;
+        ctx.lineWidth = cfg.isReal ? 1.1 : 1.0;
+        for (let i = 0; i < cfg.lines; i++) {
+          const y = cfg.topMargin + i * cfg.lineSpacing;
           ctx.beginPath();
-          ctx.moveTo(80, y);
-          ctx.bezierCurveTo(w * 0.35, y - 0.4, w * 0.7, y + 0.6, w - 80, y);
+          ctx.moveTo(cfg.marginX, y);
+          if (cfg.isReal) {
+            ctx.bezierCurveTo(w * 0.35, y - 0.6, w * 0.7, y + 0.6, w - cfg.marginX, y);
+          } else {
+            ctx.lineTo(w - cfg.marginX, y);
+          }
+          ctx.stroke();
+        }
+      } else if (cfg.type === 'grid') {
+        const totalW = cfg.cols * cfg.size;
+        const totalH = cfg.rows * cfg.size;
+        ctx.strokeStyle = cfg.gridColor;
+        ctx.lineWidth = 0.9;
+        for (let r = 0; r <= cfg.rows; r++) {
+          const y = cfg.marginY + r * cfg.size;
+          ctx.beginPath();
+          ctx.moveTo(cfg.marginX, y);
+          ctx.lineTo(cfg.marginX + totalW, y);
+          ctx.stroke();
+        }
+        for (let c = 0; c <= cfg.cols; c++) {
+          const x = cfg.marginX + c * cfg.size;
+          ctx.beginPath();
+          ctx.moveTo(x, cfg.marginY);
+          ctx.lineTo(x, cfg.marginY + totalH);
+          ctx.stroke();
+        }
+      } else if (cfg.type === 'table') {
+        const tableW = w - cfg.marginX * 2;
+        const colW = tableW / cfg.cols;
+        const rowH = 46;
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 1.2;
+        for (let r = 0; r <= cfg.rows; r++) {
+          const y = cfg.marginY + r * rowH;
+          ctx.beginPath();
+          ctx.moveTo(cfg.marginX, y);
+          ctx.lineTo(w - cfg.marginX, y);
+          ctx.stroke();
+        }
+        for (let c = 0; c <= cfg.cols; c++) {
+          const x = cfg.marginX + c * colW;
+          ctx.beginPath();
+          ctx.moveTo(x, cfg.marginY);
+          ctx.lineTo(x, cfg.marginY + cfg.rows * rowH);
           ctx.stroke();
         }
       }
 
-      // 3. 边缘暗角阴影
-      const vignette = ctx.createLinearGradient(0, 0, w, h);
-      vignette.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-      vignette.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
-      vignette.addColorStop(1, 'rgba(50, 35, 20, 0.16)');
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, w, h);
+      // 实拍光影暗角
+      if (cfg.isReal) {
+        const vignette = ctx.createLinearGradient(0, 0, w, h);
+        vignette.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+        vignette.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
+        vignette.addColorStop(1, 'rgba(60, 40, 20, 0.16)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, w, h);
+      }
     }
 
+    // 渲染手写文字
     function renderHandwriting() {
+      const pKey = paperSelect.value;
+      const cfg = PAPER_PRESETS[pKey] || PAPER_PRESETS.real_redline;
+      drawPaper(cfg);
+
       const text = textInput.value;
       const font = fontSelect.value;
-      const paperType = paperSelect.value;
-
       const scratchProb = parseInt(scratchRange.value, 10) / 100;
       const posJitter = parseInt(posJitterRange.value, 10) / 10;
       const rotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.08;
 
-      drawPaper(paperType);
+      let startX = cfg.marginX + 8;
+      let lineSpacing = cfg.lineSpacing || 50;
+      let topMargin = cfg.topMargin || (cfg.marginY ? cfg.marginY + 34 : 160);
+      let maxLineWidth = cfg.w - cfg.marginX * 2 - 16;
+      let fontSize = cfg.type === 'grid' ? cfg.size * 0.65 : 21;
 
-      // 手写真实排版尺寸调整（紧凑紧贴红线）
-      const startX = 96;
-      const topMargin = 160;
-      const lineSpacing = 52;
-      const maxLineWidth = canvas.width - 192;
-      const fontSize = 23; // 字号缩小，更贴合手写质感
+      // 适配高分辨率 A3 / 打印板字号比例
+      if (cfg.w > 1500) {
+        fontSize = 32;
+        lineSpacing = cfg.lineSpacing || 64;
+      }
 
       let curX = startX;
       let lineIndex = 0;
-      let curY = topMargin + lineSpacing * 0.78; // 贴在第一条格线上
+      let curY = topMargin + (cfg.type === 'line' ? lineSpacing * 0.76 : (cfg.type === 'grid' ? cfg.size * 0.68 : 36));
 
       ctx.globalCompositeOperation = 'multiply';
 
@@ -309,19 +409,17 @@
         if (char === '\n') {
           curX = startX;
           lineIndex++;
-          curY = topMargin + lineIndex * lineSpacing + lineSpacing * 0.78;
+          curY = topMargin + lineIndex * lineSpacing + (cfg.type === 'line' ? lineSpacing * 0.76 : 0);
           continue;
         }
 
-        // 随机下笔浮动
-        const jX = (Math.random() - 0.5) * posJitter * 1.8;
-        const jY = (Math.random() - 0.5) * posJitter * 1.4;
+        const jX = (Math.random() - 0.5) * posJitter * 1.6;
+        const jY = (Math.random() - 0.5) * posJitter * 1.3;
         const angle = (Math.random() - 0.5) * rotJitter;
-        const scale = 0.96 + Math.random() * 0.08;
+        const scale = 0.95 + Math.random() * 0.1;
 
-        // 墨水颜色：深蓝灰 + 轻微深浅墨水痕迹
-        const inkAlpha = 0.88 + Math.random() * 0.1;
-        ctx.fillStyle = `rgba(32, 38, 52, ${inkAlpha})`;
+        const inkAlpha = 0.86 + Math.random() * 0.12;
+        ctx.fillStyle = `rgba(30, 36, 48, ${inkAlpha})`;
         ctx.font = `${fontSize * scale}px ${font}`;
 
         ctx.save();
@@ -329,35 +427,32 @@
         ctx.rotate(angle);
         ctx.fillText(char, 0, 0);
 
-        // 仿真涂改
         if (Math.random() < scratchProb && char.trim() !== '') {
-          ctx.strokeStyle = `rgba(30, 36, 50, ${0.75 + Math.random() * 0.2})`;
-          ctx.lineWidth = 1.2 + Math.random() * 1.2;
+          ctx.strokeStyle = `rgba(28, 34, 46, ${0.75 + Math.random() * 0.2})`;
+          ctx.lineWidth = 1.3 + Math.random() * 1.2;
           ctx.beginPath();
-          ctx.moveTo(-2, -fontSize * 0.35);
-          ctx.lineTo(fontSize * 0.85, -fontSize * 0.3);
+          ctx.moveTo(-3, -fontSize * 0.35);
+          ctx.lineTo(fontSize * 0.88, -fontSize * 0.3);
           ctx.stroke();
         }
 
         ctx.restore();
 
-        // 推进字间距（中文全宽，英文字母自适应）
         const isEnglish = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-        const charStep = isEnglish ? fontSize * 0.58 : fontSize * 1.02;
-        curX += charStep + (Math.random() - 0.5) * 1.2;
+        const charStep = cfg.type === 'grid' ? cfg.size : (isEnglish ? fontSize * 0.55 : fontSize * 0.98);
+        curX += charStep + (cfg.type === 'grid' ? 0 : (Math.random() - 0.5) * 1.1);
 
-        // 换行判定
         if (curX > startX + maxLineWidth) {
           curX = startX;
           lineIndex++;
-          curY = topMargin + lineIndex * lineSpacing + lineSpacing * 0.78;
+          curY = topMargin + lineIndex * lineSpacing + (cfg.type === 'line' ? lineSpacing * 0.76 : 0);
         }
       }
 
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // 事件监听
+    // 事件绑定
     document.getElementById('btnPreview').addEventListener('click', renderHandwriting);
     scratchRange.addEventListener('input', (e) => {
       document.getElementById('scratchVal').textContent = e.target.value + '%';
@@ -376,25 +471,11 @@
 
     document.getElementById('btnDownload').addEventListener('click', () => {
       const link = document.createElement('a');
-      link.download = '手写文稿.png';
+      link.download = `手写文稿-${paperSelect.value}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
 
-    const tabUploadBtn = document.getElementById('tabUploadBtn');
-    const tabTextBtn = document.getElementById('tabTextBtn');
-    const uploadArea = document.getElementById('uploadArea');
-    const manualTextInput = document.getElementById('manualTextInput');
-    tabUploadBtn.addEventListener('click', () => {
-      tabUploadBtn.classList.add('active'); tabTextBtn.classList.remove('active');
-      uploadArea.style.display = 'block'; manualTextInput.style.display = 'none';
-    });
-    tabTextBtn.addEventListener('click', () => {
-      tabTextBtn.classList.add('active'); tabUploadBtn.classList.remove('active');
-      uploadArea.style.display = 'none'; manualTextInput.style.display = 'block';
-    });
-
-    // 字体加载完成立即初次渲染
     document.fonts.ready.then(() => {
       renderHandwriting();
     });
