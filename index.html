@@ -11,10 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* 核心：直接读取同源仓库中的 原版字体文件（不改名） */
+    /* 核心：直接读取同源仓库中的 handwrite.ttf */
     @font-face {
-      font-family: 'HongLeiHandFont';
-      src: url('./鸿雷小纸条青春体.ttf') format('truetype');
+      font-family: 'HandwriteCloud';
+      src: url('./handwrite.ttf') format('truetype');
       font-display: swap;
     }
 
@@ -153,7 +153,7 @@
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊 · 鸿雷手书直读版</div>
+    <div class="brand">✍️ 手写模拟工坊 · 全公网版</div>
   </header>
 
   <main>
@@ -166,11 +166,11 @@
       <div class="panel-section">
         <span class="section-title">手写字体状态</span>
         <div class="font-badge">
-          <span>状态：</span><strong id="fontStatusMsg">正在检测 鸿雷小纸条青春体.ttf...</strong>
+          <span>状态：</span><strong id="fontStatusMsg">正在加载 handwrite.ttf...</strong>
         </div>
 
         <label class="file-input-box">
-          <span id="localFontLabel">📁 本地即时预览（可直接选电脑里的任意ttf文件）</span>
+          <span id="localFontLabel">📁 本地备用上传（支持随时更换本地ttf预览）</span>
           <input type="file" id="localFontInput" accept=".ttf,.otf,.woff,.woff2" />
         </label>
 
@@ -257,20 +257,20 @@
     const localFontInput = document.getElementById('localFontInput');
     const localFontLabel = document.getElementById('localFontLabel');
 
-    let currentFontFamily = "'Caveat', 'HongLeiHandFont', cursive";
+    let currentFontFamily = "'Caveat', 'HandwriteCloud', cursive";
 
-    // 检查并加载仓库同源 鸿雷小纸条青春体.ttf
+    // 检查并加载仓库同源 handwrite.ttf
     async function initFont() {
       try {
-        const testFont = new FontFace('HongLeiHandFont', "url(encodeURI('./鸿雷小纸条青春体.ttf'))");
+        const testFont = new FontFace('HandwriteCloud', "url('./handwrite.ttf')");
         await testFont.load();
         document.fonts.add(testFont);
-        fontStatusMsg.textContent = '✅ 鸿雷小纸条青春体 载入成功（公网生效）';
+        fontStatusMsg.textContent = '✅ 手写字体已就绪 (公网同源自载)';
         fontStatusMsg.parentElement.style.background = '#f0fdf4';
         fontStatusMsg.parentElement.style.borderColor = '#bbf7d0';
         fontStatusMsg.parentElement.style.color = '#15803d';
       } catch (err) {
-        fontStatusMsg.textContent = '⚠️ 正在等待 鸿雷小纸条青春体.ttf 上传至仓库...';
+        fontStatusMsg.textContent = '⚠️ 正在读取 handwrite.ttf...';
         fontStatusMsg.parentElement.style.background = '#fffbeb';
         fontStatusMsg.parentElement.style.borderColor = '#fef3c7';
         fontStatusMsg.parentElement.style.color = '#b45309';
