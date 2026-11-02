@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
-  <!-- 引入连笔行书手写字体 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,15 +55,8 @@
     .panel-section { display: flex; flex-direction: column; gap: 8px; }
     .section-title { font-size: 14px; font-weight: 600; color: #1f2937; }
 
-    .tab-buttons { display: flex; gap: 8px; margin-bottom: 4px; }
-    .btn-tab {
-      padding: 6px 14px; font-size: 13px; border-radius: 20px;
-      border: 1px solid #d1d5db; background: #ffffff; cursor: pointer; color: #4b5563;
-    }
-    .btn-tab.active { background: #2563eb; border-color: #2563eb; color: #ffffff; }
-
     .text-input-area {
-      width: 100%; height: 110px; padding: 10px; border: 1px solid #d1d5db;
+      width: 100%; height: 120px; padding: 10px; border: 1px solid #d1d5db;
       border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.5;
     }
 
@@ -103,11 +95,13 @@
     }
     .canvas-wrapper {
       flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
-      background: #334155; border-radius: 8px; padding: 24px; overflow: auto;
+      background: #e2e8f0; border-radius: 8px; padding: 24px; overflow: auto;
     }
+
     #previewCanvas {
-      max-width: 100%; max-height: 800px; width: auto; height: auto;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45); border-radius: 2px;
+      max-width: 100%; max-height: 820px; width: auto; height: auto;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18), 0 5px 15px rgba(0, 0, 0, 0.08);
+      border-radius: 2px;
     }
 
     footer {
@@ -142,12 +136,12 @@
         </div>
 
         <div class="form-group" style="margin-top: 6px;">
-          <label for="paperSelect">纸张背景（包含实拍版、供打印版）</label>
+          <label for="paperSelect">纸张背景（19款全量预设）</label>
           <select class="form-select" id="paperSelect">
-            <option value="real_grid_red">实拍-红格子稿纸 (400 字/页)</option>
-            <option value="print_grid_black">可打印-黑格子稿纸 (400 字/页)-高清</option>
-            <option value="print_grid_red">可打印-红格子稿纸 (400 字/页)-高清</option>
-            <option value="real_redline" selected>实拍-单红线信稿纸 (点击展开|新增格子纸)</option>
+            <option value="real_grid_red" selected>实拍-红格子稿纸 (400字/页)</option>
+            <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
+            <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
+            <option value="real_redline">实拍-单红线信稿纸 (点击展开|新增格子纸)</option>
             <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
             <option value="real_draft">草稿纸-高清实拍</option>
             <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清 (4960x7015分辨率)</option>
@@ -186,20 +180,20 @@
         <div class="advanced-content">
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>文字位置凌乱度 (上下浮动)</span>
+              <span>文字位置起伏度 (上下微浮)</span>
               <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">10%</span>
             </div>
-            <input type="range" class="slider-range" id="posJitterRange" min="0" max="40" value="10" />
-            <div class="slider-sub-text"><span>整齐排列 0%</span><span>错落自然 40%</span></div>
+            <input type="range" class="slider-range" id="posJitterRange" min="0" max="30" value="10" />
+            <div class="slider-sub-text"><span>整齐排列 0%</span><span>自然微动 30%</span></div>
           </div>
 
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>字体笔画凌乱度 (歪扭)</span>
+              <span>字体旋转倾角 (歪扭)</span>
               <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">5%</span>
             </div>
-            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="25" value="5" />
-            <div class="slider-sub-text"><span>工整垂直 0%</span><span>歪七扭八 25%</span></div>
+            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="20" value="5" />
+            <div class="slider-sub-text"><span>工整垂直 0%</span><span>自然倾角 20%</span></div>
           </div>
         </div>
       </details>
@@ -213,7 +207,7 @@
 
     <!-- 右侧画板预览区 -->
     <section class="preview-panel">
-      <div class="preview-header">预览效果（已全面支持 19 款实拍及打印纸型算法）</div>
+      <div class="preview-header">预览效果（19款纸张参数全部严格对齐物理网格）</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
@@ -235,97 +229,171 @@
     const posJitterRange = document.getElementById('posJitterRange');
     const rotJitterRange = document.getElementById('rotJitterRange');
 
-    // 19 款纸张核心尺寸与渲染参数配置字典
-    const PAPER_PRESETS = {
-      // 1. 实拍红格子 (400字: 20列 x 20行)
-      real_grid_red: { w: 1000, h: 1400, type: 'grid', isReal: true, gridColor: 'rgba(215, 75, 68, 0.42)', cols: 20, rows: 20, marginX: 90, marginY: 170, size: 41 },
-      // 2. 打印黑格子 (400字)
-      print_grid_black: { w: 1200, h: 1680, type: 'grid', isReal: false, gridColor: 'rgba(50, 50, 50, 0.4)', cols: 20, rows: 20, marginX: 110, marginY: 200, size: 49 },
-      // 3. 打印红格子 (400字)
-      print_grid_red: { w: 1200, h: 1680, type: 'grid', isReal: false, gridColor: 'rgba(220, 60, 50, 0.45)', cols: 20, rows: 20, marginX: 110, marginY: 200, size: 49 },
+    // 19 款纸张底层严格参数矩阵
+    const PAPER_CONFIGS = {
+      // 1. 实拍红格子 (400字/页)
+      real_grid_red: {
+        w: 1200, h: 1600, mode: 'grid', isReal: true,
+        cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
+        color: 'rgba(215, 65, 55, 0.45)'
+      },
+      // 2. 打印黑格子 (400字/页)
+      print_grid_black: {
+        w: 1200, h: 1600, mode: 'grid', isReal: false,
+        cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
+        color: 'rgba(50, 50, 50, 0.4)'
+      },
+      // 3. 打印红格子 (400字/页)
+      print_grid_red: {
+        w: 1200, h: 1600, mode: 'grid', isReal: false,
+        cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
+        color: 'rgba(215, 65, 55, 0.45)'
+      },
       // 4. 实拍单红线信稿纸
-      real_redline: { w: 1000, h: 1420, type: 'line', isReal: true, lineColor: 'rgba(218, 80, 72, 0.38)', lineSpacing: 50, marginX: 95, topMargin: 170, lines: 23 },
+      real_redline: {
+        w: 1100, h: 1560, mode: 'line', isReal: true,
+        marginX: 110, topMargin: 190, lineSpacing: 54, lines: 23,
+        color: 'rgba(215, 75, 68, 0.38)'
+      },
       // 5. 打印单红线 A4-新
-      print_redline_a4_new: { w: 1240, h: 1754, type: 'line', isReal: false, lineColor: 'rgba(225, 70, 60, 0.42)', lineSpacing: 58, marginX: 110, topMargin: 190, lines: 25 },
+      print_redline_a4_new: {
+        w: 1240, h: 1754, mode: 'line', isReal: false,
+        marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25,
+        color: 'rgba(225, 70, 60, 0.4)'
+      },
       // 6. 草稿纸实拍 (纯净无格线实拍光影)
-      real_draft: { w: 1000, h: 1420, type: 'blank', isReal: true, marginX: 100, topMargin: 160, lineSpacing: 48 },
+      real_draft: {
+        w: 1100, h: 1560, mode: 'draft', isReal: true,
+        marginX: 120, topMargin: 190, lineSpacing: 54
+      },
       // 7. 打印 A4 纵向 (高分辨率)
-      print_a4_v: { w: 1240, h: 1754, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 54, marginX: 100, topMargin: 180, lines: 27 },
+      print_a4_v: {
+        w: 1240, h: 1754, mode: 'line', isReal: false,
+        marginX: 120, topMargin: 190, lineSpacing: 54, lines: 26,
+        color: 'rgba(180, 180, 180, 0.35)'
+      },
       // 8. 打印 A4 横向
-      print_a4_h: { w: 1754, h: 1240, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 54, marginX: 120, topMargin: 160, lines: 18 },
+      print_a4_h: {
+        w: 1754, h: 1240, mode: 'line', isReal: false,
+        marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17,
+        color: 'rgba(180, 180, 180, 0.35)'
+      },
       // 9. 纵向 A4 表格
-      print_a4_table_v: { w: 1240, h: 1754, type: 'table', isReal: false, cols: 6, rows: 22, marginX: 90, marginY: 150 },
+      print_a4_table_v: {
+        w: 1240, h: 1754, mode: 'table', isReal: false,
+        cols: 6, rows: 22, marginX: 100, marginY: 180, rowH: 60,
+        color: '#4b5563'
+      },
       // 10. 横向 A4 表格
-      print_a4_table_h: { w: 1754, h: 1240, type: 'table', isReal: false, cols: 9, rows: 14, marginX: 110, marginY: 140 },
+      print_a4_table_h: {
+        w: 1754, h: 1240, mode: 'table', isReal: false,
+        cols: 9, rows: 14, marginX: 120, marginY: 160, rowH: 62,
+        color: '#4b5563'
+      },
       // 11. 打印 B5 纵向
-      print_b5_v: { w: 1040, h: 1476, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 50, marginX: 90, topMargin: 160, lines: 24 },
+      print_b5_v: {
+        w: 1040, h: 1476, mode: 'line', isReal: false,
+        marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24,
+        color: 'rgba(180, 180, 180, 0.35)'
+      },
       // 12. 打印 B5 横向
-      print_b5_h: { w: 1476, h: 1040, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 50, marginX: 110, topMargin: 140, lines: 16 },
+      print_b5_h: {
+        w: 1476, h: 1040, mode: 'line', isReal: false,
+        marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16,
+        color: 'rgba(180, 180, 180, 0.35)'
+      },
       // 13. 纵向 B5 表格
-      print_b5_table_v: { w: 1040, h: 1476, type: 'table', isReal: false, cols: 5, rows: 20, marginX: 80, marginY: 140 },
+      print_b5_table_v: {
+        w: 1040, h: 1476, mode: 'table', isReal: false,
+        cols: 5, rows: 20, marginX: 90, marginY: 160, rowH: 56,
+        color: '#4b5563'
+      },
       // 14. 横向 B5 表格
-      print_b5_table_h: { w: 1476, h: 1040, type: 'table', isReal: false, cols: 8, rows: 13, marginX: 90, marginY: 130 },
+      print_b5_table_h: {
+        w: 1476, h: 1040, mode: 'table', isReal: false,
+        cols: 8, rows: 13, marginX: 100, marginY: 150, rowH: 56,
+        color: '#4b5563'
+      },
       // 15. 打印 A3 纵向
-      print_a3_v: { w: 1754, h: 2480, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 64, marginX: 140, topMargin: 240, lines: 32 },
+      print_a3_v: {
+        w: 1754, h: 2480, mode: 'line', isReal: false,
+        marginX: 160, topMargin: 240, lineSpacing: 64, lines: 32,
+        color: 'rgba(180, 180, 180, 0.35)'
+      },
       // 16. 打印 A3 横向
-      print_a3_h: { w: 2480, h: 1754, type: 'line', isReal: false, lineColor: 'rgba(180, 180, 180, 0.35)', lineSpacing: 64, marginX: 180, topMargin: 200, lines: 22 },
+      print_a3_h: {
+        w: 2480, h: 1754, mode: 'line', isReal: false,
+        marginX: 180, topMargin: 200, lineSpacing: 64, lines: 22,
+        color: 'rgba(180, 180, 180, 0.35)'
+      },
       // 17. 纵向 A3 表格
-      print_a3_table_v: { w: 1754, h: 2480, type: 'table', isReal: false, cols: 8, rows: 28, marginX: 120, marginY: 180 },
+      print_a3_table_v: {
+        w: 1754, h: 2480, mode: 'table', isReal: false,
+        cols: 8, rows: 28, marginX: 140, marginY: 200, rowH: 72,
+        color: '#4b5563'
+      },
       // 18. 横向 A3 表格
-      print_a3_table_h: { w: 2480, h: 1754, type: 'table', isReal: false, cols: 12, rows: 18, marginX: 150, marginY: 160 },
+      print_a3_table_h: {
+        w: 2480, h: 1754, mode: 'table', isReal: false,
+        cols: 12, rows: 18, marginX: 160, marginY: 180, rowH: 74,
+        color: '#4b5563'
+      },
       // 19. 打印单红线-宽边距-老
-      print_redline_old: { w: 1100, h: 1500, type: 'line', isReal: false, lineColor: 'rgba(215, 75, 68, 0.42)', lineSpacing: 56, marginX: 160, topMargin: 220, lines: 20 }
+      print_redline_old: {
+        w: 1100, h: 1500, mode: 'line', isReal: false,
+        marginX: 160, topMargin: 220, lineSpacing: 56, lines: 20,
+        color: 'rgba(215, 75, 68, 0.42)'
+      }
     };
 
-    // 绘制对应纸张背景
-    function drawPaper(cfg) {
+    // 纸张底色与网格精准铺设
+    function renderPaperBackground(cfg) {
       const w = cfg.w;
       const h = cfg.h;
       canvas.width = w;
       canvas.height = h;
 
       if (cfg.isReal) {
-        // 实拍版底色：自然光照扩散渐变
-        const bgGrad = ctx.createRadialGradient(w * 0.28, h * 0.22, 60, w * 0.5, h * 0.55, w * 0.95);
-        bgGrad.addColorStop(0, '#f9f6ef');
-        bgGrad.addColorStop(0.5, '#f4ece2');
-        bgGrad.addColorStop(1, '#e3d6c1');
-        ctx.fillStyle = bgGrad;
+        // 实拍版自然光斑与色温
+        const grad = ctx.createRadialGradient(w * 0.25, h * 0.22, 80, w * 0.5, h * 0.55, w * 0.9);
+        grad.addColorStop(0, '#f9f6ee');
+        grad.addColorStop(0.55, '#f4ede2');
+        grad.addColorStop(1, '#e3d6c0');
+        ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
 
-        // 实拍右侧折痕阴影
-        const fold = ctx.createLinearGradient(w * 0.74, 0, w * 0.81, 0);
+        // 自然微弱折痕
+        const fold = ctx.createLinearGradient(w * 0.72, 0, w * 0.79, 0);
         fold.addColorStop(0, 'rgba(0,0,0,0)');
-        fold.addColorStop(0.5, 'rgba(65, 45, 25, 0.045)');
+        fold.addColorStop(0.5, 'rgba(65, 45, 25, 0.04)');
         fold.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = fold;
         ctx.fillRect(0, 0, w, h);
       } else {
-        // 打印版底色：纯净微米白
-        ctx.fillStyle = '#fdfdfb';
+        // 打印版纯白纸面
+        ctx.fillStyle = '#fdfdfc';
         ctx.fillRect(0, 0, w, h);
       }
 
-      // 线条与网格绘制
-      if (cfg.type === 'line') {
-        ctx.strokeStyle = cfg.lineColor;
-        ctx.lineWidth = cfg.isReal ? 1.1 : 1.0;
+      // 1. 横线模式
+      if (cfg.mode === 'line') {
+        ctx.strokeStyle = cfg.color;
+        ctx.lineWidth = 1.0;
         for (let i = 0; i < cfg.lines; i++) {
           const y = cfg.topMargin + i * cfg.lineSpacing;
           ctx.beginPath();
           ctx.moveTo(cfg.marginX, y);
-          if (cfg.isReal) {
-            ctx.bezierCurveTo(w * 0.35, y - 0.6, w * 0.7, y + 0.6, w - cfg.marginX, y);
-          } else {
-            ctx.lineTo(w - cfg.marginX, y);
-          }
+          ctx.lineTo(w - cfg.marginX, y);
           ctx.stroke();
         }
-      } else if (cfg.type === 'grid') {
+      }
+      // 2. 矩阵方格模式
+      else if (cfg.mode === 'grid') {
         const totalW = cfg.cols * cfg.size;
         const totalH = cfg.rows * cfg.size;
-        ctx.strokeStyle = cfg.gridColor;
-        ctx.lineWidth = 0.9;
+        ctx.strokeStyle = cfg.color;
+        ctx.lineWidth = 1.0;
+
         for (let r = 0; r <= cfg.rows; r++) {
           const y = cfg.marginY + r * cfg.size;
           ctx.beginPath();
@@ -340,14 +408,16 @@
           ctx.lineTo(x, cfg.marginY + totalH);
           ctx.stroke();
         }
-      } else if (cfg.type === 'table') {
-        const tableW = w - cfg.marginX * 2;
-        const colW = tableW / cfg.cols;
-        const rowH = 46;
-        ctx.strokeStyle = '#4b5563';
+      }
+      // 3. 表格模式
+      else if (cfg.mode === 'table') {
+        const totalW = w - cfg.marginX * 2;
+        const colW = totalW / cfg.cols;
+        ctx.strokeStyle = cfg.color;
         ctx.lineWidth = 1.2;
+
         for (let r = 0; r <= cfg.rows; r++) {
-          const y = cfg.marginY + r * rowH;
+          const y = cfg.marginY + r * cfg.rowH;
           ctx.beginPath();
           ctx.moveTo(cfg.marginX, y);
           ctx.lineTo(w - cfg.marginX, y);
@@ -357,102 +427,199 @@
           const x = cfg.marginX + c * colW;
           ctx.beginPath();
           ctx.moveTo(x, cfg.marginY);
-          ctx.lineTo(x, cfg.marginY + cfg.rows * rowH);
+          ctx.lineTo(x, cfg.marginY + cfg.rows * cfg.rowH);
           ctx.stroke();
         }
       }
 
-      // 实拍光影暗角
+      // 实拍暗角
       if (cfg.isReal) {
         const vignette = ctx.createLinearGradient(0, 0, w, h);
-        vignette.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+        vignette.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
         vignette.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
-        vignette.addColorStop(1, 'rgba(60, 40, 20, 0.16)');
+        vignette.addColorStop(1, 'rgba(65, 45, 25, 0.15)');
         ctx.fillStyle = vignette;
         ctx.fillRect(0, 0, w, h);
       }
     }
 
-    // 渲染手写文字
+    // 核心渲染逻辑：彻底锁定各类纸张的网格与基准线
     function renderHandwriting() {
       const pKey = paperSelect.value;
-      const cfg = PAPER_PRESETS[pKey] || PAPER_PRESETS.real_redline;
-      drawPaper(cfg);
+      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_grid_red;
+      renderPaperBackground(cfg);
 
       const text = textInput.value;
       const font = fontSelect.value;
       const scratchProb = parseInt(scratchRange.value, 10) / 100;
       const posJitter = parseInt(posJitterRange.value, 10) / 10;
-      const rotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.08;
-
-      let startX = cfg.marginX + 8;
-      let lineSpacing = cfg.lineSpacing || 50;
-      let topMargin = cfg.topMargin || (cfg.marginY ? cfg.marginY + 34 : 160);
-      let maxLineWidth = cfg.w - cfg.marginX * 2 - 16;
-      let fontSize = cfg.type === 'grid' ? cfg.size * 0.65 : 21;
-
-      // 适配高分辨率 A3 / 打印板字号比例
-      if (cfg.w > 1500) {
-        fontSize = 32;
-        lineSpacing = cfg.lineSpacing || 64;
-      }
-
-      let curX = startX;
-      let lineIndex = 0;
-      let curY = topMargin + (cfg.type === 'line' ? lineSpacing * 0.76 : (cfg.type === 'grid' ? cfg.size * 0.68 : 36));
+      const rotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.06;
 
       ctx.globalCompositeOperation = 'multiply';
 
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
+      // ==================== 1. 方格矩阵排版 (400字稿纸) ====================
+      if (cfg.mode === 'grid') {
+        const fontSize = Math.floor(cfg.size * 0.68);
+        let col = 0;
+        let row = 0;
 
-        if (char === '\n') {
-          curX = startX;
-          lineIndex++;
-          curY = topMargin + lineIndex * lineSpacing + (cfg.type === 'line' ? lineSpacing * 0.76 : 0);
-          continue;
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+
+          if (char === '\n') {
+            col = 0;
+            row++;
+            if (row >= cfg.rows) break;
+            continue;
+          }
+
+          const cellCenterX = cfg.marginX + col * cfg.size + cfg.size / 2;
+          const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.72;
+
+          // 微扰动严格限制在方格内，绝不出格
+          const jX = (Math.random() - 0.5) * posJitter * 0.6;
+          const jY = (Math.random() - 0.5) * posJitter * 0.6;
+          const angle = (Math.random() - 0.5) * rotJitter;
+
+          const inkAlpha = 0.86 + Math.random() * 0.12;
+          ctx.fillStyle = `rgba(32, 38, 50, ${inkAlpha})`;
+          ctx.font = `${fontSize}px ${font}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'alphabetic';
+
+          ctx.save();
+          ctx.translate(cellCenterX + jX, cellCenterY + jY);
+          ctx.rotate(angle);
+          ctx.fillText(char, 0, 0);
+
+          if (Math.random() < scratchProb && char.trim() !== '') {
+            ctx.strokeStyle = `rgba(28, 34, 46, 0.8)`;
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(-fontSize * 0.42, -fontSize * 0.3);
+            ctx.lineTo(fontSize * 0.42, -fontSize * 0.3);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+
+          col++;
+          if (col >= cfg.cols) {
+            col = 0;
+            row++;
+            if (row >= cfg.rows) break;
+          }
         }
+      }
+      // ==================== 2. 数据表格排版 ====================
+      else if (cfg.mode === 'table') {
+        const totalW = cfg.w - cfg.marginX * 2;
+        const colW = totalW / cfg.cols;
+        const fontSize = Math.floor(cfg.rowH * 0.48);
+        let col = 0;
+        let row = 0;
 
-        const jX = (Math.random() - 0.5) * posJitter * 1.6;
-        const jY = (Math.random() - 0.5) * posJitter * 1.3;
-        const angle = (Math.random() - 0.5) * rotJitter;
-        const scale = 0.95 + Math.random() * 0.1;
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          if (char === '\n') {
+            col = 0;
+            row++;
+            if (row >= cfg.rows) break;
+            continue;
+          }
 
-        const inkAlpha = 0.86 + Math.random() * 0.12;
-        ctx.fillStyle = `rgba(30, 36, 48, ${inkAlpha})`;
-        ctx.font = `${fontSize * scale}px ${font}`;
+          const cellCenterX = cfg.marginX + col * colW + colW / 2;
+          const cellCenterY = cfg.marginY + row * cfg.rowH + cfg.rowH * 0.68;
 
-        ctx.save();
-        ctx.translate(curX + jX, curY + jY);
-        ctx.rotate(angle);
-        ctx.fillText(char, 0, 0);
+          const jX = (Math.random() - 0.5) * posJitter * 0.8;
+          const jY = (Math.random() - 0.5) * posJitter * 0.8;
+          const angle = (Math.random() - 0.5) * rotJitter;
 
-        if (Math.random() < scratchProb && char.trim() !== '') {
-          ctx.strokeStyle = `rgba(28, 34, 46, ${0.75 + Math.random() * 0.2})`;
-          ctx.lineWidth = 1.3 + Math.random() * 1.2;
-          ctx.beginPath();
-          ctx.moveTo(-3, -fontSize * 0.35);
-          ctx.lineTo(fontSize * 0.88, -fontSize * 0.3);
-          ctx.stroke();
+          ctx.fillStyle = `rgba(32, 38, 50, 0.9)`;
+          ctx.font = `${fontSize}px ${font}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'alphabetic';
+
+          ctx.save();
+          ctx.translate(cellCenterX + jX, cellCenterY + jY);
+          ctx.rotate(angle);
+          ctx.fillText(char, 0, 0);
+          ctx.restore();
+
+          col++;
+          if (col >= cfg.cols) {
+            col = 0;
+            row++;
+            if (row >= cfg.rows) break;
+          }
         }
+      }
+      // ==================== 3. 单横线与纯净草稿纸排版 ====================
+      else {
+        const fontSize = cfg.w > 1500 ? 30 : 22;
+        const lineSpacing = cfg.lineSpacing || 54;
+        const startX = cfg.marginX;
+        const maxLineWidth = cfg.w - cfg.marginX * 2;
+        const topMargin = cfg.topMargin || 190;
 
-        ctx.restore();
+        let curX = startX;
+        let lineIndex = 0;
+        let curY = topMargin + (cfg.mode === 'line' ? lineSpacing * 0.78 : lineSpacing * 0.7);
 
-        const isEnglish = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-        const charStep = cfg.type === 'grid' ? cfg.size : (isEnglish ? fontSize * 0.55 : fontSize * 0.98);
-        curX += charStep + (cfg.type === 'grid' ? 0 : (Math.random() - 0.5) * 1.1);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
 
-        if (curX > startX + maxLineWidth) {
-          curX = startX;
-          lineIndex++;
-          curY = topMargin + lineIndex * lineSpacing + (cfg.type === 'line' ? lineSpacing * 0.76 : 0);
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+
+          if (char === '\n') {
+            curX = startX;
+            lineIndex++;
+            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.78 : lineSpacing * 0.7);
+            continue;
+          }
+
+          const jX = (Math.random() - 0.5) * posJitter * 1.2;
+          const jY = (Math.random() - 0.5) * posJitter * 0.9;
+          const angle = (Math.random() - 0.5) * rotJitter;
+
+          const inkAlpha = 0.86 + Math.random() * 0.12;
+          ctx.fillStyle = `rgba(32, 38, 50, ${inkAlpha})`;
+          ctx.font = `${fontSize}px ${font}`;
+
+          ctx.save();
+          ctx.translate(curX + jX, curY + jY);
+          ctx.rotate(angle);
+          ctx.fillText(char, 0, 0);
+
+          if (Math.random() < scratchProb && char.trim() !== '') {
+            ctx.strokeStyle = `rgba(28, 34, 46, 0.8)`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-2, -fontSize * 0.35);
+            ctx.lineTo(fontSize * 0.85, -fontSize * 0.3);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+
+          // 中英文字符间距自适应
+          const isEnglish = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+          const charStep = isEnglish ? fontSize * 0.56 : fontSize * 0.98;
+          curX += charStep;
+
+          if (curX > startX + maxLineWidth) {
+            curX = startX;
+            lineIndex++;
+            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.78 : lineSpacing * 0.7);
+          }
         }
       }
 
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // 事件绑定
+    // 事件联动
     document.getElementById('btnPreview').addEventListener('click', renderHandwriting);
     scratchRange.addEventListener('input', (e) => {
       document.getElementById('scratchVal').textContent = e.target.value + '%';
