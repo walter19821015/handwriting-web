@@ -61,8 +61,8 @@
     .section-title { font-size: 14px; font-weight: 600; color: #1f2937; }
 
     .text-input-area {
-      width: 100%; height: 120px; padding: 10px; border: 1px solid #d1d5db;
-      border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.5;
+      width: 100%; height: 130px; padding: 10px; border: 1px solid #d1d5db;
+      border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.6;
     }
 
     .form-group { display: flex; flex-direction: column; gap: 6px; }
@@ -195,7 +195,11 @@
     <section class="control-panel">
       <div class="panel-section">
         <span class="section-title">文本内容</span>
-        <textarea class="text-input-area" id="manualTextInput">背景：急性肾损伤(AKI)是肝胆疾病手术患者术后常见且严重的并发症，与重症监护室(ICU)住院时间延长、医疗花费剧增及高死亡率密切相关。由于围手术期有效循环血容量波动、肝功能障碍及代谢紊乱之间存在复杂的非线性交互作用，传统临床评分标准难以实现早期精准预警。本研究旨在构建并验证一种兼具高精度与临床可解释性的机器学习预测模型，用于术后 AKI 的早期风险分层。</textarea>
+        <textarea class="text-input-area" id="manualTextInput">定风波·莫听穿林打叶声
+苏轼
+
+莫听穿林打叶声，何妨吟啸且徐行。竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。
+料峭春风吹酒醒，微冷，山头斜照却相迎。回首向来萧瑟处，归去，也无风雨也无晴。</textarea>
       </div>
 
       <div class="panel-section">
@@ -576,7 +580,7 @@
           }
 
           const isEng = /[a-zA-Z0-9]/.test(char);
-          const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
+          const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
           const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
           const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
@@ -617,7 +621,7 @@
 
           ctx.restore();
 
-          if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
+          if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
             if (hashRandom(seed * 7 + 991) < scratchProb) {
               drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
             }
@@ -655,7 +659,7 @@
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-          const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
+          const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
           const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
           const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
@@ -699,7 +703,7 @@
 
           ctx.restore();
 
-          if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
+          if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
             if (hashRandom(seed * 11 + 104729) < scratchProb) {
               drawScratch(charCenterX + jX, charCenterY + jY, baseFontSize * 1.3, seed);
             }
@@ -767,7 +771,6 @@
       renderHandwriting();
     };
 
-    // 默认开局加载：鸿雷小纸条青春体
     switchFont(fontSelect.value);
   </script>
 </body>
