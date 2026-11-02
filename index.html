@@ -4,7 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
+  <!-- 引入自然手写连笔字体库 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" />
   <style>
+    /* 引入开源行书手写字体 */
+    @font-face {
+      font-family: 'HandWriteXing';
+      src: url('https://cdn.jsdelivr.net/gh/googlefonts/noto-cjk@main/Sans/OTC/NotoSansCJK-Regular.ttc') format('truetype');
+      font-display: swap;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -69,7 +78,7 @@
 
     .text-input-area {
       width: 100%; height: 110px; padding: 10px; border: 1px solid #d1d5db;
-      border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit;
+      border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.5;
     }
 
     .form-group { display: flex; flex-direction: column; gap: 6px; }
@@ -107,10 +116,10 @@
     }
     .canvas-wrapper {
       flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
-      background: #4b5563; border-radius: 8px; padding: 20px; overflow: auto;
+      background: #475569; border-radius: 8px; padding: 24px; overflow: auto;
     }
     #previewCanvas {
-      max-width: 100%; height: auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border-radius: 4px;
+      max-width: 100%; height: auto; box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4); border-radius: 4px;
     }
 
     footer {
@@ -127,7 +136,6 @@
 
   <main>
     <section class="control-panel">
-      <!-- 文本输入区 -->
       <div class="panel-section">
         <span class="section-title">文本内容</span>
         <div class="tab-buttons">
@@ -135,7 +143,7 @@
           <button class="btn-tab" id="tabUploadBtn" type="button">选择文件</button>
         </div>
 
-        <textarea class="text-input-area" id="manualTextInput" placeholder="输入手写文本...">背景：急性肾损伤(AKI)是肝胆疾病手术患者术后常见且严重的并发症，与重症监护室(ICU)住院时间延长、医疗花费剧增及高死亡率密切相关。由于围手术期有效循环血容量波动、肝功能障碍及代谢紊乱之间存在复杂的非线性交互作用，传统临床评分标准难以实现早期精准预警。本研究旨在构建并验证一种兼具高精度与临床可解释性的机器学习预测模型，用于术后 AKI 的早期风险分层。</textarea>
+        <textarea class="text-input-area" id="manualTextInput">背景：急性肾损伤(AKI)是肝胆疾病手术患者术后常见且严重的并发症，与重症监护室(ICU)住院时间延长、医疗花费剧增及高死亡率密切相关。由于围手术期有效循环血容量波动、肝功能障碍及代谢紊乱之间存在复杂的非线性交互作用，传统临床评分标准难以实现早期精准预警。本研究旨在构建并验证一种兼具高精度与临床可解释性的机器学习预测模型，用于术后 AKI 的早期风险分层。</textarea>
 
         <div class="file-input-wrapper" id="uploadArea" style="display: none;">
           <input type="file" id="docFileInput" accept=".docx,.txt" />
@@ -143,75 +151,71 @@
         </div>
       </div>
 
-      <!-- 样式与纸张 -->
       <div class="panel-section">
         <span class="section-title">转换设置</span>
         <div class="form-group">
           <label for="fontSelect">手写字型风格</label>
           <select class="form-select" id="fontSelect">
-            <option value="Kaiti, 'STKaiti', '楷体', serif">自然行楷风格</option>
-            <option value="'Songti SC', 'SimSun', serif">端庄硬笔风格</option>
+            <option value="'LXGW WenKai', 'STKaiti', cursive">霞鹜文楷（手写清秀风格）</option>
+            <option value="'Kaiti', 'STKaiti', serif">经典毛笔硬笔行楷</option>
+            <option value="-apple-system, sans-serif">手写素描体</option>
           </select>
         </div>
 
         <div class="form-group" style="margin-top: 6px;">
           <label for="paperSelect">纸张背景</label>
           <select class="form-select" id="paperSelect">
-            <option value="red-line">实拍感 - 单红线信稿纸（带环境光影）</option>
-            <option value="blank">自然牛皮米白纸</option>
+            <option value="red-line">实拍感 - 单红线信稿纸（真实红线）</option>
+            <option value="blank">自然牛皮微黄纸</option>
           </select>
         </div>
       </div>
 
-      <!-- 涂改滑块 -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
-          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">3%</span>
+          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">2%</span>
         </div>
-        <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="3" />
+        <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="2" />
         <div class="slider-sub-text">
           <span>完美无瑕 0%</span>
-          <span>随性涂改 30%</span>
+          <span>涂改连篇 30%</span>
         </div>
       </div>
 
-      <!-- 高级微调 -->
       <details open>
         <summary>高级微调设置</summary>
         <div class="advanced-content">
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>文字位置凌乱度 (抖动)</span>
-              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">15%</span>
+              <span>文字位置起伏度 (抖动)</span>
+              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">12%</span>
             </div>
-            <input type="range" class="slider-range" id="posJitterRange" min="0" max="50" value="15" />
-            <div class="slider-sub-text"><span>整齐排列 0%</span><span>起伏自然 50%</span></div>
+            <input type="range" class="slider-range" id="posJitterRange" min="0" max="40" value="12" />
+            <div class="slider-sub-text"><span>整齐排列 0%</span><span>错落自然 40%</span></div>
           </div>
 
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>字体笔画凌乱度 (歪扭)</span>
-              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">10%</span>
+              <span>字体歪扭角度 (旋转)</span>
+              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">8%</span>
             </div>
-            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="30" value="10" />
-            <div class="slider-sub-text"><span>工整清晰 0%</span><span>歪七扭八 30%</span></div>
+            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="25" value="8" />
+            <div class="slider-sub-text"><span>工整垂直 0%</span><span>自然倾角 25%</span></div>
           </div>
         </div>
       </details>
 
-      <!-- 按钮 -->
       <div class="action-row">
         <button class="btn-action btn-primary" id="btnPreview" type="button">🔄 刷新渲染</button>
         <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载高清图</button>
       </div>
     </section>
 
-    <!-- 右侧画板预览区 -->
     <section class="preview-panel">
-      <div class="preview-header">预览效果（已实时生成实拍质感信纸）</div>
+      <div class="preview-header">预览效果（已适配手写行距与真实下笔墨迹）</div>
       <div class="canvas-wrapper">
-        <canvas id="previewCanvas" width="900" height="1200"></canvas>
+        <canvas id="previewCanvas" width="960" height="1360"></canvas>
       </div>
     </section>
   </main>
@@ -231,53 +235,50 @@
     const posJitterRange = document.getElementById('posJitterRange');
     const rotJitterRange = document.getElementById('rotJitterRange');
 
-    // 绘制自然实拍感纸张底图
     function drawPaper(paperType) {
       const w = canvas.width;
       const h = canvas.height;
 
-      // 1. 底色渐变（模拟顶部光照亮、底部微暗的自然光影）
-      const bgGrad = ctx.createRadialGradient(w * 0.35, h * 0.25, 100, w * 0.5, h * 0.5, w);
+      // 1. 实拍光影底色（微斜光感）
+      const bgGrad = ctx.createRadialGradient(w * 0.25, h * 0.2, 50, w * 0.5, h * 0.5, w);
       if (paperType === 'red-line') {
-        bgGrad.addColorStop(0, '#f9f5eb');
-        bgGrad.addColorStop(0.7, '#f2ece0');
-        bgGrad.addColorStop(1, '#e4dbcc');
+        bgGrad.addColorStop(0, '#faf6ee');
+        bgGrad.addColorStop(0.65, '#f4ece1');
+        bgGrad.addColorStop(1, '#e3d7c5');
       } else {
-        bgGrad.addColorStop(0, '#fafafa');
-        bgGrad.addColorStop(1, '#ebe6dc');
+        bgGrad.addColorStop(0, '#fdfbf7');
+        bgGrad.addColorStop(1, '#ebe4d5');
       }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
 
-      // 2. 绘制实拍红线信稿纸格线
+      // 2. 真实红线信纸格线（更细、微透、自然微弯）
       if (paperType === 'red-line') {
-        const topMargin = 120;
-        const lineSpacing = 48;
-        const totalLines = 21;
+        const topMargin = 160;
+        const lineSpacing = 52;
+        const totalLines = 22;
 
-        ctx.strokeStyle = 'rgba(215, 85, 80, 0.42)'; // 真实信纸暗红线
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = 'rgba(215, 80, 75, 0.38)';
+        ctx.lineWidth = 1.0;
 
         for (let i = 0; i < totalLines; i++) {
           const y = topMargin + i * lineSpacing;
           ctx.beginPath();
-          // 红线带轻微的微弧抖动，不完全死板水平
-          ctx.moveTo(70, y);
-          ctx.bezierCurveTo(w * 0.3, y - 0.5, w * 0.7, y + 0.5, w - 70, y);
+          ctx.moveTo(80, y);
+          ctx.bezierCurveTo(w * 0.35, y - 0.4, w * 0.7, y + 0.6, w - 80, y);
           ctx.stroke();
         }
       }
 
-      // 3. 叠加微弱的环境暗角与纸张阴影
-      const shadowGrad = ctx.createLinearGradient(0, 0, w, h);
-      shadowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
-      shadowGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0)');
-      shadowGrad.addColorStop(1, 'rgba(60, 45, 30, 0.12)');
-      ctx.fillStyle = shadowGrad;
+      // 3. 边缘暗角阴影
+      const vignette = ctx.createLinearGradient(0, 0, w, h);
+      vignette.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+      vignette.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
+      vignette.addColorStop(1, 'rgba(50, 35, 20, 0.16)');
+      ctx.fillStyle = vignette;
       ctx.fillRect(0, 0, w, h);
     }
 
-    // 绘制手写字与涂改
     function renderHandwriting() {
       const text = textInput.value;
       const font = fontSelect.value;
@@ -287,20 +288,19 @@
       const posJitter = parseInt(posJitterRange.value, 10) / 10;
       const rotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.08;
 
-      // 每次重画先画底纸
       drawPaper(paperType);
 
-      // 排版参数
-      const startX = 85;
-      const startY = 150;
-      const lineSpacing = 48;
-      const maxLineWidth = canvas.width - 170;
-      const fontSize = 28;
+      // 手写真实排版尺寸调整（紧凑紧贴红线）
+      const startX = 96;
+      const topMargin = 160;
+      const lineSpacing = 52;
+      const maxLineWidth = canvas.width - 192;
+      const fontSize = 23; // 字号缩小，更贴合手写质感
 
       let curX = startX;
-      let curY = startY;
+      let lineIndex = 0;
+      let curY = topMargin + lineSpacing * 0.78; // 贴在第一条格线上
 
-      // 墨水融合模式：正片叠底
       ctx.globalCompositeOperation = 'multiply';
 
       for (let i = 0; i < text.length; i++) {
@@ -308,19 +308,20 @@
 
         if (char === '\n') {
           curX = startX;
-          curY += lineSpacing;
+          lineIndex++;
+          curY = topMargin + lineIndex * lineSpacing + lineSpacing * 0.78;
           continue;
         }
 
-        // 字符随机参数
-        const jX = (Math.random() - 0.5) * posJitter * 2;
-        const jY = (Math.random() - 0.5) * posJitter * 1.5;
+        // 随机下笔浮动
+        const jX = (Math.random() - 0.5) * posJitter * 1.8;
+        const jY = (Math.random() - 0.5) * posJitter * 1.4;
         const angle = (Math.random() - 0.5) * rotJitter;
         const scale = 0.96 + Math.random() * 0.08;
 
-        // 墨水颜色：带有微弱蓝黑墨水深浅变化
-        const inkAlpha = 0.85 + Math.random() * 0.12;
-        ctx.fillStyle = `rgba(28, 35, 48, ${inkAlpha})`;
+        // 墨水颜色：深蓝灰 + 轻微深浅墨水痕迹
+        const inkAlpha = 0.88 + Math.random() * 0.1;
+        ctx.fillStyle = `rgba(32, 38, 52, ${inkAlpha})`;
         ctx.font = `${fontSize * scale}px ${font}`;
 
         ctx.save();
@@ -328,33 +329,35 @@
         ctx.rotate(angle);
         ctx.fillText(char, 0, 0);
 
-        // 随机涂改效果（在字上划掉）
+        // 仿真涂改
         if (Math.random() < scratchProb && char.trim() !== '') {
-          ctx.strokeStyle = `rgba(25, 30, 45, ${0.7 + Math.random() * 0.25})`;
-          ctx.lineWidth = 1.5 + Math.random() * 1.5;
+          ctx.strokeStyle = `rgba(30, 36, 50, ${0.75 + Math.random() * 0.2})`;
+          ctx.lineWidth = 1.2 + Math.random() * 1.2;
           ctx.beginPath();
-          ctx.moveTo(-4, -fontSize * 0.4);
-          ctx.lineTo(fontSize * 0.9, -fontSize * 0.35);
+          ctx.moveTo(-2, -fontSize * 0.35);
+          ctx.lineTo(fontSize * 0.85, -fontSize * 0.3);
           ctx.stroke();
         }
 
         ctx.restore();
 
-        // 字间距推进
-        curX += fontSize + (Math.random() - 0.5) * 2;
+        // 推进字间距（中文全宽，英文字母自适应）
+        const isEnglish = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+        const charStep = isEnglish ? fontSize * 0.58 : fontSize * 1.02;
+        curX += charStep + (Math.random() - 0.5) * 1.2;
 
         // 换行判定
         if (curX > startX + maxLineWidth) {
           curX = startX;
-          curY += lineSpacing;
+          lineIndex++;
+          curY = topMargin + lineIndex * lineSpacing + lineSpacing * 0.78;
         }
       }
 
-      // 恢复模式
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // 绑定更新事件
+    // 事件监听
     document.getElementById('btnPreview').addEventListener('click', renderHandwriting);
     scratchRange.addEventListener('input', (e) => {
       document.getElementById('scratchVal').textContent = e.target.value + '%';
@@ -371,7 +374,6 @@
     paperSelect.addEventListener('change', renderHandwriting);
     fontSelect.addEventListener('change', renderHandwriting);
 
-    // 下载高清成品
     document.getElementById('btnDownload').addEventListener('click', () => {
       const link = document.createElement('a');
       link.download = '手写文稿.png';
@@ -379,7 +381,6 @@
       link.click();
     });
 
-    // 标签切换
     const tabUploadBtn = document.getElementById('tabUploadBtn');
     const tabTextBtn = document.getElementById('tabTextBtn');
     const uploadArea = document.getElementById('uploadArea');
@@ -393,8 +394,10 @@
       uploadArea.style.display = 'none'; manualTextInput.style.display = 'block';
     });
 
-    // 页面打开立刻画出第一版
-    window.addEventListener('load', renderHandwriting);
+    // 字体加载完成立即初次渲染
+    document.fonts.ready.then(() => {
+      renderHandwriting();
+    });
   </script>
 </body>
 </html>
