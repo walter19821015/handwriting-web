@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
 
-  <!-- 引入连笔英文字库 -->
+  <!-- 连笔英文字库 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
@@ -65,6 +65,13 @@
       border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.5;
     }
 
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 13px; font-weight: 500; color: #4b5563; }
+    .form-select {
+      width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #d1d5db;
+      font-size: 13px; color: #1f2937; outline: none; background: #ffffff;
+    }
+
     .font-badge {
       display: inline-flex;
       align-items: center;
@@ -75,13 +82,6 @@
       border-radius: 6px;
       font-size: 12px;
       color: #1e40af;
-    }
-
-    .form-group { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
-    .form-group label { font-size: 13px; font-weight: 500; color: #4b5563; }
-    .form-select {
-      width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #d1d5db;
-      font-size: 13px; color: #1f2937; outline: none; background: #ffffff;
     }
 
     .slider-group { display: flex; flex-direction: column; gap: 6px; }
@@ -130,7 +130,7 @@
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊 · 全公网正式版</div>
+    <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
   </header>
 
   <main>
@@ -141,12 +141,18 @@
       </div>
 
       <div class="panel-section">
-        <span class="section-title">手写字体</span>
-        <div class="font-badge" id="badgeContainer">
-          <span>字体：</span><strong id="fontStatusMsg">正在同步真实手写字库...</strong>
+        <div class="form-group">
+          <label for="fontSelect">手写字型选择</label>
+          <select class="form-select" id="fontSelect">
+            <option value="honglei-xiaozhitiao-qingchunti.woff" selected>鸿雷小纸条青春体</option>
+          </select>
         </div>
 
-        <div class="form-group">
+        <div class="font-badge" id="badgeContainer">
+          <span>状态：</span><strong id="fontStatusMsg">正在载入字库...</strong>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
           <label for="paperSelect">纸张背景（19款全量预设）</label>
           <select class="form-select" id="paperSelect">
             <option value="real_grid_red" selected>实拍-红格子稿纸 (400字/页)</option>
@@ -212,7 +218,7 @@
   </main>
 
   <footer>
-    <span>手写字迹生成系统 · 纯本地前端渲染</span>
+    <span>手写字迹生成系统 · 纯前端渲染</span>
   </footer>
 
   <script>
@@ -221,36 +227,33 @@
 
     const textInput = document.getElementById('manualTextInput');
     const paperSelect = document.getElementById('paperSelect');
+    const fontSelect = document.getElementById('fontSelect');
     const scratchRange = document.getElementById('scratchRange');
     const posJitterRange = document.getElementById('posJitterRange');
     const rotJitterRange = document.getElementById('rotJitterRange');
     const fontStatusMsg = document.getElementById('fontStatusMsg');
     const badgeContainer = document.getElementById('badgeContainer');
 
-    const FONT_NAME = 'HongLeiFont';
-    let currentFontFamily = `'Caveat', '${FONT_NAME}', cursive, sans-serif`;
+    let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
 
-    // 核心切换：采用 jsDelivr 全球开放 CDN，彻底消灭 CORS 跨域报错
-    const CDN_FONT_URL = 'https://cdn.jsdelivr.net/gh/walter19821015/handwriting-web@v1.0/honglei-xiaozhitiao-qingchunti.ttf';
+    // 严格从当前仓库根目录读取同源字体，无任何外部 CDN 依赖和跨域拦截
+    async function switchFont(fileName) {
+      fontStatusMsg.textContent = '⏳ 正在载入字库...';
+      badgeContainer.style.background = '#eff6ff';
+      badgeContainer.style.borderColor = '#bfdbfe';
+      badgeContainer.style.color = '#1e40af';
 
-    async function loadCdnFont() {
       try {
-        fontStatusMsg.textContent = '⏳ 正在加载鸿雷小纸条青春体...';
-        
-        const res = await fetch(CDN_FONT_URL);
-        if (!res.ok) throw new Error('HTTP 状态码: ' + res.status);
-        const buf = await res.arrayBuffer();
-
-        const font = new FontFace(FONT_NAME, buf);
+        const fontUrl = './' + fileName;
+        const font = new FontFace('DynamicHandFont', `url("${fontUrl}")`);
         await font.load();
         document.fonts.add(font);
 
-        fontStatusMsg.textContent = '✅ 鸿雷小纸条青春体已挂载（全公网生效）';
+        fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
         badgeContainer.style.color = '#15803d';
 
-        // 真实字模加载完毕，直接执行渲染
         renderHandwriting();
       } catch (err) {
         fontStatusMsg.textContent = '❌ 加载失败: ' + err.message;
@@ -532,6 +535,8 @@
     }
 
     document.getElementById('btnPreview').addEventListener('click', renderHandwriting);
+    fontSelect.addEventListener('change', (e) => switchFont(e.target.value));
+
     scratchRange.addEventListener('input', (e) => {
       document.getElementById('scratchVal').textContent = e.target.value + '%';
       renderHandwriting();
@@ -553,8 +558,8 @@
       link.click();
     });
 
-    // 启动 CDN 加载
-    loadCdnFont();
+    // 默认开局加载鸿雷小纸条青春体
+    switchFont(fontSelect.value);
   </script>
 </body>
 </html>
