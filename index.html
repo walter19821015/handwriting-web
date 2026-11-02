@@ -10,6 +10,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
+  <!-- 纯前端文件解析引擎：Word (.docx)、PDF、图片 OCR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
+  </script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -52,7 +62,7 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
       max-height: calc(100vh - 100px);
       overflow-y: auto;
     }
@@ -60,8 +70,31 @@
     .panel-section { display: flex; flex-direction: column; gap: 8px; }
     .section-title { font-size: 14px; font-weight: 600; color: #1f2937; }
 
+    /* 文件上传拖拽区 */
+    .file-upload-box {
+      border: 2px dashed #93c5fd;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 14px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .file-upload-box:hover, .file-upload-box.dragover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    .upload-icon { font-size: 24px; }
+    .upload-text { font-size: 13px; font-weight: 600; color: #1d4ed8; }
+    .upload-desc { font-size: 11px; color: #64748b; }
+    .upload-status { font-size: 11px; color: #2563eb; margin-top: 2px; font-weight: 500; }
+
     .text-input-area {
-      width: 100%; height: 130px; padding: 10px; border: 1px solid #d1d5db;
+      width: 100%; height: 110px; padding: 10px; border: 1px solid #d1d5db;
       border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.6;
     }
 
@@ -94,7 +127,7 @@
     details summary { font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; user-select: none; }
     .advanced-content { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
 
-    .action-row { display: flex; gap: 12px; margin-top: 6px; }
+    .action-row { display: flex; gap: 12px; margin-top: 4px; }
     .btn-action {
       flex: 1; padding: 12px; font-size: 14px; font-weight: 500; border-radius: 8px;
       border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -193,6 +226,18 @@
 
   <main>
     <section class="control-panel">
+      <!-- 上传与导入文件区 -->
+      <div class="panel-section">
+        <span class="section-title">导入文稿</span>
+        <input type="file" id="fileUploadInput" accept=".docx,.doc,.pdf,.txt,.md,image/*" style="display: none;" />
+        <div class="file-upload-box" id="dropUploadBox">
+          <div class="upload-icon">📂</div>
+          <div class="upload-text">点击或将文件拖拽至此处导入</div>
+          <div class="upload-desc">支持上传 Word(推荐🌟)、PDF、图片、纯文字</div>
+          <div class="upload-status" id="uploadStatusText"></div>
+        </div>
+      </div>
+
       <div class="panel-section">
         <span class="section-title">文本内容</span>
         <textarea class="text-input-area" id="manualTextInput">定风波·莫听穿林打叶声
@@ -341,6 +386,11 @@
     const btnModalClose = document.getElementById('btnModalClose');
     const btnModalDownload = document.getElementById('btnModalDownload');
 
+    // 文件上传相关 DOM
+    const fileUploadInput = document.getElementById('fileUploadInput');
+    const dropUploadBox = document.getElementById('dropUploadBox');
+    const uploadStatusText = document.getElementById('uploadStatusText');
+
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
 
     function hashRandom(seed) {
@@ -379,6 +429,76 @@
         renderHandwriting();
       }
     }
+
+    // 文件解析处理器（Word、PDF、图片、纯文本）
+    async function handleUploadedFile(file) {
+      if (!file) return;
+      uploadStatusText.textContent = `⏳ 正在读取: ${file.name}...`;
+
+      const ext = file.name.split('.').pop().toLowerCase();
+
+      try {
+        if (ext === 'docx') {
+          // Word 纯前端解析
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+          textInput.value = result.value.trim();
+          uploadStatusText.textContent = `✅ Word 内容已导入`;
+          renderHandwriting();
+        } else if (ext === 'pdf') {
+          // PDF 纯前端分页文本提取
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let fullText = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const pageStrings = content.items.map(item => item.str);
+            fullText += pageStrings.join(' ') + '\n\n';
+          }
+          textInput.value = fullText.trim();
+          uploadStatusText.textContent = `✅ PDF 提取成功 (${pdf.numPages}页)`;
+          renderHandwriting();
+        } else if (file.type.startsWith('image/')) {
+          // 图片 OCR 本地离线识别
+          uploadStatusText.textContent = `⏳ 正在识别图片中文字(OCR)...`;
+          const worker = await Tesseract.createWorker('chi_sim+eng');
+          const ret = await worker.recognize(file);
+          await worker.terminate();
+          textInput.value = ret.data.text.trim();
+          uploadStatusText.textContent = `✅ 图片文字识别完成`;
+          renderHandwriting();
+        } else {
+          // 纯文字 (.txt, .md, .csv 等)
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            textInput.value = e.target.result.trim();
+            uploadStatusText.textContent = `✅ 纯文字文稿已导入`;
+            renderHandwriting();
+          };
+          reader.readAsText(file);
+        }
+      } catch (err) {
+        uploadStatusText.textContent = `❌ 读取失败: ${err.message}`;
+      }
+    }
+
+    // 拖拽与点击上传交互绑定
+    dropUploadBox.onclick = () => fileUploadInput.click();
+    fileUploadInput.onchange = (e) => handleUploadedFile(e.target.files[0]);
+
+    dropUploadBox.ondragover = (e) => {
+      e.preventDefault();
+      dropUploadBox.classList.add('dragover');
+    };
+    dropUploadBox.ondragleave = () => dropUploadBox.classList.remove('dragover');
+    dropUploadBox.ondrop = (e) => {
+      e.preventDefault();
+      dropUploadBox.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleUploadedFile(e.dataTransfer.files[0]);
+      }
+    };
 
     const PAPER_CONFIGS = {
       real_redline: {
