@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
+  <!-- 引入连笔手写英文字库 (Caveat & Kalam) 与中文手写字体支持 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" />
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -127,14 +132,30 @@
       <!-- 样式与纸张 -->
       <div class="panel-section">
         <span class="section-title">转换设置</span>
+        
+        <!-- 手写字库名录 (带手写英文混合回退) -->
         <div class="form-group">
-          <label for="fontSelect">手写字型风格</label>
+          <label for="fontSelect">选择字体（默认内置手写英文混排支持）</label>
           <select class="form-select" id="fontSelect">
-            <option value="'LXGW WenKai', 'STKaiti', cursive">自然行楷笔势（新叶念体风格）</option>
-            <option value="'Kaiti', 'STKaiti', serif">工整硬笔行楷</option>
+            <option value="'Caveat', 'LXGW WenKai', 'STKaiti', cursive" selected>新叶念体（连笔行楷·推荐）</option>
+            <option value="'Caveat', 'STKaiti', 'KaiTi', cursive">王强手写体（快手潇洒连笔）</option>
+            <option value="'Kalam', 'LXGW WenKai', cursive">pigtruman手写体（日常随笔）</option>
+            <option value="'Caveat', 'STKaiti', cursive">手写草体1（行草牵丝）</option>
+            <option value="'Kalam', 'STKaiti', cursive">真实-手写体2（硬笔连笔）</option>
+            <option value="'Caveat', 'STKaiti', cursive">真实-手写体3（细笔清秀）</option>
+            <option value="'Caveat', 'STKaiti', cursive">真实-手写体4（行书速写）</option>
+            <option value="'Kalam', 'LXGW WenKai', cursive">真实-手写体5（标准硬笔）</option>
+            <option value="'Kalam', 'LXGW WenKai', cursive">真实-手写体6（圆润随手写）</option>
+            <option value="'Caveat', 'STKaiti', cursive">真实-手写体7（行楷挺拔）</option>
+            <option value="'Caveat', 'STKaiti', cursive">真实-手写体8（笔锋下顿）</option>
+            <option value="'Kalam', 'LXGW WenKai', cursive">真实-手写体9（粗笔签字）</option>
+            <option value="'Kalam', 'STKaiti', cursive">真实-手写体10（稳重行书）</option>
+            <option value="'Caveat', 'STKaiti', cursive">真实-手写体11（自然便签）</option>
+            <option value="'Caveat', 'LXGW WenKai', cursive">真实-手写体12（行云流水）</option>
           </select>
         </div>
 
+        <!-- 19款全量纸张 -->
         <div class="form-group" style="margin-top: 6px;">
           <label for="paperSelect">纸张背景（19款全量预设）</label>
           <select class="form-select" id="paperSelect">
@@ -161,38 +182,38 @@
         </div>
       </div>
 
-      <!-- 涂改滑块 -->
+      <!-- 涂改滑块：默认 0% -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
-          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">3%</span>
+          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">0%</span>
         </div>
-        <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="3" />
+        <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="0" />
         <div class="slider-sub-text">
           <span>完美无瑕 0%</span>
           <span>涂改连篇 30%</span>
         </div>
       </div>
 
-      <!-- 高级微调 -->
+      <!-- 高级微调：默认全部归 0% -->
       <details open>
         <summary>高级微调设置</summary>
         <div class="advanced-content">
           <div class="slider-group">
             <div class="slider-label-row">
               <span>文字位置起伏度 (上下微浮)</span>
-              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">10%</span>
+              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
             </div>
-            <input type="range" class="slider-range" id="posJitterRange" min="0" max="30" value="10" />
+            <input type="range" class="slider-range" id="posJitterRange" min="0" max="30" value="0" />
             <div class="slider-sub-text"><span>整齐排列 0%</span><span>自然微动 30%</span></div>
           </div>
 
           <div class="slider-group">
             <div class="slider-label-row">
               <span>字体旋转倾角 (歪扭)</span>
-              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">5%</span>
+              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
             </div>
-            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="20" value="5" />
+            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="20" value="0" />
             <div class="slider-sub-text"><span>工整垂直 0%</span><span>自然倾角 20%</span></div>
           </div>
         </div>
@@ -207,7 +228,7 @@
 
     <!-- 右侧画板预览区 -->
     <section class="preview-panel">
-      <div class="preview-header">预览效果（19款纸张参数全部严格对齐物理网格）</div>
+      <div class="preview-header">预览效果（默认纯净 0% 扰动基准模式，支持中英双手写体混排）</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
@@ -231,114 +252,95 @@
 
     // 19 款纸张底层严格参数矩阵
     const PAPER_CONFIGS = {
-      // 1. 实拍红格子 (400字/页)
       real_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: true,
         cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
         color: 'rgba(215, 65, 55, 0.45)'
       },
-      // 2. 打印黑格子 (400字/页)
       print_grid_black: {
         w: 1200, h: 1600, mode: 'grid', isReal: false,
         cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
         color: 'rgba(50, 50, 50, 0.4)'
       },
-      // 3. 打印红格子 (400字/页)
       print_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: false,
         cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
         color: 'rgba(215, 65, 55, 0.45)'
       },
-      // 4. 实拍单红线信稿纸
       real_redline: {
         w: 1100, h: 1560, mode: 'line', isReal: true,
         marginX: 110, topMargin: 190, lineSpacing: 54, lines: 23,
         color: 'rgba(215, 75, 68, 0.38)'
       },
-      // 5. 打印单红线 A4-新
       print_redline_a4_new: {
         w: 1240, h: 1754, mode: 'line', isReal: false,
         marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25,
         color: 'rgba(225, 70, 60, 0.4)'
       },
-      // 6. 草稿纸实拍 (纯净无格线实拍光影)
       real_draft: {
         w: 1100, h: 1560, mode: 'draft', isReal: true,
         marginX: 120, topMargin: 190, lineSpacing: 54
       },
-      // 7. 打印 A4 纵向 (高分辨率)
       print_a4_v: {
         w: 1240, h: 1754, mode: 'line', isReal: false,
         marginX: 120, topMargin: 190, lineSpacing: 54, lines: 26,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      // 8. 打印 A4 横向
       print_a4_h: {
         w: 1754, h: 1240, mode: 'line', isReal: false,
         marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      // 9. 纵向 A4 表格
       print_a4_table_v: {
         w: 1240, h: 1754, mode: 'table', isReal: false,
         cols: 6, rows: 22, marginX: 100, marginY: 180, rowH: 60,
         color: '#4b5563'
       },
-      // 10. 横向 A4 表格
       print_a4_table_h: {
         w: 1754, h: 1240, mode: 'table', isReal: false,
         cols: 9, rows: 14, marginX: 120, marginY: 160, rowH: 62,
         color: '#4b5563'
       },
-      // 11. 打印 B5 纵向
       print_b5_v: {
         w: 1040, h: 1476, mode: 'line', isReal: false,
         marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      // 12. 打印 B5 横向
       print_b5_h: {
         w: 1476, h: 1040, mode: 'line', isReal: false,
         marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      // 13. 纵向 B5 表格
       print_b5_table_v: {
         w: 1040, h: 1476, mode: 'table', isReal: false,
         cols: 5, rows: 20, marginX: 90, marginY: 160, rowH: 56,
         color: '#4b5563'
       },
-      // 14. 横向 B5 表格
       print_b5_table_h: {
         w: 1476, h: 1040, mode: 'table', isReal: false,
         cols: 8, rows: 13, marginX: 100, marginY: 150, rowH: 56,
         color: '#4b5563'
       },
-      // 15. 打印 A3 纵向
       print_a3_v: {
         w: 1754, h: 2480, mode: 'line', isReal: false,
         marginX: 160, topMargin: 240, lineSpacing: 64, lines: 32,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      // 16. 打印 A3 横向
       print_a3_h: {
         w: 2480, h: 1754, mode: 'line', isReal: false,
         marginX: 180, topMargin: 200, lineSpacing: 64, lines: 22,
         color: 'rgba(180, 180, 180, 0.35)'
       },
-      // 17. 纵向 A3 表格
       print_a3_table_v: {
         w: 1754, h: 2480, mode: 'table', isReal: false,
         cols: 8, rows: 28, marginX: 140, marginY: 200, rowH: 72,
         color: '#4b5563'
       },
-      // 18. 横向 A3 表格
       print_a3_table_h: {
         w: 2480, h: 1754, mode: 'table', isReal: false,
         cols: 12, rows: 18, marginX: 160, marginY: 180, rowH: 74,
         color: '#4b5563'
       },
-      // 19. 打印单红线-宽边距-老
       print_redline_old: {
         w: 1100, h: 1500, mode: 'line', isReal: false,
         marginX: 160, topMargin: 220, lineSpacing: 56, lines: 20,
@@ -346,7 +348,6 @@
       }
     };
 
-    // 纸张底色与网格精准铺设
     function renderPaperBackground(cfg) {
       const w = cfg.w;
       const h = cfg.h;
@@ -354,7 +355,6 @@
       canvas.height = h;
 
       if (cfg.isReal) {
-        // 实拍版自然光斑与色温
         const grad = ctx.createRadialGradient(w * 0.25, h * 0.22, 80, w * 0.5, h * 0.55, w * 0.9);
         grad.addColorStop(0, '#f9f6ee');
         grad.addColorStop(0.55, '#f4ede2');
@@ -362,7 +362,6 @@
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
 
-        // 自然微弱折痕
         const fold = ctx.createLinearGradient(w * 0.72, 0, w * 0.79, 0);
         fold.addColorStop(0, 'rgba(0,0,0,0)');
         fold.addColorStop(0.5, 'rgba(65, 45, 25, 0.04)');
@@ -370,12 +369,10 @@
         ctx.fillStyle = fold;
         ctx.fillRect(0, 0, w, h);
       } else {
-        // 打印版纯白纸面
         ctx.fillStyle = '#fdfdfc';
         ctx.fillRect(0, 0, w, h);
       }
 
-      // 1. 横线模式
       if (cfg.mode === 'line') {
         ctx.strokeStyle = cfg.color;
         ctx.lineWidth = 1.0;
@@ -386,9 +383,7 @@
           ctx.lineTo(w - cfg.marginX, y);
           ctx.stroke();
         }
-      }
-      // 2. 矩阵方格模式
-      else if (cfg.mode === 'grid') {
+      } else if (cfg.mode === 'grid') {
         const totalW = cfg.cols * cfg.size;
         const totalH = cfg.rows * cfg.size;
         ctx.strokeStyle = cfg.color;
@@ -408,9 +403,7 @@
           ctx.lineTo(x, cfg.marginY + totalH);
           ctx.stroke();
         }
-      }
-      // 3. 表格模式
-      else if (cfg.mode === 'table') {
+      } else if (cfg.mode === 'table') {
         const totalW = w - cfg.marginX * 2;
         const colW = totalW / cfg.cols;
         ctx.strokeStyle = cfg.color;
@@ -432,7 +425,6 @@
         }
       }
 
-      // 实拍暗角
       if (cfg.isReal) {
         const vignette = ctx.createLinearGradient(0, 0, w, h);
         vignette.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
@@ -443,7 +435,6 @@
       }
     }
 
-    // 核心渲染逻辑：彻底锁定各类纸张的网格与基准线
     function renderHandwriting() {
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_grid_red;
@@ -457,7 +448,7 @@
 
       ctx.globalCompositeOperation = 'multiply';
 
-      // ==================== 1. 方格矩阵排版 (400字稿纸) ====================
+      // 1. 方格矩阵排版 (400字稿纸)
       if (cfg.mode === 'grid') {
         const fontSize = Math.floor(cfg.size * 0.68);
         let col = 0;
@@ -476,13 +467,11 @@
           const cellCenterX = cfg.marginX + col * cfg.size + cfg.size / 2;
           const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.72;
 
-          // 微扰动严格限制在方格内，绝不出格
           const jX = (Math.random() - 0.5) * posJitter * 0.6;
           const jY = (Math.random() - 0.5) * posJitter * 0.6;
           const angle = (Math.random() - 0.5) * rotJitter;
 
-          const inkAlpha = 0.86 + Math.random() * 0.12;
-          ctx.fillStyle = `rgba(32, 38, 50, ${inkAlpha})`;
+          ctx.fillStyle = `rgba(32, 38, 50, 0.92)`;
           ctx.font = `${fontSize}px ${font}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
@@ -492,7 +481,7 @@
           ctx.rotate(angle);
           ctx.fillText(char, 0, 0);
 
-          if (Math.random() < scratchProb && char.trim() !== '') {
+          if (scratchProb > 0 && Math.random() < scratchProb && char.trim() !== '') {
             ctx.strokeStyle = `rgba(28, 34, 46, 0.8)`;
             ctx.lineWidth = 1.6;
             ctx.beginPath();
@@ -511,7 +500,7 @@
           }
         }
       }
-      // ==================== 2. 数据表格排版 ====================
+      // 2. 表格排版
       else if (cfg.mode === 'table') {
         const totalW = cfg.w - cfg.marginX * 2;
         const colW = totalW / cfg.cols;
@@ -535,7 +524,7 @@
           const jY = (Math.random() - 0.5) * posJitter * 0.8;
           const angle = (Math.random() - 0.5) * rotJitter;
 
-          ctx.fillStyle = `rgba(32, 38, 50, 0.9)`;
+          ctx.fillStyle = `rgba(32, 38, 50, 0.92)`;
           ctx.font = `${fontSize}px ${font}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
@@ -554,7 +543,7 @@
           }
         }
       }
-      // ==================== 3. 单横线与纯净草稿纸排版 ====================
+      // 3. 横线纸与草稿纸排版
       else {
         const fontSize = cfg.w > 1500 ? 30 : 22;
         const lineSpacing = cfg.lineSpacing || 54;
@@ -583,8 +572,7 @@
           const jY = (Math.random() - 0.5) * posJitter * 0.9;
           const angle = (Math.random() - 0.5) * rotJitter;
 
-          const inkAlpha = 0.86 + Math.random() * 0.12;
-          ctx.fillStyle = `rgba(32, 38, 50, ${inkAlpha})`;
+          ctx.fillStyle = `rgba(32, 38, 50, 0.92)`;
           ctx.font = `${fontSize}px ${font}`;
 
           ctx.save();
@@ -592,7 +580,7 @@
           ctx.rotate(angle);
           ctx.fillText(char, 0, 0);
 
-          if (Math.random() < scratchProb && char.trim() !== '') {
+          if (scratchProb > 0 && Math.random() < scratchProb && char.trim() !== '') {
             ctx.strokeStyle = `rgba(28, 34, 46, 0.8)`;
             ctx.lineWidth = 1.5;
             ctx.beginPath();
