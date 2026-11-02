@@ -88,14 +88,15 @@
     .slider-label-row { display: flex; justify-content: space-between; font-size: 13px; color: #4b5563; }
     .slider-range { width: 100%; accent-color: #2563eb; cursor: pointer; }
     .slider-sub-text { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+    .slider-tip { font-size: 11px; color: #9ca3af; margin-top: -2px; }
 
     details { border: 1px solid #f3f4f6; border-radius: 8px; padding: 10px 12px; background: #f9fafb; }
     details summary { font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; user-select: none; }
-    .advanced-content { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+    .advanced-content { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
 
     .action-row { display: flex; gap: 12px; margin-top: 6px; }
     .btn-action {
-      flex: 1; padding: 10px; font-size: 14px; font-weight: 500; border-radius: 8px;
+      flex: 1; padding: 12px; font-size: 14px; font-weight: 500; border-radius: 8px;
       border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
     }
     .btn-primary { background: #2563eb; color: #ffffff; }
@@ -142,7 +143,7 @@
 
       <div class="panel-section">
         <div class="form-group">
-          <label for="fontSelect">手写字型选择</label>
+          <label for="fontSelect">选择字型</label>
           <select class="form-select" id="fontSelect">
             <option value="honglei-xiaozhitiao-qingchunti.woff" selected>鸿雷小纸条青春体</option>
             <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
@@ -162,20 +163,20 @@
         </div>
 
         <div class="form-group" style="margin-top: 10px;">
-          <label for="paperSelect">纸张背景（19款全量预设）</label>
+          <label for="paperSelect">纸张背景（包含实拍版，供打印版）</label>
           <select class="form-select" id="paperSelect">
-            <option value="real_grid_red" selected>实拍-红格子稿纸 (400字/页)</option>
+            <option value="real_redline" selected>实拍-单红线信稿纸 (点击展开|新增格子组)</option>
+            <option value="real_grid_red">实拍-红格子稿纸 (400字/页)</option>
             <option value="real_draft">草稿纸-高清实拍</option>
-            <option value="real_redline">实拍-单红线信稿纸 (点击展开|新增格子纸)</option>
             <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
             <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
             <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
-            <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清 (4960x7015分辨率)</option>
-            <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清 (7015x4960分辨率)</option>
-            <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清 (4157x5905分辨率)</option>
-            <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清 (5905x4157分辨率)</option>
-            <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清 (7015x9921分辨率)</option>
-            <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清 (9921x7015分辨率)</option>
+            <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清</option>
+            <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清</option>
+            <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清</option>
+            <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清</option>
+            <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清</option>
+            <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清</option>
           </select>
         </div>
       </div>
@@ -185,36 +186,39 @@
           <span>随机勾画涂改概率</span>
           <span id="scratchVal" style="font-weight: 600; color: #2563eb;">0%</span>
         </div>
-        <input type="range" class="slider-range" id="scratchRange" min="0" max="30" value="0" />
-        <div class="slider-sub-text"><span>完美无瑕 0%</span><span>涂改连篇 30%</span></div>
+        <input type="range" class="slider-range" id="scratchRange" min="0" max="100" value="0" />
+        <div class="slider-sub-text"><span>完美无暇 0%</span><span>涂改连篇 100%</span></div>
+        <div class="slider-tip">推荐值: 0%（更接近真实手写）</div>
       </div>
 
       <details open>
-        <summary>高级微调设置</summary>
+        <summary>高级设置</summary>
         <div class="advanced-content">
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>文字位置起伏度 (上下微浮)</span>
-              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
+              <span>文字位置乱乱度</span>
+              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">10%</span>
             </div>
-            <input type="range" class="slider-range" id="posJitterRange" min="0" max="30" value="0" />
-            <div class="slider-sub-text"><span>整齐排列 0%</span><span>自然微动 30%</span></div>
+            <input type="range" class="slider-range" id="posJitterRange" min="0" max="100" value="10" />
+            <div class="slider-sub-text"><span>整齐排列 0%</span><span>凌乱不堪 100%</span></div>
+            <div class="slider-tip">推荐值: 10%（模拟自然书写不规则性）</div>
           </div>
 
           <div class="slider-group">
             <div class="slider-label-row">
-              <span>字体旋转倾角 (歪扭)</span>
-              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
+              <span>字体笔画紊乱度</span>
+              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">5%</span>
             </div>
-            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="20" value="0" />
-            <div class="slider-sub-text"><span>工整垂直 0%</span><span>自然倾角 20%</span></div>
+            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="100" value="5" />
+            <div class="slider-sub-text"><span>工整清晰 0%</span><span>歪七扭八 100%</span></div>
+            <div class="slider-tip">推荐值: 5%（模拟笔画书写不规则性）</div>
           </div>
         </div>
       </details>
 
       <div class="action-row">
-        <button class="btn-action btn-primary" id="btnPreview" type="button">🔄 刷新渲染</button>
-        <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载高清图</button>
+        <button class="btn-action btn-primary" id="btnPreview" type="button">① 点击预览</button>
+        <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载文件</button>
       </div>
     </section>
 
@@ -237,16 +241,21 @@
     const textInput = document.getElementById('manualTextInput');
     const paperSelect = document.getElementById('paperSelect');
     const fontSelect = document.getElementById('fontSelect');
+    
     const scratchRange = document.getElementById('scratchRange');
+    const scratchVal = document.getElementById('scratchVal');
     const posJitterRange = document.getElementById('posJitterRange');
+    const posJitterVal = document.getElementById('posJitterVal');
     const rotJitterRange = document.getElementById('rotJitterRange');
+    const rotJitterVal = document.getElementById('rotJitterVal');
+
     const fontStatusMsg = document.getElementById('fontStatusMsg');
     const badgeContainer = document.getElementById('badgeContainer');
+    const btnPreview = document.getElementById('btnPreview');
+    const btnDownload = document.getElementById('btnDownload');
 
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
-    
-    // 全局随机扰动种子：每次点击“刷新渲染”时更换，使整张纸的随机细节重新洗牌
-    let globalRandomSeed = Math.floor(Math.random() * 100000);
+    let seedOffset = Math.floor(Math.random() * 1000000);
 
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
@@ -278,10 +287,19 @@
     }
 
     const PAPER_CONFIGS = {
+      real_redline: {
+        w: 1100, h: 1560, mode: 'line', isReal: true,
+        marginX: 110, topMargin: 190, lineSpacing: 54, lines: 23,
+        color: 'rgba(215, 75, 68, 0.38)'
+      },
       real_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: true,
         cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
         color: 'rgba(215, 65, 55, 0.45)'
+      },
+      real_draft: {
+        w: 1100, h: 1560, mode: 'draft', isReal: true,
+        marginX: 120, topMargin: 190, lineSpacing: 54
       },
       print_grid_black: {
         w: 1200, h: 1600, mode: 'grid', isReal: false,
@@ -293,19 +311,10 @@
         cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
         color: 'rgba(215, 65, 55, 0.45)'
       },
-      real_redline: {
-        w: 1100, h: 1560, mode: 'line', isReal: true,
-        marginX: 110, topMargin: 190, lineSpacing: 54, lines: 23,
-        color: 'rgba(215, 75, 68, 0.38)'
-      },
       print_redline_a4_new: {
         w: 1240, h: 1754, mode: 'line', isReal: false,
         marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25,
         color: 'rgba(225, 70, 60, 0.4)'
-      },
-      real_draft: {
-        w: 1100, h: 1560, mode: 'draft', isReal: true,
-        marginX: 120, topMargin: 190, lineSpacing: 54
       },
       print_a4_v: {
         w: 1240, h: 1754, mode: 'line', isReal: false,
@@ -414,7 +423,7 @@
     function drawScratch(centerX, centerY, size, seed) {
       const type = Math.floor(pseudoRandom(seed + 88) * 3);
       ctx.save();
-      ctx.strokeStyle = 'rgba(25, 30, 42, 0.85)';
+      ctx.strokeStyle = 'rgba(25, 30, 42, 0.88)';
       ctx.lineWidth = 1.8 + pseudoRandom(seed + 89) * 0.8;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -453,16 +462,14 @@
 
     function renderHandwriting() {
       const pKey = paperSelect.value;
-      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_grid_red;
+      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
       renderPaperBackground(cfg);
 
       const text = textInput.value;
       
-      const scratchProb = parseInt(scratchRange.value, 10) / 100;
-      // 增强文字位置起伏幅度 (上下左右微浮)
-      const userPosJitter = (parseInt(posJitterRange.value, 10) / 100) * 16.0;
-      // 增强旋转倾角：最大可达到约 0.25 弧度（约 14.3 度倾角），歪扭效果极度明显
-      const userRotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.25;
+      const scratchProb = (parseFloat(scratchRange.value) || 0) / 100;
+      const posChaos = (parseFloat(posJitterRange.value) || 0) / 100; 
+      const strokeChaos = (parseFloat(rotJitterRange.value) || 0) / 100; 
 
       ctx.globalCompositeOperation = 'multiply';
 
@@ -474,8 +481,7 @@
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          // 加入全局随机种子，确保点击“刷新渲染”时彻底换一批随机姿势
-          const seed = globalRandomSeed + i * 29 + charCode;
+          const seed = seedOffset + i * 47 + charCode;
 
           if (char === '\n') {
             col = 0;
@@ -487,30 +493,30 @@
           const isEng = /[a-zA-Z0-9]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
 
-          const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
-          // 自然微倾 + 用户设置的倾角摆动
-          const charAngle = (pseudoRandom(seed + 2) - 0.5) * 0.04 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter * 2.0;
-          const scaleX = 0.95 + pseudoRandom(seed + 3) * 0.10;
-          const scaleY = 0.94 + pseudoRandom(seed + 4) * 0.12;
+          const scaleX = 1.0 + (pseudoRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
+          const scaleY = 1.0 + (pseudoRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
+          const skewX = (pseudoRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
+          const skewY = (pseudoRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
+          const charAngle = (pseudoRandom(seed + 2) - 0.5) * (0.30 * strokeChaos);
 
-          // 格子中心基准点
           const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
           const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
 
-          const jX = (pseudoRandom(seed + 5) - 0.5) * userPosJitter;
-          const jY = (pseudoRandom(seed + 6) - 0.5) * userPosJitter;
+          const jX = (pseudoRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
+          const jY = (pseudoRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
+
+          const pressure = 0.88 + (pseudoRandom(seed + 1) - 0.5) * 0.20;
 
           ctx.save();
-          // 以字模的绝对几何中心为轴旋转，保证歪扭自然且不飞出格子
           ctx.translate(cellCenterX + jX, cellCenterY + jY);
+          
           ctx.rotate(charAngle);
-          ctx.scale(scaleX, scaleY);
+          ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
           ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          // 笔画阴影与实墨
           ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
 
@@ -519,7 +525,6 @@
 
           ctx.restore();
 
-          // 随机涂改
           if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
             if (pseudoRandom(seed + 77) < scratchProb) {
               drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
@@ -534,7 +539,7 @@
           }
         }
       } else {
-        const baseFontSize = cfg.w > 1500 ? 30 : 23;
+        const baseFontSize = cfg.w > 1500 ? 32 : 25;
         const lineSpacing = cfg.lineSpacing || 54;
         const startX = cfg.marginX;
         const maxLineWidth = cfg.w - cfg.marginX * 2;
@@ -542,38 +547,44 @@
 
         let curX = startX;
         let lineIndex = 0;
-        let curY = topMargin + (cfg.mode === 'line' ? lineSpacing * 0.80 : lineSpacing * 0.72);
+        let lineWave = (pseudoRandom(seedOffset + lineIndex * 13) - 0.5) * (14.0 * posChaos);
 
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          const seed = globalRandomSeed + i * 31 + charCode;
+          const seed = seedOffset + i * 53 + charCode;
 
           if (char === '\n') {
             curX = startX;
             lineIndex++;
-            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.80 : lineSpacing * 0.72);
+            lineWave = (pseudoRandom(seedOffset + lineIndex * 13) - 0.5) * (14.0 * posChaos);
             continue;
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
 
-          const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
-          const charAngle = (pseudoRandom(seed + 2) - 0.5) * 0.04 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter * 2.0;
-          const scaleX = 0.95 + pseudoRandom(seed + 3) * 0.10;
-          const scaleY = 0.94 + pseudoRandom(seed + 4) * 0.12;
+          const scaleX = 1.0 + (pseudoRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
+          const scaleY = 1.0 + (pseudoRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
+          const skewX = (pseudoRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
+          const skewY = (pseudoRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
+          const charAngle = (pseudoRandom(seed + 2) - 0.5) * (0.32 * strokeChaos);
 
-          const jX = (pseudoRandom(seed + 5) - 0.5) * userPosJitter;
-          const jY = (pseudoRandom(seed + 6) - 0.5) * userPosJitter;
+          const jX = (pseudoRandom(seed + 6) - 0.5) * (baseFontSize * 0.40 * posChaos);
+          const jY = (pseudoRandom(seed + 7) - 0.5) * (baseFontSize * 0.55 * posChaos) + lineWave;
 
-          const charStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
+          const baseStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
+          const charStep = baseStep * (1.0 + (pseudoRandom(seed + 15) - 0.5) * (0.45 * posChaos));
+
+          const curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.72 : lineSpacing * 0.65);
           const charCenterX = curX + charStep * 0.5;
-          const charCenterY = curY - baseFontSize * 0.35;
+          const charCenterY = curY;
+
+          const pressure = 0.88 + (pseudoRandom(seed + 1) - 0.5) * 0.20;
 
           ctx.save();
           ctx.translate(charCenterX + jX, charCenterY + jY);
           ctx.rotate(charAngle);
-          ctx.scale(scaleX, scaleY);
+          ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
           ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
           ctx.textAlign = 'center';
@@ -598,7 +609,7 @@
           if (curX > startX + maxLineWidth) {
             curX = startX;
             lineIndex++;
-            curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.80 : lineSpacing * 0.72);
+            lineWave = (pseudoRandom(seedOffset + lineIndex * 13) - 0.5) * (14.0 * posChaos);
           }
         }
       }
@@ -606,38 +617,38 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    // 点击“刷新渲染”按钮：重新生成洗牌种子，页面随机姿态彻底刷新
-    document.getElementById('btnPreview').addEventListener('click', () => {
-      globalRandomSeed = Math.floor(Math.random() * 100000);
+    btnPreview.onclick = function() {
+      seedOffset += Math.floor(Math.random() * 50000) + 1000;
       renderHandwriting();
-    });
+    };
 
-    // 文本输入实时重绘
-    textInput.addEventListener('input', renderHandwriting);
+    textInput.oninput = renderHandwriting;
+    fontSelect.onchange = function() { switchFont(this.value); };
+    paperSelect.onchange = renderHandwriting;
 
-    fontSelect.addEventListener('change', (e) => switchFont(e.target.value));
-
-    scratchRange.addEventListener('input', (e) => {
-      document.getElementById('scratchVal').textContent = e.target.value + '%';
+    scratchRange.oninput = function() {
+      scratchVal.textContent = this.value + '%';
       renderHandwriting();
-    });
-    posJitterRange.addEventListener('input', (e) => {
-      document.getElementById('posJitterVal').textContent = e.target.value + '%';
-      renderHandwriting();
-    });
-    rotJitterRange.addEventListener('input', (e) => {
-      document.getElementById('rotJitterVal').textContent = e.target.value + '%';
-      renderHandwriting();
-    });
-    paperSelect.addEventListener('change', renderHandwriting);
+    };
 
-    document.getElementById('btnDownload').addEventListener('click', () => {
+    posJitterRange.oninput = function() {
+      posJitterVal.textContent = this.value + '%';
+      renderHandwriting();
+    };
+
+    rotJitterRange.oninput = function() {
+      rotJitterVal.textContent = this.value + '%';
+      renderHandwriting();
+    };
+
+    btnDownload.onclick = function() {
       const link = document.createElement('a');
       link.download = `手写文稿-${paperSelect.value}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-    });
+    };
 
+    // 默认开局加载鸿雷小纸条青春体
     switchFont(fontSelect.value);
   </script>
 </body>
