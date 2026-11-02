@@ -244,6 +244,9 @@
     const badgeContainer = document.getElementById('badgeContainer');
 
     let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
+    
+    // 全局随机扰动种子：每次点击“刷新渲染”时更换，使整张纸的随机细节重新洗牌
+    let globalRandomSeed = Math.floor(Math.random() * 100000);
 
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
@@ -408,42 +411,38 @@
       return x - Math.floor(x);
     }
 
-    // 随机画涂改划线的核心函数
     function drawScratch(centerX, centerY, size, seed) {
       const type = Math.floor(pseudoRandom(seed + 88) * 3);
       ctx.save();
-      ctx.strokeStyle = 'rgba(25, 30, 42, 0.82)';
-      ctx.lineWidth = 1.6 + pseudoRandom(seed + 89) * 0.8;
+      ctx.strokeStyle = 'rgba(25, 30, 42, 0.85)';
+      ctx.lineWidth = 1.8 + pseudoRandom(seed + 89) * 0.8;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
       if (type === 0) {
-        // 双斜杠划掉
         ctx.beginPath();
-        ctx.moveTo(centerX - size * 0.38, centerY + size * 0.15);
-        ctx.lineTo(centerX + size * 0.38, centerY - size * 0.25);
-        ctx.moveTo(centerX - size * 0.32, centerY + size * 0.28);
-        ctx.lineTo(centerX + size * 0.42, centerY - size * 0.12);
+        ctx.moveTo(centerX - size * 0.35, centerY + size * 0.15);
+        ctx.lineTo(centerX + size * 0.35, centerY - size * 0.22);
+        ctx.moveTo(centerX - size * 0.28, centerY + size * 0.26);
+        ctx.lineTo(centerX + size * 0.38, centerY - size * 0.10);
         ctx.stroke();
       } else if (type === 1) {
-        // 涂黑团块划改
         ctx.beginPath();
-        const startX = centerX - size * 0.38;
-        const endX = centerX + size * 0.38;
-        const midY = centerY - size * 0.08;
+        const startX = centerX - size * 0.36;
+        const endX = centerX + size * 0.36;
+        const midY = centerY - size * 0.05;
         ctx.moveTo(startX, midY - 3);
         ctx.lineTo(endX, midY + 2);
-        ctx.lineTo(startX + 4, midY + 6);
-        ctx.lineTo(endX - 2, midY + 8);
+        ctx.lineTo(startX + 4, midY + 5);
+        ctx.lineTo(endX - 2, midY + 7);
         ctx.stroke();
       } else {
-        // 波浪涂抹
         ctx.beginPath();
-        const startX = centerX - size * 0.4;
+        const startX = centerX - size * 0.38;
         const midY = centerY - size * 0.05;
         ctx.moveTo(startX, midY);
         for (let s = 1; s <= 4; s++) {
-          const segX = startX + (size * 0.8 * s) / 4;
+          const segX = startX + (size * 0.76 * s) / 4;
           const segY = midY + ((s % 2 === 0) ? 4 : -4);
           ctx.lineTo(segX, segY);
         }
@@ -459,10 +458,11 @@
 
       const text = textInput.value;
       
-      // 放大起伏和倾角响应系数，确保滑块效果清晰可见
       const scratchProb = parseInt(scratchRange.value, 10) / 100;
-      const userPosJitter = (parseInt(posJitterRange.value, 10) / 100) * 14.0;
-      const userRotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.35;
+      // 增强文字位置起伏幅度 (上下左右微浮)
+      const userPosJitter = (parseInt(posJitterRange.value, 10) / 100) * 16.0;
+      // 增强旋转倾角：最大可达到约 0.25 弧度（约 14.3 度倾角），歪扭效果极度明显
+      const userRotJitter = (parseInt(rotJitterRange.value, 10) / 100) * 0.25;
 
       ctx.globalCompositeOperation = 'multiply';
 
@@ -474,7 +474,8 @@
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          const seed = i * 19 + charCode;
+          // 加入全局随机种子，确保点击“刷新渲染”时彻底换一批随机姿势
+          const seed = globalRandomSeed + i * 29 + charCode;
 
           if (char === '\n') {
             col = 0;
@@ -487,32 +488,29 @@
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
 
           const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
-          // 倾角：基础自然倾角 + 用户滑块大幅度摆动
-          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.05 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter;
-          const scaleX = 0.94 + pseudoRandom(seed + 3) * 0.12;
-          const scaleY = 0.93 + pseudoRandom(seed + 4) * 0.14;
+          // 自然微倾 + 用户设置的倾角摆动
+          const charAngle = (pseudoRandom(seed + 2) - 0.5) * 0.04 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter * 2.0;
+          const scaleX = 0.95 + pseudoRandom(seed + 3) * 0.10;
+          const scaleY = 0.94 + pseudoRandom(seed + 4) * 0.12;
 
-          let posX = cfg.marginX + col * cfg.size + cfg.size * 0.48;
-          let posY = cfg.marginY + row * cfg.size + cfg.size * 0.80;
+          // 格子中心基准点
+          const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
+          const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
 
-          if (isPunctuation) {
-            posX = cfg.marginX + col * cfg.size + cfg.size * 0.28;
-            posY = cfg.marginY + row * cfg.size + cfg.size * 0.78;
-          }
-
-          // 位置起伏：X 轴与 Y 轴微移，受起伏度滑块深度调控
           const jX = (pseudoRandom(seed + 5) - 0.5) * userPosJitter;
           const jY = (pseudoRandom(seed + 6) - 0.5) * userPosJitter;
 
           ctx.save();
-          ctx.translate(posX + jX, posY + jY);
-          ctx.rotate(baseAngle);
+          // 以字模的绝对几何中心为轴旋转，保证歪扭自然且不飞出格子
+          ctx.translate(cellCenterX + jX, cellCenterY + jY);
+          ctx.rotate(charAngle);
           ctx.scale(scaleX, scaleY);
 
           ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
           ctx.textAlign = 'center';
-          ctx.textBaseline = 'alphabetic';
+          ctx.textBaseline = 'middle';
 
+          // 笔画阴影与实墨
           ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
 
@@ -521,10 +519,10 @@
 
           ctx.restore();
 
-          // 随机涂改判断：非标点符号且命中概率时划掉
+          // 随机涂改
           if (scratchProb > 0 && !isPunctuation && char.trim() !== '') {
             if (pseudoRandom(seed + 77) < scratchProb) {
-              drawScratch(posX + jX, posY + jY - cfg.size * 0.35, cfg.size, seed);
+              drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
             }
           }
 
@@ -546,13 +544,10 @@
         let lineIndex = 0;
         let curY = topMargin + (cfg.mode === 'line' ? lineSpacing * 0.80 : lineSpacing * 0.72);
 
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
           const charCode = char.charCodeAt(0);
-          const seed = i * 23 + charCode;
+          const seed = globalRandomSeed + i * 31 + charCode;
 
           if (char === '\n') {
             curX = startX;
@@ -564,19 +559,25 @@
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
 
           const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
-          const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.05 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter;
-          const scaleX = 0.94 + pseudoRandom(seed + 3) * 0.12;
-          const scaleY = 0.93 + pseudoRandom(seed + 4) * 0.14;
+          const charAngle = (pseudoRandom(seed + 2) - 0.5) * 0.04 + (pseudoRandom(seed + 22) - 0.5) * userRotJitter * 2.0;
+          const scaleX = 0.95 + pseudoRandom(seed + 3) * 0.10;
+          const scaleY = 0.94 + pseudoRandom(seed + 4) * 0.12;
 
           const jX = (pseudoRandom(seed + 5) - 0.5) * userPosJitter;
           const jY = (pseudoRandom(seed + 6) - 0.5) * userPosJitter;
 
+          const charStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
+          const charCenterX = curX + charStep * 0.5;
+          const charCenterY = curY - baseFontSize * 0.35;
+
           ctx.save();
-          ctx.translate(curX + jX, curY + jY);
-          ctx.rotate(baseAngle);
+          ctx.translate(charCenterX + jX, charCenterY + jY);
+          ctx.rotate(charAngle);
           ctx.scale(scaleX, scaleY);
 
           ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
 
           ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
@@ -586,14 +587,12 @@
 
           ctx.restore();
 
-          // 随机涂改判断
           if (scratchProb > 0 && !isEng && char.trim() !== '') {
             if (pseudoRandom(seed + 77) < scratchProb) {
-              drawScratch(curX + jX + baseFontSize * 0.5, curY + jY - baseFontSize * 0.4, baseFontSize * 1.4, seed);
+              drawScratch(charCenterX + jX, charCenterY + jY, baseFontSize * 1.3, seed);
             }
           }
 
-          const charStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
           curX += charStep;
 
           if (curX > startX + maxLineWidth) {
@@ -607,10 +606,17 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    document.getElementById('btnPreview').addEventListener('click', renderHandwriting);
+    // 点击“刷新渲染”按钮：重新生成洗牌种子，页面随机姿态彻底刷新
+    document.getElementById('btnPreview').addEventListener('click', () => {
+      globalRandomSeed = Math.floor(Math.random() * 100000);
+      renderHandwriting();
+    });
+
+    // 文本输入实时重绘
+    textInput.addEventListener('input', renderHandwriting);
+
     fontSelect.addEventListener('change', (e) => switchFont(e.target.value));
 
-    // 绑定 input 实时事件，拖动时数字和画布同时更新
     scratchRange.addEventListener('input', (e) => {
       document.getElementById('scratchVal').textContent = e.target.value + '%';
       renderHandwriting();
