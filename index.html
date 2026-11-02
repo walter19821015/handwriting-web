@@ -4,20 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
-  
-  <!-- 引入连笔手写英文 Google 官方库 -->
+
+  <!-- 引入连笔英文字库 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
-  
-  <!-- 引入真实手写硬笔/手书 CDN 字体 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* 强力加载免费开源手写体 (千图笔锋手写体 / 站酷快乐手写体 CDN 镜像) */
+    /* 核心：直接读取同源仓库中的 原版字体文件（不改名） */
     @font-face {
-      font-family: 'HandWriteTrue';
-      src: url('https://cdn.jsdelivr.net/gh/googlefonts/noto-cjk@main/Sans/OTC/NotoSansCJK-Regular.ttc');
+      font-family: 'HongLeiHandFont';
+      src: url('./鸿雷小纸条青春体.ttf') format('truetype');
       font-display: swap;
     }
 
@@ -75,7 +72,35 @@
       border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.5;
     }
 
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .font-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #1e40af;
+    }
+
+    .file-input-box {
+      border: 1px dashed #2563eb;
+      background: #eff6ff;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+      color: #1d4ed8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .file-input-box input { display: none; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
     .form-group label { font-size: 13px; font-weight: 500; color: #4b5563; }
     .form-select {
       width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #d1d5db;
@@ -128,7 +153,7 @@
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊</div>
+    <div class="brand">✍️ 手写模拟工坊 · 鸿雷手书直读版</div>
   </header>
 
   <main>
@@ -139,16 +164,17 @@
       </div>
 
       <div class="panel-section">
-        <span class="section-title">转换设置</span>
-        <div class="form-group">
-          <label for="fontSelect">手写字型风格</label>
-          <select class="form-select" id="fontSelect">
-            <option value="real_handwrite" selected>真实随笔手写体（带连丝牵带感）</option>
-            <option value="kaiti_hand">清秀日常硬笔手写</option>
-          </select>
+        <span class="section-title">手写字体状态</span>
+        <div class="font-badge">
+          <span>状态：</span><strong id="fontStatusMsg">正在检测 鸿雷小纸条青春体.ttf...</strong>
         </div>
 
-        <div class="form-group" style="margin-top: 6px;">
+        <label class="file-input-box">
+          <span id="localFontLabel">📁 本地即时预览（可直接选电脑里的任意ttf文件）</span>
+          <input type="file" id="localFontInput" accept=".ttf,.otf,.woff,.woff2" />
+        </label>
+
+        <div class="form-group">
           <label for="paperSelect">纸张背景（19款全量预设）</label>
           <select class="form-select" id="paperSelect">
             <option value="real_grid_red" selected>实拍-红格子稿纸 (400字/页)</option>
@@ -167,7 +193,7 @@
         </div>
       </div>
 
-      <!-- 严格保持默认 0% -->
+      <!-- 严格保持默认 0% 基准 -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
@@ -207,7 +233,7 @@
     </section>
 
     <section class="preview-panel">
-      <div class="preview-header">预览效果（笔墨粗细起伏算法 + 英文自动连笔转换）</div>
+      <div class="preview-header">预览效果</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
@@ -223,11 +249,51 @@
     const ctx = canvas.getContext('2d');
 
     const textInput = document.getElementById('manualTextInput');
-    const fontSelect = document.getElementById('fontSelect');
     const paperSelect = document.getElementById('paperSelect');
     const scratchRange = document.getElementById('scratchRange');
     const posJitterRange = document.getElementById('posJitterRange');
     const rotJitterRange = document.getElementById('rotJitterRange');
+    const fontStatusMsg = document.getElementById('fontStatusMsg');
+    const localFontInput = document.getElementById('localFontInput');
+    const localFontLabel = document.getElementById('localFontLabel');
+
+    let currentFontFamily = "'Caveat', 'HongLeiHandFont', cursive";
+
+    // 检查并加载仓库同源 鸿雷小纸条青春体.ttf
+    async function initFont() {
+      try {
+        const testFont = new FontFace('HongLeiHandFont', "url(encodeURI('./鸿雷小纸条青春体.ttf'))");
+        await testFont.load();
+        document.fonts.add(testFont);
+        fontStatusMsg.textContent = '✅ 鸿雷小纸条青春体 载入成功（公网生效）';
+        fontStatusMsg.parentElement.style.background = '#f0fdf4';
+        fontStatusMsg.parentElement.style.borderColor = '#bbf7d0';
+        fontStatusMsg.parentElement.style.color = '#15803d';
+      } catch (err) {
+        fontStatusMsg.textContent = '⚠️ 正在等待 鸿雷小纸条青春体.ttf 上传至仓库...';
+        fontStatusMsg.parentElement.style.background = '#fffbeb';
+        fontStatusMsg.parentElement.style.borderColor = '#fef3c7';
+        fontStatusMsg.parentElement.style.color = '#b45309';
+      }
+      renderHandwriting();
+    }
+
+    // 本地临时选择字体直接预览
+    localFontInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const buffer = await file.arrayBuffer();
+        const customFont = new FontFace('LocalHandFont', buffer);
+        await customFont.load();
+        document.fonts.add(customFont);
+        currentFontFamily = "'Caveat', 'LocalHandFont', cursive";
+        localFontLabel.textContent = `✅ 正在使用本地字体: ${file.name}`;
+        renderHandwriting();
+      } catch (err) {
+        localFontLabel.textContent = '❌ 文件解析失败，请确认是否为 .ttf 格式';
+      }
+    });
 
     const PAPER_CONFIGS = {
       real_grid_red: {
@@ -358,12 +424,6 @@
       }
     }
 
-    function getFontStack(isEng) {
-      if (isEng) return "'Caveat', cursive, sans-serif";
-      // 真实手书字体降级序列
-      return "'LXGW WenKai Screen', 'STXingkai', 'Xingkai SC', cursive, sans-serif";
-    }
-
     function pseudoRandom(seed) {
       const x = Math.sin(seed) * 10000;
       return x - Math.floor(x);
@@ -399,12 +459,8 @@
 
           const isEng = /[a-zA-Z0-9]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;]/.test(char);
-          const font = getFontStack(isEng);
 
-          // 笔墨下压力度
           const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
-
-          // 笔画微变形（真人下笔手腕微倾角：-1.5° ~ +1.5°）
           const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.045 + (Math.random() - 0.5) * userRotJitter;
           const scaleX = 0.94 + pseudoRandom(seed + 3) * 0.12;
           const scaleY = 0.93 + pseudoRandom(seed + 4) * 0.14;
@@ -425,11 +481,10 @@
           ctx.rotate(baseAngle);
           ctx.scale(scaleX, scaleY);
 
-          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${font}`;
+          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
 
-          // 双层实水笔墨渲染
           ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
 
@@ -472,7 +527,6 @@
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-          const font = getFontStack(isEng);
 
           const pressure = 0.86 + (pseudoRandom(seed + 1) - 0.5) * 0.16;
           const baseAngle = (pseudoRandom(seed + 2) - 0.5) * 0.045 + (Math.random() - 0.5) * userRotJitter;
@@ -487,7 +541,7 @@
           ctx.rotate(baseAngle);
           ctx.scale(scaleX, scaleY);
 
-          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${font}`;
+          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
 
           ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
           ctx.fillText(char, 0.4, 0.4);
@@ -525,7 +579,6 @@
       renderHandwriting();
     });
     paperSelect.addEventListener('change', renderHandwriting);
-    fontSelect.addEventListener('change', renderHandwriting);
 
     document.getElementById('btnDownload').addEventListener('click', () => {
       const link = document.createElement('a');
@@ -534,9 +587,7 @@
       link.click();
     });
 
-    document.fonts.ready.then(() => {
-      renderHandwriting();
-    });
+    initFont();
   </script>
 </body>
 </html>
