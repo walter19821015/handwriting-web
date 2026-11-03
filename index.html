@@ -387,18 +387,24 @@
 
     const DPR = 2;
 
-    const realImages = {
+    // 静态缓存图片对象，禁止任何 onload 内部二次调用
+    const imgCache = {
       real_redline: new Image(),
       real_grid_red: new Image(),
       real_draft: new Image()
     };
-    realImages.real_redline.src = './paper-redline.jpg';
-    realImages.real_grid_red.src = './paper-grid.jpg';
-    realImages.real_draft.src = './paper-draft.jpg';
+    imgCache.real_redline.src = './paper-redline.jpg';
+    imgCache.real_grid_red.src = './paper-grid.jpg';
+    imgCache.real_draft.src = './paper-draft.jpg';
 
-    Object.values(realImages).forEach(img => {
-      img.onload = () => { updatePaginationAndRender(); };
-    });
+    // 仅在图片自然载入时重绘一次
+    let initialDrawDone = false;
+    imgCache.real_redline.onload = () => {
+      if (!initialDrawDone) {
+        initialDrawDone = true;
+        renderAll();
+      }
+    };
 
     function hashRandom(seed) {
       let h = (seed ^ 0xdeadbeef) >>> 0;
@@ -428,15 +434,13 @@
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
         badgeContainer.style.color = '#15803d';
-
-        updatePaginationAndRender();
       } catch (err) {
         fontStatusMsg.textContent = '❌ 加载失败: ' + err.message;
         badgeContainer.style.background = '#fef2f2';
         badgeContainer.style.borderColor = '#fecaca';
         badgeContainer.style.color = '#dc2626';
-        updatePaginationAndRender();
       }
+      renderAll();
     }
 
     async function handleUploadedFile(file) {
@@ -451,7 +455,6 @@
           const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
           textInput.value = result.value.trim();
           uploadStatusText.textContent = `✅ Word 已导入`;
-          updatePaginationAndRender();
         } else if (ext === 'pdf') {
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -464,7 +467,6 @@
           }
           textInput.value = fullText.trim();
           uploadStatusText.textContent = `✅ PDF 提取成功 (${pdf.numPages}页)`;
-          updatePaginationAndRender();
         } else if (file.type.startsWith('image/')) {
           uploadStatusText.textContent = `⏳ 正在识别图片文字...`;
           const worker = await Tesseract.createWorker('chi_sim+eng');
@@ -472,19 +474,20 @@
           await worker.terminate();
           textInput.value = ret.data.text.trim();
           uploadStatusText.textContent = `✅ 图片文字识别完成`;
-          updatePaginationAndRender();
         } else {
           const reader = new FileReader();
           reader.onload = function(e) {
             textInput.value = e.target.result.trim();
             uploadStatusText.textContent = `✅ 纯文字已导入`;
-            updatePaginationAndRender();
+            renderAll();
           };
           reader.readAsText(file);
+          return;
         }
       } catch (err) {
         uploadStatusText.textContent = `❌ 读取失败: ${err.message}`;
       }
+      renderAll();
     }
 
     dropUploadBox.onclick = () => fileUploadInput.click();
@@ -503,25 +506,25 @@
       }
     };
 
-    // 核心物理像素标定（空出首行，从第二行起笔，字号全面放大撑满）
+    // 核心物理像素标定（已校准）
     const PAPER_CONFIGS = {
-      // 1. 实拍单红线：从第 2 根线起笔 (Y = 152 + 45.8 = 197.8px)，字号放大至 26px
+      // 1. 实拍单红线：首线 Y=153px留空，从第2根线 Y=200.5px起笔，行距 47.5px，可写 19 行
       real_redline: {
         w: 900, h: 1200, mode: 'line', isPhoto: true, photoKey: 'real_redline',
-        marginX: 145, topMargin: 198, lineSpacing: 45.8, lines: 20,
-        contentWidth: 620, baseFontSize: 26.5
+        marginX: 145, topMargin: 200.5, lineSpacing: 47.5, maxLines: 19,
+        contentWidth: 620, baseFontSize: 28
       },
-      // 2. 实拍红格子：从第 2 行起笔 (Y = 98 + 48.0 = 146px)，大字号 32px 居中占满
+      // 2. 实拍红格子：正方形 43.5px × 43.5px，从第2行起笔 (Y=143px)，16列 x 19行，大字号 36px
       real_grid_red: {
         w: 900, h: 1200, mode: 'grid', isPhoto: true, photoKey: 'real_grid_red',
-        cols: 16, rows: 19, startX: 116, startY: 146, cellW: 41.3, cellH: 48.0,
-        baseFontSize: 32
+        cols: 16, maxRows: 19, startX: 116, startY: 143, cellSize: 43.5,
+        baseFontSize: 36
       },
-      // 3. 实拍草稿纸：从第 2 根线起笔 (Y = 126 + 39.4 = 165.4px)，字号放大至 24.5px
+      // 3. 实拍草稿纸：右半页第1根线留空，从第2根线 Y=171px起笔，行距 44.5px，严格锁定 13 行即翻页
       real_draft: {
         w: 1200, h: 900, mode: 'line', isPhoto: true, photoKey: 'real_draft',
-        marginX: 635, topMargin: 165.4, lineSpacing: 39.4, lines: 18,
-        contentWidth: 490, baseFontSize: 24.5
+        marginX: 635, topMargin: 171, lineSpacing: 44.5, maxLines: 13,
+        contentWidth: 490, baseFontSize: 26
       },
       // 普通打印纸
       print_grid_black: {
@@ -583,7 +586,7 @@
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
       if (cfg.isPhoto) {
-        const img = realImages[cfg.photoKey];
+        const img = imgCache[cfg.photoKey];
         if (img && img.complete && img.naturalWidth > 0) {
           ctx.drawImage(img, 0, 0, w, h);
         } else {
@@ -670,9 +673,27 @@
     }
 
     function computePagination(text, cfg) {
-      let linesPerPage = cfg.lines || cfg.rows || 20;
-      let maxLineWidth = cfg.contentWidth || (cfg.w - cfg.marginX * 2);
-      let baseFontSize = cfg.baseFontSize || 22;
+      let linesPerPage = 20;
+      let maxLineWidth = 600;
+      let baseFontSize = 24;
+
+      if (cfg.photoKey === 'real_redline') {
+        linesPerPage = cfg.maxLines;
+        maxLineWidth = cfg.contentWidth;
+        baseFontSize = cfg.baseFontSize;
+      } else if (cfg.photoKey === 'real_grid_red') {
+        linesPerPage = cfg.maxRows;
+        maxLineWidth = cfg.cols * cfg.cellSize;
+        baseFontSize = cfg.baseFontSize;
+      } else if (cfg.photoKey === 'real_draft') {
+        linesPerPage = cfg.maxLines;
+        maxLineWidth = cfg.contentWidth;
+        baseFontSize = cfg.baseFontSize;
+      } else {
+        linesPerPage = cfg.lines || cfg.rows || 20;
+        maxLineWidth = cfg.w - cfg.marginX * 2;
+        baseFontSize = 22;
+      }
 
       const pages = [];
       let currentPageLines = [];
@@ -733,9 +754,15 @@
       return pages;
     }
 
-    function renderCurrentPage() {
+    function renderAll() {
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
+      paginatedPages = computePagination(textInput.value, cfg);
+
+      if (currentPageIndex >= paginatedPages.length) {
+        currentPageIndex = Math.max(0, paginatedPages.length - 1);
+      }
+
       const totalPages = paginatedPages.length || 1;
       const displayPageNum = currentPageIndex + 1;
 
@@ -753,13 +780,13 @@
 
       ctx.globalCompositeOperation = 'source-over';
 
-      // 1. 实拍红格子：大字号 32px 撑满红格，从第二行开始起笔
       if (cfg.photoKey === 'real_grid_red') {
-        const baseFontSize = cfg.baseFontSize || 32;
+        const baseFontSize = cfg.baseFontSize;
+        const cellSize = cfg.cellSize;
         let charGlobalIndex = 0;
 
         for (let row = 0; row < pageLines.length; row++) {
-          if (row >= cfg.rows) break;
+          if (row >= cfg.maxRows) break;
           const lineText = pageLines[row];
 
           for (let col = 0; col < lineText.length; col++) {
@@ -773,19 +800,17 @@
             const isEng = /[a-zA-Z0-9]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            // 保持瘦长挺拔结构
-            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.22 * strokeChaos);
-            const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.20 * strokeChaos);
-            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.30 * strokeChaos);
+            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.20 * strokeChaos);
+            const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.18 * strokeChaos);
+            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.28 * strokeChaos);
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.12 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.15 * strokeChaos);
+            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.14 * strokeChaos);
 
-            // 饱满居中
-            const cellCenterX = cfg.startX + col * cfg.cellW + (cfg.cellW * 0.5);
-            const cellCenterY = cfg.startY + row * cfg.cellH + (cfg.cellH * 0.52);
+            const cellCenterX = cfg.startX + col * cellSize + (cellSize * 0.5);
+            const cellCenterY = cfg.startY + row * cellSize + (cellSize * 0.52);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (cfg.cellW * 0.18 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (cfg.cellH * 0.18 * posChaos);
+            const jX = (hashRandom(seed + 6) - 0.5) * (cellSize * 0.16 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (cellSize * 0.16 * posChaos);
 
             const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
@@ -804,28 +829,26 @@
 
             if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
               if (hashRandom(seed * 7 + 991) < scratchProb) {
-                drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.cellW, seed);
+                drawScratch(cellCenterX + jX, cellCenterY + jY, cellSize, seed);
               }
             }
           }
         }
-      } 
-      // 2. 实拍单红线与实拍草稿纸：大字号饱满，从第二行起笔，轻托红线
-      else {
-        const baseFontSize = cfg.baseFontSize || 26;
+      } else {
+        const baseFontSize = cfg.baseFontSize;
         const lineSpacing = cfg.lineSpacing;
         const startX = cfg.marginX;
         const topMargin = cfg.topMargin;
+        const limitLines = cfg.maxLines || cfg.lines;
 
         let charGlobalIndex = 0;
 
         for (let lineIndex = 0; lineIndex < pageLines.length; lineIndex++) {
-          if (lineIndex >= cfg.lines) break;
+          if (lineIndex >= limitLines) break;
           const lineText = pageLines[lineIndex];
           let curX = startX;
-          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIndex * 71 + 333) - 0.5) * (5.0 * posChaos);
+          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIndex * 71 + 333) - 0.5) * (4.5 * posChaos);
 
-          // 物理红线 Y 坐标
           const redLineY = topMargin + lineIndex * lineSpacing;
 
           for (let c = 0; c < lineText.length; c++) {
@@ -838,21 +861,18 @@
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            // 挺拔瘦长比例
-            const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.24 * strokeChaos);
-            const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.22 * strokeChaos);
-            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.30 * strokeChaos);
+            const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.22 * strokeChaos);
+            const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.20 * strokeChaos);
+            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.28 * strokeChaos);
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.12 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.15 * strokeChaos);
+            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.14 * strokeChaos);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.28 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.28 * posChaos) + lineWave;
+            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.25 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.25 * posChaos) + lineWave;
 
-            // 紧凑步进（0.76 倍字号），行气连贯且饱满
             const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.76;
-            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.26 * posChaos));
+            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.24 * posChaos));
 
-            // 文字饱满下沉，字底距离红线 4px
             const charCenterX = curX + charStep * 0.5;
             const charCenterY = redLineY - (baseFontSize * 0.38);
 
@@ -883,28 +903,17 @@
       }
     }
 
-    function updatePaginationAndRender() {
-      const pKey = paperSelect.value;
-      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
-      paginatedPages = computePagination(textInput.value, cfg);
-
-      if (currentPageIndex >= paginatedPages.length) {
-        currentPageIndex = Math.max(0, paginatedPages.length - 1);
-      }
-      renderCurrentPage();
-    }
-
     btnPrevPage.onclick = function() {
       if (currentPageIndex > 0) {
         currentPageIndex--;
-        renderCurrentPage();
+        renderAll();
       }
     };
 
     btnNextPage.onclick = function() {
       if (currentPageIndex < paginatedPages.length - 1) {
         currentPageIndex++;
-        renderCurrentPage();
+        renderAll();
       }
     };
 
@@ -916,7 +925,7 @@
     }
 
     btnPreview.onclick = function() {
-      renderCurrentPage();
+      renderAll();
       modalImage.src = canvas.toDataURL('image/png');
       previewModal.style.display = 'flex';
       previewModal.scrollTop = 0;
@@ -935,25 +944,27 @@
     btnModalDownload.onclick = downloadCurrentCanvas;
     btnDownload.onclick = downloadCurrentCanvas;
 
-    textInput.oninput = updatePaginationAndRender;
+    textInput.oninput = renderAll;
     fontSelect.onchange = function() { switchFont(this.value); };
-    paperSelect.onchange = updatePaginationAndRender;
+    paperSelect.onchange = renderAll;
 
     scratchRange.oninput = function() {
       scratchVal.textContent = this.value + '%';
-      renderCurrentPage();
+      renderAll();
     };
 
     posJitterRange.oninput = function() {
       posJitterVal.textContent = this.value + '%';
-      renderCurrentPage();
+      renderAll();
     };
 
     rotJitterRange.oninput = function() {
       rotJitterVal.textContent = this.value + '%';
-      renderCurrentPage();
+      renderAll();
     };
 
+    // 页面初始化：先执行一次直接绘制，然后异步加载字库
+    renderAll();
     switchFont(fontSelect.value);
   </script>
 </body>
