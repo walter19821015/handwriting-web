@@ -254,9 +254,8 @@
         <div class="form-group">
           <label for="fontSelect">选择字型</label>
           <select class="form-select" id="fontSelect">
-            <optgroup label="—— 中文手写字库 (极细/针管硬笔) ——">
-              <option value="zao-zi-gong-fang-qing-shu.otf" selected>造字工房情书 (推荐纤细款🌟)</option>
-              <option value="zao-zi-gong-fang-qing-shu-2.otf">造字工房情书2 (正楷硬笔)</option>
+            <optgroup label="—— 核心硬笔手写推荐 ——">
+              <option value="xin-ye-nian-ti.otf" selected>新叶念体 (推荐细款🌟)</option>
               <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
               <option value="honglei-xiaozhitiao-qingchunti.woff">鸿雷小纸条青春体</option>
               <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
@@ -568,13 +567,11 @@
       const w = cfg.w;
       const h = cfg.h;
       
-      // 物理像素翻倍，解决 Mac 模糊，保持原有 CSS 显示比例
       canvas.width = w * DPR;
       canvas.height = h * DPR;
       canvas.style.width = w + 'px';
       canvas.style.height = h + 'px';
 
-      // 缩放坐标系，后续所有几何与文字绘制逻辑无需改动像素值
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
       if (cfg.isReal) {
@@ -689,11 +686,9 @@
       const posChaos = (parseFloat(posJitterRange.value) || 0) / 100; 
       const strokeChaos = (parseFloat(rotJitterRange.value) || 0) / 100; 
 
-      // 使用正常混合模式并加固墨水浓度，确保边缘锐利清晰
       ctx.globalCompositeOperation = 'source-over';
 
       if (cfg.mode === 'grid') {
-        // 纤细手写适度收缩字号，保持留白美感
         const baseFontSize = Math.floor(cfg.size * 0.68);
         let col = 0;
         let row = 0;
@@ -725,7 +720,6 @@
           const jX = (hashRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
           const jY = (hashRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
 
-          // 浓黑中性笔真实压感（纯黑微调，不发灰）
           const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
           ctx.save();
@@ -738,7 +732,6 @@
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          // 直接高密度填墨，去掉任何外扩模糊描边
           ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
           ctx.fillText(char, 0, 0);
 
@@ -758,7 +751,6 @@
           }
         }
       } else {
-        // 普通信纸/行格纸模式：收敛字号到 21px 左右，打造 0.38mm 纤细针管笔效果
         const baseFontSize = cfg.w > 1500 ? 26 : 21;
         const lineSpacing = cfg.lineSpacing || 54;
         const startX = cfg.marginX;
@@ -801,7 +793,6 @@
           const charCenterX = curX + charStep * 0.5;
           const charCenterY = curY;
 
-          // 饱满黑墨水，消除发灰发虚
           const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
           ctx.save();
@@ -813,7 +804,6 @@
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          // 核心锐度：纯实感墨水直绘
           ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
           ctx.fillText(char, 0, 0);
 
