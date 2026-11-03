@@ -254,18 +254,9 @@
         <div class="form-group" style="margin-top: 10px;">
           <label for="paperSelect">纸张背景</label>
           <select class="form-select" id="paperSelect">
-            <option value="real_grid_red" selected>实拍-红格子稿纸 (竖版400格)</option>
+            <option value="real_draft" selected>草稿纸-高清实拍</option>
             <option value="real_redline">实拍-单红线信稿纸</option>
-            <option value="real_draft">草稿纸-高清实拍</option>
-            <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
-            <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
-            <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
-            <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清</option>
-            <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清</option>
-            <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清</option>
-            <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清</option>
-            <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清</option>
-            <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清</option>
+            <option value="real_grid_red">实拍-红格子稿纸 (竖版400格)</option>
           </select>
         </div>
       </div>
@@ -476,92 +467,44 @@
     };
 
     // =========================================================================
-    // 物理像素标定参数
+    // 物理参数严格标定
     // =========================================================================
     const PAPER_CONFIGS = {
-      // 1. 实拍红格子：1200x1600 原图，16 列 x 20 行，首行留空，每个字独立落入格中心
-      real_grid_red: {
-        isPhoto: true, photoKey: 'real_grid_red', mode: 'grid',
-        w: 1200, h: 1600,
-        cols: 16,
-        rows: 20,
-        startRowIdx: 1,      // 空出第 1 行
-        startX: 154,         // 左框线坐标
-        startY: 195,         // 第 2 行顶线坐标
-        cellW: 56.0,         // 单格宽
-        cellH: 67.0,         // 单格高
-        fontSize: 44
+      // 1. 草稿纸（1600x1200）：首行留空，从第2根线起笔，写满13行自然填满整页
+      real_draft: {
+        isPhoto: true, photoKey: 'real_draft', mode: 'lines',
+        w: 1600, h: 1200,
+        startX: 848,
+        maxLineWidth: 620,
+        firstLineY: 212,     // 严格锁定第2根横线物理基线
+        lineSpacing: 56.5,   // 严格恒定行距
+        maxLines: 13,        // 13行填满整页右侧
+        fontSize: 32
       },
 
-      // 2. 实拍单红线：1200x1600 原图，首行留空，从第 2 根线起笔，精确步长 47.4px
+      // 2. 单红线信稿纸（1200x1600）：最上方留空，从第2根线起笔
       real_redline: {
         isPhoto: true, photoKey: 'real_redline', mode: 'lines',
         w: 1200, h: 1600,
         startX: 195,
         maxLineWidth: 810,
-        firstLineY: 200,     // 第 2 根红线基线
-        lineSpacing: 47.4,   // 严格恒定步长
-        maxLines: 19,        // 截断行数
-        fontSize: 34
+        firstLineY: 268,     // 严格锁定第2根红线物理基线
+        lineSpacing: 63.2,   // 严格恒定红线行距
+        maxLines: 18,        // 18行自然写满
+        fontSize: 36
       },
 
-      // 3. 实拍草稿纸：1600x1200 原图，右半页对齐边线，首行留空，精确步长 42.0px，锁死 12 行断页
-      real_draft: {
-        isPhoto: true, photoKey: 'real_draft', mode: 'lines',
-        w: 1600, h: 1200,
-        startX: 848,         // 右半页起点
-        maxLineWidth: 620,
-        firstLineY: 168,     // 第 2 根线基线
-        lineSpacing: 42.0,   // 严格恒定步长
-        maxLines: 12,        // 截断行数
-        fontSize: 30
-      },
-
-      // 普通矢量纸张
-      print_grid_black: {
-        w: 1200, h: 1600, mode: 'grid_print', isPhoto: false,
-        cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
-        color: 'rgba(50, 50, 50, 0.4)'
-      },
-      print_grid_red: {
-        w: 1200, h: 1600, mode: 'grid_print', isPhoto: false,
-        cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
-        color: 'rgba(215, 65, 55, 0.45)'
-      },
-      print_redline_a4_new: {
-        w: 1240, h: 1754, mode: 'line_print', isPhoto: false,
-        marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25,
-        color: 'rgba(225, 70, 60, 0.4)'
-      },
-      print_a4_v: {
-        w: 1240, h: 1754, mode: 'line_print', isPhoto: false,
-        marginX: 120, topMargin: 190, lineSpacing: 54, lines: 26,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_a4_h: {
-        w: 1754, h: 1240, mode: 'line_print', isPhoto: false,
-        marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_b5_v: {
-        w: 1040, h: 1476, mode: 'line_print', isPhoto: false,
-        marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_b5_h: {
-        w: 1476, h: 1040, mode: 'line_print', isPhoto: false,
-        marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_a3_v: {
-        w: 1754, h: 2480, mode: 'line_print', isPhoto: false,
-        marginX: 160, topMargin: 240, lineSpacing: 64, lines: 32,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_a3_h: {
-        w: 2480, h: 1754, mode: 'line_print', isPhoto: false,
-        marginX: 180, topMargin: 200, lineSpacing: 64, lines: 22,
-        color: 'rgba(180, 180, 180, 0.35)'
+      // 3. 红格子稿纸（1200x1600）：第1行方格彻底留空，左右字距拉大至62.5px，满16格强制换行
+      real_grid_red: {
+        isPhoto: true, photoKey: 'real_grid_red', mode: 'grid',
+        w: 1200, h: 1600,
+        cols: 16,            // 严格限死16列
+        rows: 19,            // 可写19行
+        startX: 154,         // 左框线起始
+        startY: 195,         // 从第2行红格顶部起笔
+        cellW: 62.5,         // 左右字间距拉大，撑满方框
+        cellH: 67.0,         // 单格垂直高度
+        fontSize: 44
       }
     };
 
@@ -605,24 +548,11 @@
       ctx.restore();
     }
 
+    // 分页计算：行满自然换页
     function computePagination(text, cfg) {
-      let linesPerPage = 18;
-      let maxLineWidth = 600;
-      let baseFontSize = 24;
-
-      if (cfg.mode === 'grid') {
-        linesPerPage = cfg.rows - cfg.startRowIdx;
-        maxLineWidth = cfg.cols * cfg.cellW;
-        baseFontSize = cfg.fontSize;
-      } else if (cfg.mode === 'lines') {
-        linesPerPage = cfg.maxLines;
-        maxLineWidth = cfg.maxLineWidth;
-        baseFontSize = cfg.fontSize;
-      } else {
-        linesPerPage = cfg.lines || cfg.rows || 20;
-        maxLineWidth = cfg.w - cfg.marginX * 2;
-        baseFontSize = 22;
-      }
+      const linesPerPage = cfg.maxLines || cfg.rows;
+      const maxLineWidth = cfg.maxLineWidth || (cfg.cols * cfg.cellW);
+      const baseFontSize = cfg.fontSize;
 
       const pages = [];
       let currentPageLines = [];
@@ -640,6 +570,7 @@
           const char = para[c];
 
           if (cfg.mode === 'grid') {
+            // 红格子：严格每行最多16个字，满16个自动转下一行
             if (curLineChars.length >= cfg.cols) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
@@ -685,7 +616,7 @@
 
     function renderAll() {
       const pKey = paperSelect.value;
-      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
+      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_draft;
 
       const canvasW = cfg.w;
       const canvasH = cfg.h;
@@ -697,48 +628,13 @@
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // 1. 铺底图
-      if (cfg.isPhoto) {
-        const img = imgCache[cfg.photoKey];
-        if (img && img.complete && img.naturalWidth > 0) {
-          ctx.drawImage(img, 0, 0, canvasW, canvasH);
-        } else {
-          ctx.fillStyle = '#f5efe3';
-          ctx.fillRect(0, 0, canvasW, canvasH);
-        }
+      // 1. 贴原版底图
+      const img = imgCache[cfg.photoKey];
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, 0, 0, canvasW, canvasH);
       } else {
-        ctx.fillStyle = '#fdfdfc';
+        ctx.fillStyle = '#f5efe3';
         ctx.fillRect(0, 0, canvasW, canvasH);
-        if (cfg.mode === 'line_print') {
-          ctx.strokeStyle = cfg.color;
-          ctx.lineWidth = 1.0;
-          for (let i = 0; i < cfg.lines; i++) {
-            const y = cfg.topMargin + i * cfg.lineSpacing;
-            ctx.beginPath();
-            ctx.moveTo(cfg.marginX, y);
-            ctx.lineTo(canvasW - cfg.marginX, y);
-            ctx.stroke();
-          }
-        } else if (cfg.mode === 'grid_print') {
-          ctx.strokeStyle = cfg.color;
-          ctx.lineWidth = 1.0;
-          const totalW = cfg.cols * cfg.size;
-          const totalH = cfg.rows * cfg.size;
-          for (let r = 0; r <= cfg.rows; r++) {
-            const y = cfg.marginY + r * cfg.size;
-            ctx.beginPath();
-            ctx.moveTo(cfg.marginX, y);
-            ctx.lineTo(cfg.marginX + totalW, y);
-            ctx.stroke();
-          }
-          for (let c = 0; c <= cfg.cols; c++) {
-            const x = cfg.marginX + c * cfg.size;
-            ctx.beginPath();
-            ctx.moveTo(x, cfg.marginY);
-            ctx.lineTo(x, cfg.marginY + totalH);
-            ctx.stroke();
-          }
-        }
       }
 
       // 2. 分页处理
@@ -763,7 +659,7 @@
       ctx.globalCompositeOperation = 'source-over';
 
       // =========================================================================
-      // 3. 红格子：单字作为独立单元居中入格
+      // 3. 红格子：满16个自动转行，左右间距拉大
       // =========================================================================
       if (cfg.mode === 'grid') {
         const cellW = cfg.cellW;
@@ -771,10 +667,9 @@
         const baseFontSize = cfg.fontSize;
         let charGlobalIndex = 0;
 
-        for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          const row = lineIdx;
-          if (row >= (cfg.rows - cfg.startRowIdx)) break;
-          const lineText = pageLines[lineIdx];
+        for (let row = 0; row < pageLines.length; row++) {
+          if (row >= cfg.rows) break;
+          const lineText = pageLines[row];
 
           for (let col = 0; col < lineText.length; col++) {
             if (col >= cfg.cols) break;
@@ -797,8 +692,8 @@
             const cellCenterX = cfg.startX + col * cellW + (cellW * 0.5);
             const cellCenterY = cfg.startY + row * cellH + (cellH * 0.52);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (cellW * 0.10 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (cellH * 0.10 * posChaos);
+            const jX = (hashRandom(seed + 6) - 0.5) * (cellW * 0.08 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (cellH * 0.08 * posChaos);
 
             const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
@@ -824,7 +719,7 @@
         }
       }
       // =========================================================================
-      // 4. 单红线与草稿纸：逐行绝对落线
+      // 4. 单红线与草稿纸：逐行绝对落线，首行绝对留空
       // =========================================================================
       else if (cfg.mode === 'lines') {
         const baseFontSize = cfg.fontSize;
@@ -855,13 +750,13 @@
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
             const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.16 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.16 * posChaos) + lineWave;
+            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.14 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.14 * posChaos) + lineWave;
 
             const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.74;
-            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.18 * posChaos));
+            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.16 * posChaos));
 
-            // 文字基线落线
+            // 文字紧贴下横线
             const charCenterX = curX + charStep * 0.5;
             const charCenterY = lineY - (baseFontSize * 0.38);
 
