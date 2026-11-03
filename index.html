@@ -146,7 +146,7 @@
     .calib-num { font-weight: bold; color: #15803d; }
     .calib-slider { width: 100%; accent-color: #16a34a; cursor: pointer; }
 
-    .btn-copy-code {
+    .btn-save-cfg {
       width: 100%;
       padding: 10px;
       background: #16a34a;
@@ -162,7 +162,7 @@
       gap: 6px;
       transition: background 0.2s;
     }
-    .btn-copy-code:hover { background: #15803d; }
+    .btn-save-cfg:hover { background: #15803d; }
 
     .action-row { display: flex; gap: 10px; margin-top: 4px; }
     .btn-action {
@@ -249,13 +249,13 @@
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊 · 标定工程版</div>
+    <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
   </header>
 
   <main>
     <section class="control-panel">
       <!-- 专用卡尺测量标定面板 -->
-      <div class="calib-panel">
+      <div class="calib-panel" id="calibPanelBox">
         <div class="calib-header">
           <span>🎯 卡尺对齐手柄</span>
           <span style="font-size: 11px; color: #166534;">第1行已留空</span>
@@ -280,12 +280,11 @@
         <div class="calib-row">
           <div class="calib-label-row">
             <span>基础行间距 (ΔY)</span>
-            <span class="calib-num" id="valStepY">60.2</span>
+            <span class="calib-num" id="valStepY">60.4</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="60.2" />
+          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="60.4" />
         </div>
 
-        <!-- 步长设为 0.1，满足精细调节要求 -->
         <div class="calib-row">
           <div class="calib-label-row">
             <span>底部拉伸补偿 (向下沉贴)</span>
@@ -297,9 +296,9 @@
         <div class="calib-row">
           <div class="calib-label-row">
             <span>水平字间距 / 格宽 (ΔX)</span>
-            <span class="calib-num" id="valStepX">63.5</span>
+            <span class="calib-num" id="valStepX">64.0</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStepX" min="15" max="90" step="0.5" value="63.5" />
+          <input type="range" class="calib-slider" id="sliderStepX" min="15" max="90" step="0.5" value="64.0" />
         </div>
 
         <div class="calib-row">
@@ -310,10 +309,10 @@
           <input type="range" class="calib-slider" id="sliderFontSize" min="16" max="60" step="1" value="42" />
         </div>
 
-        <button class="btn-copy-code" id="btnCopyConfig" type="button">📋 复制当前完美参数</button>
+        <button class="btn-save-cfg" id="btnSaveConfig" type="button">💾 保存当前背景参数</button>
       </div>
 
-      <!-- 完整还原的原版文件导入组件 -->
+      <!-- 完整还原的文件导入组件 -->
       <div class="panel-section">
         <span class="section-title">导入文稿</span>
         <input type="file" id="fileUploadInput" accept=".docx,.doc,.pdf,.txt,.md,image/*" style="display: none;" />
@@ -381,10 +380,10 @@
         <div class="form-group" style="margin-top: 8px;">
           <label for="paperSelect">选择纸张背景</label>
           <select class="form-select" id="paperSelect">
-            <optgroup label="—— 实拍特写系列 (当前调试) ——">
-              <option value="real_grid_red" selected>实拍-红格子稿纸 (16列自动换行)</option>
-              <option value="real_redline">实拍-单红线信稿纸</option>
-              <option value="real_draft">草稿纸-高清实拍 (绿色书脊)</option>
+            <optgroup label="—— 实拍特写系列 ——">
+              <option value="real_grid_red" selected>实拍-红格子稿纸 (14列换行)</option>
+              <option value="real_redline">实拍-单红线信稿纸 (填满整页)</option>
+              <option value="real_draft">草稿纸-高清实拍 (填满整页)</option>
             </optgroup>
             <optgroup label="—— 印刷/打印标准纸张 ——">
               <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
@@ -401,7 +400,6 @@
         </div>
       </div>
 
-      <!-- 完整还原的随机勾画涂改与紊乱度高级设置 -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
@@ -476,7 +474,8 @@
     const fontSelect = document.getElementById('fontSelect');
     const fontStatusMsg = document.getElementById('fontStatusMsg');
     const badgeContainer = document.getElementById('badgeContainer');
-    const btnCopyConfig = document.getElementById('btnCopyConfig');
+    const btnSaveConfig = document.getElementById('btnSaveConfig');
+    const calibPanelBox = document.getElementById('calibPanelBox');
 
     const btnPrevPage = document.getElementById('btnPrevPage');
     const btnNextPage = document.getElementById('btnNextPage');
@@ -531,67 +530,80 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    // 每一张纸的独立标定参数（继承刚刚截图中的最佳参数）
-    const CALIB_DATA = {
+    // 实拍特写纸张默认配置（填满整页：草稿纸写满14行，单红线写满20行，红格写满19行）
+    const DEFAULT_PHOTO_CONFIGS = {
       real_grid_red: {
-        startX: 155, startY: 191, stepX: 63.5, stepY: 60.2, bottomDrift: 0.6, fontSize: 42,
-        cols: 16, rows: 19, isGrid: true, w: 1200, h: 1600
+        startX: 155, startY: 191, stepX: 64.0, stepY: 60.4, bottomDrift: 0.6, fontSize: 42,
+        cols: 14, rows: 19, isGrid: true, w: 1200, h: 1600
       },
       real_redline: {
         startX: 183, startY: 263, stepX: 33.5, stepY: 53.4, bottomDrift: 2.6, fontSize: 35,
-        maxLines: 18, isGrid: false, w: 1200, h: 1600
+        maxLines: 20, isGrid: false, w: 1200, h: 1600
       },
       real_draft: {
         startX: 848, startY: 206, stepX: 30, stepY: 53.2, bottomDrift: 0.6, fontSize: 32,
-        maxLines: 13, isGrid: false, w: 1600, h: 1200
+        maxLines: 14, isGrid: false, w: 1600, h: 1200
       }
     };
 
-    function syncCalibUI() {
-      const pKey = paperSelect.value;
-      const data = CALIB_DATA[pKey];
-      if (!data) return;
+    // 所有标准矢量打印纸配置（绝对完整保留）
+    const PRINT_PAPER_CONFIGS = {
+      print_redline_a4_new: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25, color: 'rgba(225, 70, 60, 0.4)' },
+      print_grid_black: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(50, 50, 50, 0.4)' },
+      print_grid_red: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(215, 65, 55, 0.45)' },
+      print_a4_v: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 190, lineSpacing: 54, lines: 26, color: 'rgba(180, 180, 180, 0.35)' },
+      print_a4_h: { w: 1754, h: 1240, mode: 'line_print', marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17, color: 'rgba(180, 180, 180, 0.35)' },
+      print_b5_v: { w: 1040, h: 1476, mode: 'line_print', marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24, color: 'rgba(180, 180, 180, 0.35)' },
+      print_b5_h: { w: 1476, h: 1040, mode: 'line_print', marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16, color: 'rgba(180, 180, 180, 0.35)' },
+      print_a3_v: { w: 1754, h: 2480, mode: 'line_print', marginX: 160, topMargin: 240, lineSpacing: 64, lines: 32, color: 'rgba(180, 180, 180, 0.35)' },
+      print_a3_h: { w: 2480, h: 1754, mode: 'line_print', marginX: 180, topMargin: 200, lineSpacing: 64, lines: 22, color: 'rgba(180, 180, 180, 0.35)' }
+    };
 
-      sliderStartX.value = data.startX; valStartX.textContent = data.startX;
-      sliderStartY.value = data.startY; valStartY.textContent = data.startY;
-      sliderStepX.value = data.stepX; valStepX.textContent = data.stepX;
-      sliderStepY.value = data.stepY; valStepY.textContent = data.stepY;
-      sliderBottomDrift.value = data.bottomDrift || 0; valBottomDrift.textContent = data.bottomDrift || 0;
-      sliderFontSize.value = data.fontSize; valFontSize.textContent = data.fontSize;
+    function getActiveConfig(pKey) {
+      if (!DEFAULT_PHOTO_CONFIGS[pKey]) return null;
+      const saved = localStorage.getItem('hw_cfg_' + pKey);
+      if (saved) {
+        try { return Object.assign({}, DEFAULT_PHOTO_CONFIGS[pKey], JSON.parse(saved)); } catch(e) {}
+      }
+      return Object.assign({}, DEFAULT_PHOTO_CONFIGS[pKey]);
     }
 
-    sliderStartX.oninput = function() {
-      const pKey = paperSelect.value;
-      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].startX = parseFloat(this.value); valStartX.textContent = this.value; renderAll(); }
-    };
-    sliderStartY.oninput = function() {
-      const pKey = paperSelect.value;
-      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].startY = parseFloat(this.value); valStartY.textContent = this.value; renderAll(); }
-    };
-    sliderStepX.oninput = function() {
-      const pKey = paperSelect.value;
-      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); }
-    };
-    sliderStepY.oninput = function() {
-      const pKey = paperSelect.value;
-      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); }
-    };
-    sliderBottomDrift.oninput = function() {
-      const pKey = paperSelect.value;
-      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); }
-    };
-    sliderFontSize.oninput = function() {
-      const pKey = paperSelect.value;
-      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); }
-    };
+    let CURRENT_CFG = getActiveConfig(paperSelect.value);
 
-    btnCopyConfig.onclick = function() {
+    function syncCalibUI() {
       const pKey = paperSelect.value;
-      const c = CALIB_DATA[pKey];
-      const code = `startX: ${c.startX}, startY: ${c.startY}, stepX: ${c.stepX}, stepY: ${c.stepY}, bottomDrift: ${c.bottomDrift}, fontSize: ${c.fontSize}`;
-      navigator.clipboard.writeText(code).then(() => {
-        alert('✅ 已成功复制！数值已到剪贴板，请发回给我：\n\n' + code);
-      });
+      CURRENT_CFG = getActiveConfig(pKey);
+
+      if (!CURRENT_CFG) {
+        calibPanelBox.style.display = 'none'; // 切换到印刷纸张时隐藏微调手柄
+      } else {
+        calibPanelBox.style.display = 'flex';
+        sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
+        sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
+        sliderStepX.value = CURRENT_CFG.stepX; valStepX.textContent = CURRENT_CFG.stepX;
+        sliderStepY.value = CURRENT_CFG.stepY; valStepY.textContent = CURRENT_CFG.stepY;
+        sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
+        sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
+      }
+    }
+
+    sliderStartX.oninput = function() { CURRENT_CFG.startX = parseFloat(this.value); valStartX.textContent = this.value; renderAll(); };
+    sliderStartY.oninput = function() { CURRENT_CFG.startY = parseFloat(this.value); valStartY.textContent = this.value; renderAll(); };
+    sliderStepX.oninput = function() { CURRENT_CFG.stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); };
+    sliderStepY.oninput = function() { CURRENT_CFG.stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); };
+    sliderBottomDrift.oninput = function() { CURRENT_CFG.bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); };
+    sliderFontSize.oninput = function() { CURRENT_CFG.fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); };
+
+    // 核心保存事件：只保存当前背景纸，独立永久有效！
+    btnSaveConfig.onclick = function() {
+      const pKey = paperSelect.value;
+      localStorage.setItem('hw_cfg_' + pKey, JSON.stringify(CURRENT_CFG));
+      btnSaveConfig.textContent = '✅ 已成功保存当前页面设置！';
+      btnSaveConfig.style.background = '#059669';
+      setTimeout(() => {
+        btnSaveConfig.textContent = '💾 保存当前背景参数';
+        btnSaveConfig.style.background = '#16a34a';
+      }, 2000);
     };
 
     function hashRandom(seed) {
@@ -675,17 +687,12 @@
     dropUploadBox.onclick = () => fileUploadInput.click();
     fileUploadInput.onchange = (e) => handleUploadedFile(e.target.files[0]);
 
-    dropUploadBox.ondragover = (e) => {
-      e.preventDefault();
-      dropUploadBox.classList.add('dragover');
-    };
+    dropUploadBox.ondragover = (e) => { e.preventDefault(); dropUploadBox.classList.add('dragover'); };
     dropUploadBox.ondragleave = () => dropUploadBox.classList.remove('dragover');
     dropUploadBox.ondrop = (e) => {
       e.preventDefault();
       dropUploadBox.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        handleUploadedFile(e.dataTransfer.files[0]);
-      }
+      if (e.dataTransfer.files.length > 0) handleUploadedFile(e.dataTransfer.files[0]);
     };
 
     function drawScratch(centerX, centerY, size, seed) {
@@ -729,12 +736,18 @@
     }
 
     // =========================================================================
-    // 彻底解决出格：严格 16 格截断自动换行引擎
+    // 核心分页引擎：写满整页禁止提前空行；红格满14字第15字坚决强制换行！
     // =========================================================================
     function computePagination(text, pKey) {
-      const calib = CALIB_DATA[pKey];
+      const calib = CURRENT_CFG;
       const isGrid = calib && calib.isGrid;
-      const linesPerPage = calib ? (calib.maxLines || calib.rows || 18) : 20;
+      
+      let linesPerPage = 20;
+      if (calib) {
+        linesPerPage = calib.maxLines || calib.rows || 18;
+      } else if (PRINT_PAPER_CONFIGS[pKey]) {
+        linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
+      }
 
       const pages = [];
       let currentPageLines = [];
@@ -744,7 +757,7 @@
 
       for (let p = 0; p < rawParagraphs.length; p++) {
         const para = rawParagraphs[p].trim();
-        if (para.length === 0) continue;
+        if (para.length === 0) continue; // 忽略多余空回车，杜绝产生半页空白
 
         curLineChars = [];
 
@@ -752,8 +765,8 @@
           const char = para[c];
 
           if (isGrid) {
-            // 严格限死：一旦这一行已经排了 16 个，立刻推入新行！当前字作为下一行第 1 个！
-            if (curLineChars.length === 16) {
+            // 红格子：满 14 个字符立刻切行！第 15 个字坚决换到下一行第 1 格！
+            if (curLineChars.length >= 14) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
               if (currentPageLines.length >= linesPerPage) {
@@ -795,15 +808,19 @@
 
     function renderAll() {
       const pKey = paperSelect.value;
-      const calib = CALIB_DATA[pKey];
+      const isPhoto = Boolean(DEFAULT_PHOTO_CONFIGS[pKey]);
+      const calib = CURRENT_CFG;
+      const printCfg = PRINT_PAPER_CONFIGS[pKey];
 
       let canvasW = 1200;
       let canvasH = 1600;
-      if (calib) {
+
+      if (isPhoto && calib) {
         canvasW = calib.w;
         canvasH = calib.h;
-      } else if (pKey === 'print_a4_h' || pKey === 'print_a3_h') {
-        canvasW = 1754; canvasH = 1240;
+      } else if (printCfg) {
+        canvasW = printCfg.w;
+        canvasH = printCfg.h;
       }
 
       canvas.width = canvasW * DPR;
@@ -811,13 +828,49 @@
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // 1. 铺设底图
-      const img = imgCache[pKey];
-      if (img && img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, 0, 0, canvasW, canvasH);
-      } else {
-        ctx.fillStyle = '#fdfdfc';
+      // 1. 底图铺设（实拍贴原图，打印纸绘制标准矢量红线与网格，绝不留白）
+      if (isPhoto) {
+        const img = imgCache[pKey];
+        if (img && img.complete && img.naturalWidth > 0) {
+          ctx.drawImage(img, 0, 0, canvasW, canvasH);
+        } else {
+          ctx.fillStyle = '#f5efe3';
+          ctx.fillRect(0, 0, canvasW, canvasH);
+        }
+      } else if (printCfg) {
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvasW, canvasH);
+
+        if (printCfg.mode === 'line_print') {
+          ctx.strokeStyle = printCfg.color;
+          ctx.lineWidth = 1.2;
+          for (let i = 0; i < printCfg.lines; i++) {
+            const y = printCfg.topMargin + i * printCfg.lineSpacing;
+            ctx.beginPath();
+            ctx.moveTo(printCfg.marginX, y);
+            ctx.lineTo(canvasW - printCfg.marginX, y);
+            ctx.stroke();
+          }
+        } else if (printCfg.mode === 'grid_print') {
+          ctx.strokeStyle = printCfg.color;
+          ctx.lineWidth = 1.0;
+          const totalW = printCfg.cols * printCfg.size;
+          const totalH = printCfg.rows * printCfg.size;
+          for (let r = 0; r <= printCfg.rows; r++) {
+            const y = printCfg.marginY + r * printCfg.size;
+            ctx.beginPath();
+            ctx.moveTo(printCfg.marginX, y);
+            ctx.lineTo(printCfg.marginX + totalW, y);
+            ctx.stroke();
+          }
+          for (let c = 0; c <= printCfg.cols; c++) {
+            const x = printCfg.marginX + c * printCfg.size;
+            ctx.beginPath();
+            ctx.moveTo(x, printCfg.marginY);
+            ctx.lineTo(x, printCfg.marginY + totalH);
+            ctx.stroke();
+          }
+        }
       }
 
       // 2. 分页处理
@@ -841,119 +894,172 @@
 
       ctx.globalCompositeOperation = 'source-over';
 
-      if (!calib) return;
-
-      const drift = calib.bottomDrift || 0;
       let charGlobalIndex = 0;
 
       // =========================================================================
-      // 3. 严格执行 16 格入格，杜绝任何字符跨出红框
+      // 3. 实拍纸张绘制（支持手动微调、防出格与底部沉贴）
       // =========================================================================
-      if (calib.isGrid) {
-        for (let row = 0; row < pageLines.length; row++) {
-          if (row >= calib.rows) break;
-          const lineText = pageLines[row];
-          const extraDown = (row * row) * (drift * 0.25);
+      if (isPhoto && calib) {
+        const drift = calib.bottomDrift || 0;
 
-          for (let col = 0; col < lineText.length; col++) {
-            if (col >= 16) break; // 严格限死 16 列！绝不再越框！
-            const char = lineText[col];
+        if (calib.isGrid) {
+          for (let row = 0; row < pageLines.length; row++) {
+            if (row >= calib.rows) break;
+            const lineText = pageLines[row];
+            const extraDown = (row * row) * (drift * 0.25);
 
-            const charCode = char.charCodeAt(0);
-            const seed = (currentPageIndex + 1) * 1000 + charGlobalIndex * 137 + charCode * 17;
-            charGlobalIndex++;
+            for (let col = 0; col < lineText.length; col++) {
+              if (col >= 14) break; // 严格限死 14 列，杜绝任何字符跨出红框！
+              const char = lineText[col];
 
-            const isEng = /[a-zA-Z0-9]/.test(char);
-            const isPunctuation = /[，。、；：？！,.!?:;·]/;
+              const charCode = char.charCodeAt(0);
+              const seed = (currentPageIndex + 1) * 1000 + charGlobalIndex * 137 + charCode * 17;
+              charGlobalIndex++;
 
-            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
-            const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.16 * strokeChaos);
-            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.22 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
+              const isEng = /[a-zA-Z0-9]/.test(char);
+              const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            const cellCenterX = calib.startX + col * calib.stepX + (calib.stepX * 0.5);
-            const cellBottomY = calib.startY + (row + 1) * calib.stepY + extraDown;
+              const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
+              const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.16 * strokeChaos);
+              const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.22 * strokeChaos);
+              const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
+              const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (calib.stepX * 0.08 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (calib.stepY * 0.06 * posChaos);
+              const cellCenterX = calib.startX + col * calib.stepX + (calib.stepX * 0.5);
+              const cellBottomY = calib.startY + (row + 1) * calib.stepY + extraDown;
 
-            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
+              const jX = (hashRandom(seed + 6) - 0.5) * (calib.stepX * 0.08 * posChaos);
+              const jY = (hashRandom(seed + 7) - 0.5) * (calib.stepY * 0.06 * posChaos);
 
-            ctx.save();
-            ctx.translate(cellCenterX + jX, cellBottomY - 4 + jY);
-            ctx.rotate(charAngle);
-            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
+              const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
-            ctx.font = `${isEng ? calib.fontSize * 1.02 : calib.fontSize}px ${currentFontFamily}`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = `rgba(15, 23, 42, ${inkOpacity})`;
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
+              ctx.save();
+              ctx.translate(cellCenterX + jX, cellBottomY - 4 + jY);
+              ctx.rotate(charAngle);
+              ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
-            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
-              if (hashRandom(seed * 7 + 991) < scratchProb) {
-                drawScratch(cellCenterX + jX, cellBottomY - calib.stepY * 0.5, Math.min(calib.stepX, calib.stepY), seed);
+              ctx.font = `${isEng ? calib.fontSize * 1.02 : calib.fontSize}px ${currentFontFamily}`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'alphabetic';
+              ctx.fillStyle = `rgba(15, 23, 42, ${inkOpacity})`;
+              ctx.fillText(char, 0, 0);
+              ctx.restore();
+
+              if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
+                if (hashRandom(seed * 7 + 991) < scratchProb) {
+                  drawScratch(cellCenterX + jX, cellBottomY - calib.stepY * 0.5, Math.min(calib.stepX, calib.stepY), seed);
+                }
               }
             }
           }
-        }
-      } else {
-        // 横线纸：逐行绝对落线
-        for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          if (lineIdx >= calib.maxLines) break;
+        } else {
+          // 横线纸：逐行绝对咬线排满整页
+          for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
+            if (lineIdx >= calib.maxLines) break;
 
-          const extraDown = (lineIdx * lineIdx) * (drift * 0.25);
-          const lineY = calib.startY + lineIdx * calib.stepY + extraDown;
+            const extraDown = (lineIdx * lineIdx) * (drift * 0.25);
+            const lineY = calib.startY + lineIdx * calib.stepY + extraDown;
 
-          const lineText = pageLines[lineIdx];
-          let curX = calib.startX;
-          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (2.0 * posChaos);
+            const lineText = pageLines[lineIdx];
+            let curX = calib.startX;
+            const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (2.0 * posChaos);
 
-          for (let c = 0; c < lineText.length; c++) {
-            const char = lineText[c];
+            for (let c = 0; c < lineText.length; c++) {
+              const char = lineText[c];
 
-            const charCode = char.charCodeAt(0);
-            const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
-            charGlobalIndex++;
+              const charCode = char.charCodeAt(0);
+              const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
+              charGlobalIndex++;
 
-            const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-            const isPunctuation = /[，。、；：？！,.!?:;·]/;
+              const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+              const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
-            const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.14 * strokeChaos);
-            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.20 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.08 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.10 * strokeChaos);
+              const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
+              const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.14 * strokeChaos);
+              const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.20 * strokeChaos);
+              const skewY = (hashRandom(seed + 9) - 0.5) * (0.08 * strokeChaos);
+              const charAngle = (hashRandom(seed + 2) - 0.5) * (0.10 * strokeChaos);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (calib.fontSize * 0.10 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (calib.fontSize * 0.08 * posChaos) + lineWave;
+              const jX = (hashRandom(seed + 6) - 0.5) * (calib.fontSize * 0.10 * posChaos);
+              const jY = (hashRandom(seed + 7) - 0.5) * (calib.fontSize * 0.08 * posChaos) + lineWave;
 
-            const baseStep = isEng ? calib.stepX * 0.6 : calib.stepX;
-            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.12 * posChaos));
+              const baseStep = isEng ? calib.stepX * 0.6 : calib.stepX;
+              const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.12 * posChaos));
 
-            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
+              const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
-            ctx.save();
-            ctx.translate(curX + charStep * 0.5 + jX, lineY - 2 + jY);
-            ctx.rotate(charAngle);
-            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
+              ctx.save();
+              ctx.translate(curX + charStep * 0.5 + jX, lineY - 2 + jY);
+              ctx.rotate(charAngle);
+              ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
-            ctx.font = `${isEng ? calib.fontSize * 1.02 : calib.fontSize}px ${currentFontFamily}`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = `rgba(15, 23, 42, ${inkOpacity})`;
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
+              ctx.font = `${isEng ? calib.fontSize * 1.02 : calib.fontSize}px ${currentFontFamily}`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'alphabetic';
+              ctx.fillStyle = `rgba(15, 23, 42, ${inkOpacity})`;
+              ctx.fillText(char, 0, 0);
+              ctx.restore();
 
-            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
-              if (hashRandom(seed * 11 + 104729) < scratchProb) {
-                drawScratch(curX + charStep * 0.5 + jX, lineY - calib.fontSize * 0.4, calib.fontSize * 1.2, seed);
+              if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
+                if (hashRandom(seed * 11 + 104729) < scratchProb) {
+                  drawScratch(curX + charStep * 0.5 + jX, lineY - calib.fontSize * 0.4, calib.fontSize * 1.2, seed);
+                }
               }
-            }
 
-            curX += charStep;
+              curX += charStep;
+            }
+          }
+        }
+      }
+      // =========================================================================
+      // 4. 标准印刷纸张绘制逻辑（彻底恢复显示，绝不白屏）
+      // =========================================================================
+      else if (printCfg) {
+        const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : 24;
+
+        if (printCfg.mode === 'grid_print') {
+          for (let row = 0; row < pageLines.length; row++) {
+            if (row >= printCfg.rows) break;
+            const lineText = pageLines[row];
+
+            for (let col = 0; col < lineText.length; col++) {
+              if (col >= printCfg.cols) break;
+              const char = lineText[col];
+              const cellCenterX = printCfg.marginX + col * printCfg.size + (printCfg.size * 0.5);
+              const cellBottomY = printCfg.marginY + (row + 1) * printCfg.size;
+
+              ctx.save();
+              ctx.font = `${baseFontSize}px ${currentFontFamily}`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'alphabetic';
+              ctx.fillStyle = '#0f172a';
+              ctx.fillText(char, cellCenterX, cellBottomY - 4);
+              ctx.restore();
+            }
+          }
+        } else {
+          // 打印横线纸
+          for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
+            if (lineIdx >= printCfg.lines) break;
+            const lineText = pageLines[lineIdx];
+            const lineY = printCfg.topMargin + lineIdx * printCfg.lineSpacing;
+            let curX = printCfg.marginX;
+
+            for (let c = 0; c < lineText.length; c++) {
+              const char = lineText[c];
+              const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+              const charStep = isEng ? baseFontSize * 0.55 : baseFontSize * 0.85;
+
+              ctx.save();
+              ctx.font = `${baseFontSize}px ${currentFontFamily}`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'alphabetic';
+              ctx.fillStyle = '#0f172a';
+              ctx.fillText(char, curX + charStep * 0.5, lineY - 2);
+              ctx.restore();
+
+              curX += charStep;
+            }
           }
         }
       }
