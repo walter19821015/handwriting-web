@@ -396,13 +396,14 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    let initialDrawDone = false;
-    imgCache.real_redline.onload = () => {
-      if (!initialDrawDone) {
-        initialDrawDone = true;
+    // 图片加载完成自动重绘一次
+    let loadCount = 0;
+    ['real_redline', 'real_grid_red', 'real_draft'].forEach(key => {
+      imgCache[key].onload = () => {
+        loadCount++;
         renderAll();
-      }
-    };
+      };
+    });
 
     function hashRandom(seed) {
       let h = (seed ^ 0xdeadbeef) >>> 0;
@@ -505,39 +506,48 @@
     };
 
     // =========================================================================
-    // 核心物理标定：行独立绝对坐标 + 正方形网格坐标
+    // 彻底根治变形：基于图片真实比例的相对像素标定系统
     // =========================================================================
     const PAPER_CONFIGS = {
-      // 1. 实拍单红线（900x1200）：每一根红线绝对物理Y坐标（第0根153px留空，从第1根201px开始写）
+      // 1. 实拍单红线：根据原图真实像素比例渲染，首行留空，从第2根线起笔
       real_redline: {
-        w: 900, h: 1200, isPhoto: true, photoKey: 'real_redline', mode: 'independent_lines',
-        marginX: 145, contentWidth: 620, baseFontSize: 28,
-        // 真实实拍图片全部21根红线的像素坐标
-        lineY: [
-          153, 201, 248, 296, 343, 391, 439, 486, 534, 581, 
-          629, 676, 724, 772, 819, 867, 915, 962, 1010, 1057, 1105
+        isPhoto: true, photoKey: 'real_redline', mode: 'redline_photo',
+        defaultW: 900, defaultH: 1200,
+        // 21根红线在原图高度中的相对百分比位置 (精准实测)
+        linesPercent: [
+          0.128, 0.168, 0.207, 0.247, 0.286, 0.326, 0.365, 0.405, 0.445, 0.484,
+          0.524, 0.563, 0.603, 0.643, 0.682, 0.722, 0.762, 0.801, 0.841, 0.880, 0.920
         ],
-        startLineIndex: 1 // 强制从第2根线(index 1)起笔
+        startLineIdx: 1, // 严格从第2根线起笔
+        leftPercent: 0.160, rightPercent: 0.845,
+        fontSizeRatio: 0.024
       },
 
-      // 2. 实拍红格子（900x1200）：严格正方形格网。宽高比对齐，每个格子独立计算居中点
+      // 2. 实拍红格子：彻底解决长方形变形！锁定严格正方形！
       real_grid_red: {
-        w: 900, h: 1200, isPhoto: true, photoKey: 'real_grid_red', mode: 'independent_grid',
-        cols: 16, rows: 19, startRowIndex: 1, // 强制从第2行起笔
-        startX: 116, startY: 96,
-        cellSize: 43.7, // 严格正方形边长
-        baseFontSize: 36
+        isPhoto: true, photoKey: 'real_grid_red', mode: 'grid_photo',
+        defaultW: 900, defaultH: 1200,
+        cols: 16, rows: 20,
+        startRowIdx: 1, // 严格从第2行起笔
+        // 红格区域在真实图片中的相对坐标边界
+        gridLeftPercent: 0.129,
+        gridTopPercent: 0.081,
+        gridRightPercent: 0.871,
+        gridBottomPercent: 0.919,
+        fontSizeRatio: 0.030 // 大字占满正方形
       },
 
-      // 3. 实拍草稿纸（1200x900）：右半页每一根横线的绝对物理Y坐标（第0根126px留空，从第1根171px起笔）
+      // 3. 实拍草稿纸：锁定右半页，第1根线留空，从第2根起笔，到底端严格截断
       real_draft: {
-        w: 1200, h: 900, isPhoto: true, photoKey: 'real_draft', mode: 'independent_lines',
-        marginX: 635, contentWidth: 490, baseFontSize: 26,
-        // 右半页印刷线条的真实绝对Y坐标（共14根线，绝对不会画到纸外）
-        lineY: [
-          126, 171, 215, 260, 305, 349, 394, 439, 483, 528, 573, 617, 662, 707
+        isPhoto: true, photoKey: 'real_draft', mode: 'draft_photo',
+        defaultW: 1200, defaultH: 900,
+        // 右半页14根横线在图片高度中的相对百分比位置
+        linesPercent: [
+          0.140, 0.190, 0.239, 0.289, 0.339, 0.388, 0.438, 0.488, 0.537, 0.587, 0.637, 0.686, 0.736, 0.786
         ],
-        startLineIndex: 1 // 强制从第2根线(index 1)起笔
+        startLineIdx: 1, // 严格从第2根线起笔
+        leftPercent: 0.530, rightPercent: 0.935,
+        fontSizeRatio: 0.028
       },
 
       // 普通矢量纸张
@@ -588,64 +598,6 @@
       }
     };
 
-    function renderPaperBackground(cfg) {
-      const w = cfg.w;
-      const h = cfg.h;
-      
-      canvas.width = w * DPR;
-      canvas.height = h * DPR;
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
-
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-      if (cfg.isPhoto) {
-        const img = imgCache[cfg.photoKey];
-        if (img && img.complete && img.naturalWidth > 0) {
-          ctx.drawImage(img, 0, 0, w, h);
-        } else {
-          ctx.fillStyle = '#f5efe3';
-          ctx.fillRect(0, 0, w, h);
-        }
-        return;
-      }
-
-      ctx.fillStyle = '#fdfdfc';
-      ctx.fillRect(0, 0, w, h);
-
-      if (cfg.mode === 'line_print') {
-        ctx.strokeStyle = cfg.color;
-        ctx.lineWidth = 1.0;
-        for (let i = 0; i < cfg.lines; i++) {
-          const y = cfg.topMargin + i * cfg.lineSpacing;
-          ctx.beginPath();
-          ctx.moveTo(cfg.marginX, y);
-          ctx.lineTo(w - cfg.marginX, y);
-          ctx.stroke();
-        }
-      } else if (cfg.mode === 'grid_print') {
-        const totalW = cfg.cols * cfg.size;
-        const totalH = cfg.rows * cfg.size;
-        ctx.strokeStyle = cfg.color;
-        ctx.lineWidth = 1.0;
-
-        for (let r = 0; r <= cfg.rows; r++) {
-          const y = cfg.marginY + r * cfg.size;
-          ctx.beginPath();
-          ctx.moveTo(cfg.marginX, y);
-          ctx.lineTo(cfg.marginX + totalW, y);
-          ctx.stroke();
-        }
-        for (let c = 0; c <= cfg.cols; c++) {
-          const x = cfg.marginX + c * cfg.size;
-          ctx.beginPath();
-          ctx.moveTo(x, cfg.marginY);
-          ctx.lineTo(x, cfg.marginY + totalH);
-          ctx.stroke();
-        }
-      }
-    }
-
     function drawScratch(centerX, centerY, size, seed) {
       const type = Math.floor(hashRandom(seed + 88) * 3);
       ctx.save();
@@ -686,20 +638,23 @@
       ctx.restore();
     }
 
-    // 分页计算
-    function computePagination(text, cfg) {
+    function computePagination(text, cfg, actualW, actualH) {
       let linesPerPage = 20;
       let maxLineWidth = 600;
       let baseFontSize = 24;
 
-      if (cfg.mode === 'independent_lines') {
-        linesPerPage = cfg.lineY.length - cfg.startLineIndex; // 剔除留空的首行后的实际可用行数
-        maxLineWidth = cfg.contentWidth;
-        baseFontSize = cfg.baseFontSize;
-      } else if (cfg.mode === 'independent_grid') {
-        linesPerPage = cfg.rows - cfg.startRowIndex; // 剔除留空的首行
-        maxLineWidth = cfg.cols * cfg.cellSize;
-        baseFontSize = cfg.baseFontSize;
+      if (cfg.mode === 'redline_photo') {
+        linesPerPage = cfg.linesPercent.length - cfg.startLineIdx;
+        maxLineWidth = actualW * (cfg.rightPercent - cfg.leftPercent);
+        baseFontSize = actualH * cfg.fontSizeRatio;
+      } else if (cfg.mode === 'grid_photo') {
+        linesPerPage = cfg.rows - cfg.startRowIdx;
+        maxLineWidth = actualW * (cfg.gridRightPercent - cfg.gridLeftPercent);
+        baseFontSize = actualH * cfg.fontSizeRatio;
+      } else if (cfg.mode === 'draft_photo') {
+        linesPerPage = cfg.linesPercent.length - cfg.startLineIdx;
+        maxLineWidth = actualW * (cfg.rightPercent - cfg.leftPercent);
+        baseFontSize = actualH * cfg.fontSizeRatio;
       } else {
         linesPerPage = cfg.lines || cfg.rows || 20;
         maxLineWidth = cfg.w - cfg.marginX * 2;
@@ -721,7 +676,7 @@
         for (let c = 0; c < para.length; c++) {
           const char = para[c];
 
-          if (cfg.mode === 'independent_grid') {
+          if (cfg.mode === 'grid_photo') {
             if (curLineChars.length >= cfg.cols) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
@@ -733,7 +688,7 @@
             curLineChars.push(char);
           } else {
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-            const charWidth = isEng ? baseFontSize * 0.48 : baseFontSize * 0.76;
+            const charWidth = isEng ? baseFontSize * 0.48 : baseFontSize * 0.74;
 
             if (currentLineWidth + charWidth > maxLineWidth && curLineChars.length > 0) {
               currentPageLines.push(curLineChars.join(''));
@@ -768,16 +723,78 @@
     function renderAll() {
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
-      paginatedPages = computePagination(textInput.value, cfg);
 
+      // 核心：动态自适应图片的物理真实分辨率，绝不拉伸变形！
+      let realW = cfg.w || cfg.defaultW;
+      let realH = cfg.h || cfg.defaultH;
+
+      let currentPhoto = null;
+      if (cfg.isPhoto) {
+        currentPhoto = imgCache[cfg.photoKey];
+        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
+          realW = currentPhoto.naturalWidth;
+          realH = currentPhoto.naturalHeight;
+        }
+      }
+
+      canvas.width = realW * DPR;
+      canvas.height = realH * DPR;
+      canvas.style.width = realW + 'px';
+      canvas.style.height = realH + 'px';
+
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+      // 1. 铺底图
+      if (cfg.isPhoto) {
+        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
+          ctx.drawImage(currentPhoto, 0, 0, realW, realH);
+        } else {
+          ctx.fillStyle = '#f5efe3';
+          ctx.fillRect(0, 0, realW, realH);
+        }
+      } else {
+        ctx.fillStyle = '#fdfdfc';
+        ctx.fillRect(0, 0, realW, realH);
+        if (cfg.mode === 'line_print') {
+          ctx.strokeStyle = cfg.color;
+          ctx.lineWidth = 1.0;
+          for (let i = 0; i < cfg.lines; i++) {
+            const y = cfg.topMargin + i * cfg.lineSpacing;
+            ctx.beginPath();
+            ctx.moveTo(cfg.marginX, y);
+            ctx.lineTo(realW - cfg.marginX, y);
+            ctx.stroke();
+          }
+        } else if (cfg.mode === 'grid_print') {
+          ctx.strokeStyle = cfg.color;
+          ctx.lineWidth = 1.0;
+          const totalW = cfg.cols * cfg.size;
+          const totalH = cfg.rows * cfg.size;
+          for (let r = 0; r <= cfg.rows; r++) {
+            const y = cfg.marginY + r * cfg.size;
+            ctx.beginPath();
+            ctx.moveTo(cfg.marginX, y);
+            ctx.lineTo(cfg.marginX + totalW, y);
+            ctx.stroke();
+          }
+          for (let c = 0; c <= cfg.cols; c++) {
+            const x = cfg.marginX + c * cfg.size;
+            ctx.beginPath();
+            ctx.moveTo(x, cfg.marginY);
+            ctx.lineTo(x, cfg.marginY + totalH);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // 2. 分页处理
+      paginatedPages = computePagination(textInput.value, cfg, realW, realH);
       if (currentPageIndex >= paginatedPages.length) {
         currentPageIndex = Math.max(0, paginatedPages.length - 1);
       }
 
       const totalPages = paginatedPages.length || 1;
       const displayPageNum = currentPageIndex + 1;
-
-      renderPaperBackground(cfg);
 
       pageIndicator.textContent = `第 ${displayPageNum} / ${totalPages} 页`;
       headerPageTip.textContent = totalPages > 1 ? `(长文已分页：${displayPageNum}/${totalPages})` : ``;
@@ -792,15 +809,24 @@
       ctx.globalCompositeOperation = 'source-over';
 
       // =========================================================================
-      // 1. 实拍红格子：正方形格网点对点独立落格
+      // 3. 核心绘制：实拍红格子（严格正方形！每个字点对点居中入格）
       // =========================================================================
-      if (cfg.mode === 'independent_grid') {
-        const baseFontSize = cfg.baseFontSize;
-        const cellSize = cfg.cellSize;
+      if (cfg.mode === 'grid_photo') {
+        const gridLeft = realW * cfg.gridLeftPercent;
+        const gridTop = realH * cfg.gridTopPercent;
+        const gridRight = realW * cfg.gridRightPercent;
+        const gridBottom = realH * cfg.gridBottomPercent;
+
+        const cellW = (gridRight - gridLeft) / cfg.cols;
+        const cellH = (gridBottom - gridTop) / cfg.rows;
+        // 关键：强制让字体和计算尺寸取纯正方形 cellSize！
+        const cellSize = Math.min(cellW, cellH);
+
+        const baseFontSize = realH * cfg.fontSizeRatio;
         let charGlobalIndex = 0;
 
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          const actualRow = lineIdx + cfg.startRowIndex; // 自动跳过第1行，从第2行开始
+          const actualRow = lineIdx + cfg.startRowIdx; // 严格从第2行起笔
           if (actualRow >= cfg.rows) break;
 
           const lineText = pageLines[lineIdx];
@@ -816,18 +842,18 @@
             const isEng = /[a-zA-Z0-9]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.20 * strokeChaos);
-            const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.18 * strokeChaos);
-            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.28 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.12 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.14 * strokeChaos);
+            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.18 * strokeChaos);
+            const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.16 * strokeChaos);
+            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.24 * strokeChaos);
+            const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
+            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            // 正方形格子严格物理中心计算
-            const cellCenterX = cfg.startX + col * cellSize + (cellSize * 0.5);
-            const cellCenterY = cfg.startY + actualRow * cellSize + (cellSize * 0.52);
+            // 严格每个格子绝对居中，杜绝长方形与向右偏出
+            const cellCenterX = gridLeft + col * cellW + (cellW * 0.5);
+            const cellCenterY = gridTop + actualRow * cellH + (cellH * 0.54);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (cellSize * 0.16 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (cellSize * 0.16 * posChaos);
+            const jX = (hashRandom(seed + 6) - 0.5) * (cellSize * 0.12 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (cellSize * 0.12 * posChaos);
 
             const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
@@ -851,25 +877,25 @@
             }
           }
         }
-      } 
+      }
       // =========================================================================
-      // 2. 实拍单红线 与 实拍草稿纸：行独立绝对物理落线
+      // 4. 核心绘制：实拍单红线 与 实拍草稿纸（独立绝对落线，不跑偏不越界）
       // =========================================================================
-      else if (cfg.mode === 'independent_lines') {
-        const baseFontSize = cfg.baseFontSize;
-        const startX = cfg.marginX;
+      else if (cfg.mode === 'redline_photo' || cfg.mode === 'draft_photo') {
+        const baseFontSize = realH * cfg.fontSizeRatio;
+        const startX = realW * cfg.leftPercent;
         let charGlobalIndex = 0;
 
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          const actualLine = lineIdx + cfg.startLineIndex; // 强制从第2根线起笔
-          if (actualLine >= cfg.lineY.length) break;
+          const actualLine = lineIdx + cfg.startLineIdx; // 严格从第2根线起笔
+          if (actualLine >= cfg.linesPercent.length) break; // 严格到末行截断，绝不溢出到纸外
 
-          // 核心：直接取出该行对应红线的绝对真实 Y 坐标，每一行自成一体！
-          const redLineY = cfg.lineY[actualLine];
+          // 取当前线在实图中的绝对物理Y坐标
+          const redLineY = realH * cfg.linesPercent[actualLine];
 
           const lineText = pageLines[lineIdx];
           let curX = startX;
-          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (4.5 * posChaos);
+          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (4.0 * posChaos);
 
           for (let c = 0; c < lineText.length; c++) {
             const char = lineText[c];
@@ -881,20 +907,20 @@
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.22 * strokeChaos);
-            const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.20 * strokeChaos);
-            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.28 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.12 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.14 * strokeChaos);
+            const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.20 * strokeChaos);
+            const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.18 * strokeChaos);
+            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.24 * strokeChaos);
+            const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
+            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.25 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.25 * posChaos) + lineWave;
+            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.20 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.20 * posChaos) + lineWave;
 
-            // 紧凑横向步长
-            const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.76;
-            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.24 * posChaos));
+            // 紧凑横向步进
+            const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.74;
+            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.20 * posChaos));
 
-            // 文字紧贴对应行的红线上方
+            // 文字稳贴红线
             const charCenterX = curX + charStep * 0.5;
             const charCenterY = redLineY - (baseFontSize * 0.38);
 
@@ -920,33 +946,6 @@
             }
 
             curX += charStep;
-          }
-        }
-      }
-      // 3. 普通打印纸兼容逻辑
-      else {
-        const baseFontSize = 22;
-        let lineSpacing = cfg.lineSpacing || 54;
-        let startX = cfg.marginX;
-        let topMargin = cfg.topMargin || 170;
-
-        let charGlobalIndex = 0;
-        for (let lineIndex = 0; lineIndex < pageLines.length; lineIndex++) {
-          const lineText = pageLines[lineIndex];
-          let curX = startX;
-          const redLineY = topMargin + lineIndex * lineSpacing;
-
-          for (let c = 0; c < lineText.length; c++) {
-            const char = lineText[c];
-            const baseStep = baseFontSize * 0.76;
-            ctx.save();
-            ctx.font = `${baseFontSize}px ${currentFontFamily}`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = `rgba(12, 16, 24, 0.94)`;
-            ctx.fillText(char, curX + baseStep * 0.5, redLineY - baseFontSize * 0.38);
-            ctx.restore();
-            curX += baseStep;
           }
         }
       }
