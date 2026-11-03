@@ -376,6 +376,7 @@
           <span>状态：</span><strong id="fontStatusMsg">正在载入字库...</strong>
         </div>
 
+        <!-- 纯净名称纸张选项 -->
         <div class="form-group" style="margin-top: 8px;">
           <label for="paperSelect">选择纸张背景</label>
           <select class="form-select" id="paperSelect">
@@ -529,9 +530,9 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    // 严格锁定：
-    // 草稿纸：第 1 根线下方起笔，整页右侧写满 14 行才翻页
-    // 单红线：补足 22 行写满到底，消灭末尾空行
+    // 严格按实物锁定：
+    // 草稿纸：写满 20 行，第 1 根线下起笔，咬住最后一根横线才翻页
+    // 单红线：写满 22 行，彻底消除末尾空行
     // 红格子：写满 21 行方格才翻页
     const DEFAULT_PHOTO_CONFIGS = {
       real_grid_red: {
@@ -544,7 +545,7 @@
       },
       real_draft: {
         startX: 930, startY: 215, stepX: 30.7, stepY: 42.8, bottomDrift: 0.6, fontSize: 34,
-        maxLines: 14, isGrid: false, w: 1754, h: 1240
+        maxLines: 20, isGrid: false, w: 1754, h: 1240
       }
     };
 
@@ -563,10 +564,18 @@
     function getActiveConfig(pKey) {
       if (!DEFAULT_PHOTO_CONFIGS[pKey]) return null;
       const saved = localStorage.getItem('hw_cfg_a4_' + pKey);
+      let cfg = Object.assign({}, DEFAULT_PHOTO_CONFIGS[pKey]);
       if (saved) {
-        try { return Object.assign({}, DEFAULT_PHOTO_CONFIGS[pKey], JSON.parse(saved)); } catch(e) {}
+        try {
+          const parsed = JSON.parse(saved);
+          cfg = Object.assign(cfg, parsed);
+        } catch(e) {}
       }
-      return Object.assign({}, DEFAULT_PHOTO_CONFIGS[pKey]);
+      // 强制写满标准行数，不受历史旧缓存影响
+      if (pKey === 'real_draft') cfg.maxLines = 20;
+      if (pKey === 'real_redline') cfg.maxLines = 22;
+      if (pKey === 'real_grid_red') cfg.rows = 21;
+      return cfg;
     }
 
     let CURRENT_CFG = getActiveConfig(paperSelect.value);
@@ -735,17 +744,17 @@
       ctx.restore();
     }
 
-    // 分页计算：写满整页禁止提前空行，满14格第15字必定折行
+    // 分页计算：写满整页 20/21/22 行才翻页，杜绝中间留白
     function computePagination(text, pKey) {
       const calib = CURRENT_CFG;
       const isGrid = calib && calib.isGrid;
 
       let linesPerPage = 21;
-      if (calib) {
-        linesPerPage = calib.maxLines || calib.rows || 21;
-      } else if (PRINT_PAPER_CONFIGS[pKey]) {
-        linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
-      }
+      if (pKey === 'real_draft') linesPerPage = 20;
+      else if (pKey === 'real_redline') linesPerPage = 22;
+      else if (pKey === 'real_grid_red') linesPerPage = 21;
+      else if (calib) linesPerPage = calib.maxLines || calib.rows || 21;
+      else if (PRINT_PAPER_CONFIGS[pKey]) linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
 
       const pages = [];
       let currentPageLines = [];
@@ -763,7 +772,7 @@
           const char = para[c];
 
           if (isGrid) {
-            // 红格子：满 14 个字符立刻切行！第 15 个字必定进入下一行第 1 格！
+            // 红格子：满 14 个字符立刻切行！第 15 个字进入下一行第 1 格！
             if (curLineChars.length >= 14) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
