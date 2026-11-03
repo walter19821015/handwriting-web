@@ -503,24 +503,25 @@
       }
     };
 
-    // 核心物理像素标定（针对三款实拍照片像素级校准）
+    // 核心物理像素标定（空出首行，从第二行起笔，字号全面放大撑满）
     const PAPER_CONFIGS = {
-      // 1. 实拍单红线：首线 Y=152px，行间距 45.8px，共 21 行
+      // 1. 实拍单红线：从第 2 根线起笔 (Y = 152 + 45.8 = 197.8px)，字号放大至 26px
       real_redline: {
         w: 900, h: 1200, mode: 'line', isPhoto: true, photoKey: 'real_redline',
-        marginX: 145, topMargin: 152, lineSpacing: 45.8, lines: 21,
-        contentWidth: 620
+        marginX: 145, topMargin: 198, lineSpacing: 45.8, lines: 20,
+        contentWidth: 620, baseFontSize: 26.5
       },
-      // 2. 实拍红格子：起点 X=116, Y=98，方格宽 41.3px，高 47.8px，16列 x 20行
+      // 2. 实拍红格子：从第 2 行起笔 (Y = 98 + 48.0 = 146px)，大字号 32px 居中占满
       real_grid_red: {
         w: 900, h: 1200, mode: 'grid', isPhoto: true, photoKey: 'real_grid_red',
-        cols: 16, rows: 20, startX: 116, startY: 98, cellW: 41.3, cellH: 47.8
+        cols: 16, rows: 19, startX: 116, startY: 146, cellW: 41.3, cellH: 48.0,
+        baseFontSize: 32
       },
-      // 3. 实拍草稿纸：右半页起点 X=635, 首线 Y=126, 行距 39.4px, 共 19 行
+      // 3. 实拍草稿纸：从第 2 根线起笔 (Y = 126 + 39.4 = 165.4px)，字号放大至 24.5px
       real_draft: {
         w: 1200, h: 900, mode: 'line', isPhoto: true, photoKey: 'real_draft',
-        marginX: 635, topMargin: 126, lineSpacing: 39.4, lines: 19,
-        contentWidth: 490
+        marginX: 635, topMargin: 165.4, lineSpacing: 39.4, lines: 18,
+        contentWidth: 490, baseFontSize: 24.5
       },
       // 普通打印纸
       print_grid_black: {
@@ -632,7 +633,7 @@
       const type = Math.floor(hashRandom(seed + 88) * 3);
       ctx.save();
       ctx.strokeStyle = 'rgba(15, 20, 30, 0.95)';
-      ctx.lineWidth = 1.6 + hashRandom(seed + 89) * 0.6;
+      ctx.lineWidth = 1.8 + hashRandom(seed + 89) * 0.6;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
@@ -669,27 +670,9 @@
     }
 
     function computePagination(text, cfg) {
-      let linesPerPage = 20;
-      let maxLineWidth = 600;
-      let baseFontSize = 21;
-
-      if (cfg.photoKey === 'real_redline') {
-        linesPerPage = cfg.lines;
-        maxLineWidth = cfg.contentWidth;
-        baseFontSize = 22;
-      } else if (cfg.photoKey === 'real_grid_red') {
-        linesPerPage = cfg.rows;
-        maxLineWidth = cfg.cols * cfg.cellW;
-        baseFontSize = 24;
-      } else if (cfg.photoKey === 'real_draft') {
-        linesPerPage = cfg.lines;
-        maxLineWidth = cfg.contentWidth;
-        baseFontSize = 21;
-      } else {
-        linesPerPage = cfg.lines || cfg.rows || 20;
-        maxLineWidth = cfg.w - cfg.marginX * 2;
-        baseFontSize = 22;
-      }
+      let linesPerPage = cfg.lines || cfg.rows || 20;
+      let maxLineWidth = cfg.contentWidth || (cfg.w - cfg.marginX * 2);
+      let baseFontSize = cfg.baseFontSize || 22;
 
       const pages = [];
       let currentPageLines = [];
@@ -718,7 +701,7 @@
             curLineChars.push(char);
           } else {
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-            const charWidth = isEng ? baseFontSize * 0.46 : baseFontSize * 0.72;
+            const charWidth = isEng ? baseFontSize * 0.48 : baseFontSize * 0.76;
 
             if (currentLineWidth + charWidth > maxLineWidth && curLineChars.length > 0) {
               currentPageLines.push(curLineChars.join(''));
@@ -770,9 +753,9 @@
 
       ctx.globalCompositeOperation = 'source-over';
 
-      // 1. 实拍红格子 (Point-to-point 格子严格居中)
+      // 1. 实拍红格子：大字号 32px 撑满红格，从第二行开始起笔
       if (cfg.photoKey === 'real_grid_red') {
-        const baseFontSize = 25;
+        const baseFontSize = cfg.baseFontSize || 32;
         let charGlobalIndex = 0;
 
         for (let row = 0; row < pageLines.length; row++) {
@@ -790,19 +773,19 @@
             const isEng = /[a-zA-Z0-9]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            const scaleX = 0.85 + (hashRandom(seed + 3) - 0.5) * (0.22 * strokeChaos);
+            // 保持瘦长挺拔结构
+            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.22 * strokeChaos);
             const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.20 * strokeChaos);
             const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.30 * strokeChaos);
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.12 * strokeChaos);
             const charAngle = (hashRandom(seed + 2) - 0.5) * (0.15 * strokeChaos);
 
-            // 格子物理中心点：startX + col*cellW + 半格宽
+            // 饱满居中
             const cellCenterX = cfg.startX + col * cfg.cellW + (cfg.cellW * 0.5);
-            // 垂直落点：微下沉至格子底部上方 4px
-            const cellCenterY = cfg.startY + row * cfg.cellH + (cfg.cellH * 0.55);
+            const cellCenterY = cfg.startY + row * cfg.cellH + (cfg.cellH * 0.52);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (cfg.cellW * 0.22 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (cfg.cellH * 0.22 * posChaos);
+            const jX = (hashRandom(seed + 6) - 0.5) * (cfg.cellW * 0.18 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (cfg.cellH * 0.18 * posChaos);
 
             const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
@@ -827,18 +810,12 @@
           }
         }
       } 
-      // 2. 实拍单红线 与 草稿纸 等横线模式
+      // 2. 实拍单红线与实拍草稿纸：大字号饱满，从第二行起笔，轻托红线
       else {
-        let baseFontSize = 21;
-        let lineSpacing = cfg.lineSpacing;
-        let startX = cfg.marginX;
-        let topMargin = cfg.topMargin;
-
-        if (cfg.photoKey === 'real_redline') {
-          baseFontSize = 21.5;
-        } else if (cfg.photoKey === 'real_draft') {
-          baseFontSize = 19;
-        }
+        const baseFontSize = cfg.baseFontSize || 26;
+        const lineSpacing = cfg.lineSpacing;
+        const startX = cfg.marginX;
+        const topMargin = cfg.topMargin;
 
         let charGlobalIndex = 0;
 
@@ -848,7 +825,7 @@
           let curX = startX;
           const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIndex * 71 + 333) - 0.5) * (5.0 * posChaos);
 
-          // 当前真实红线的物理 Y 坐标
+          // 物理红线 Y 坐标
           const redLineY = topMargin + lineIndex * lineSpacing;
 
           for (let c = 0; c < lineText.length; c++) {
@@ -861,19 +838,21 @@
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            const scaleX = 0.85 + (hashRandom(seed + 3) - 0.5) * (0.24 * strokeChaos);
+            // 挺拔瘦长比例
+            const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.24 * strokeChaos);
             const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.22 * strokeChaos);
             const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.30 * strokeChaos);
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.12 * strokeChaos);
             const charAngle = (hashRandom(seed + 2) - 0.5) * (0.15 * strokeChaos);
 
             const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.28 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.30 * posChaos) + lineWave;
+            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.28 * posChaos) + lineWave;
 
-            const baseStep = isEng ? baseFontSize * 0.46 : baseFontSize * 0.72;
+            // 紧凑步进（0.76 倍字号），行气连贯且饱满
+            const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.76;
             const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.26 * posChaos));
 
-            // 文字紧紧“贴在红线上”，距离底线 5px
+            // 文字饱满下沉，字底距离红线 4px
             const charCenterX = curX + charStep * 0.5;
             const charCenterY = redLineY - (baseFontSize * 0.38);
 
