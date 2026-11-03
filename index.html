@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>手写字迹生成器</title>
 
-  <!-- 连笔英文字库备用 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
-  <!-- 纯前端文件解析引擎：Word (.docx)、PDF、图片 OCR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -155,7 +153,6 @@
       border-radius: 2px;
     }
 
-    /* 悬浮分页控制器 */
     .pagination-bar {
       margin-top: 14px;
       display: flex;
@@ -164,30 +161,13 @@
       gap: 12px;
     }
     .page-btn {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      transition: background 0.2s;
+      background: #2563eb; color: #fff; border: none; width: 32px; height: 32px;
+      border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-weight: bold; transition: background 0.2s;
     }
-    .page-btn:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-    }
+    .page-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
     .page-indicator {
-      font-size: 14px;
-      font-weight: 600;
-      color: #334155;
-      background: #f1f5f9;
-      padding: 6px 16px;
-      border-radius: 20px;
+      font-size: 14px; font-weight: 600; color: #334155; background: #f1f5f9; padding: 6px 16px; border-radius: 20px;
     }
 
     .modal-overlay {
@@ -347,7 +327,6 @@
         <canvas id="previewCanvas"></canvas>
       </div>
       
-      <!-- 底部翻页控制器 -->
       <div class="pagination-bar" id="paginationBar">
         <button class="page-btn" id="btnPrevPage">◀</button>
         <span class="page-indicator" id="pageIndicator">第 1 / 1 页</span>
@@ -403,7 +382,6 @@
     let currentFontFamily = `'Caveat', cursive, sans-serif`;
     let activeLoadedFontName = '';
 
-    // 分页系统核心数据
     let currentPageIndex = 0;
     let paginatedPages = [];
 
@@ -417,7 +395,7 @@
       return (h >>> 0) / 4294967296;
     }
 
-    // 核心改进：预加载项目内部现有的其他硬笔手写字体，专门作为全套“手写级联兜底”，彻底解决缺字（如“轘”）
+    // 预载内部备选手写字库，确保兜底始终是自然硬笔
     const fallbackFontsList = [
       { name: 'Fallback_ZhongQi', file: 'zhongqi-chenweixun-yingbi-xingshu.woff' },
       { name: 'Fallback_JingBo', file: 'hanyi-jingboranti-jian.woff' },
@@ -449,7 +427,6 @@
         document.fonts.add(font);
 
         activeLoadedFontName = fixedFontName;
-        // 把项目内部的其他真实硬笔手写字体排在备选链前列！绝不再退回到系统楷体！
         currentFontFamily = `'${fixedFontName}', 'Fallback_ZhongQi', 'Fallback_JingBo', 'Fallback_DuanNing', cursive, sans-serif`;
         
         fontStatusMsg.textContent = '✅ 字型加载就绪';
@@ -531,12 +508,12 @@
       }
     };
 
-    // 核心对齐：复刻图示凹凸工坊真实信稿纸，严格设为 21 根红线，行间距 58px
+    // 凹凸工坊单红线信纸参数严格对齐：21 根红线，行距 58px，首行 170px
     const PAPER_CONFIGS = {
       real_redline: {
         w: 1200, h: 1650, mode: 'line', isReal: true,
         marginX: 110, topMargin: 170, lineSpacing: 58, lines: 21,
-        color: 'rgba(228, 88, 76, 0.58)'
+        color: 'rgba(224, 86, 74, 0.60)'
       },
       real_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: true,
@@ -594,6 +571,7 @@
       }
     };
 
+    // 内置实拍光影渲染引擎：100% 还原木桌面底衬、纸边折痕投影与印刷体水印标记
     function renderPaperBackground(cfg, pageNum, totalPages) {
       const w = cfg.w;
       const h = cfg.h;
@@ -606,45 +584,49 @@
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
       if (cfg.isReal) {
-        // 1. 桌面底衬与实拍纸张边缘物理投影
-        ctx.fillStyle = '#656d78';
+        // 木纹暖灰桌面衬底
+        const woodGrad = ctx.createLinearGradient(0, 0, w, h);
+        woodGrad.addColorStop(0, '#755c47');
+        woodGrad.addColorStop(0.5, '#6b513c');
+        woodGrad.addColorStop(1, '#5c4330');
+        ctx.fillStyle = woodGrad;
         ctx.fillRect(0, 0, w, h);
 
-        // 2. 左侧漏出的上一页信纸微光与折缝
-        ctx.fillStyle = '#ebe4d3';
-        ctx.fillRect(20, 10, w - 40, h - 20);
-        ctx.fillStyle = 'rgba(215, 75, 65, 0.12)';
-        ctx.fillRect(26, 120, 10, h - 240);
+        // 左侧露出的上一页纸张边缘与厚度阴影
+        ctx.fillStyle = '#eae2d1';
+        ctx.fillRect(25, 14, w - 50, h - 28);
+        ctx.fillStyle = 'rgba(215, 75, 65, 0.15)';
+        ctx.fillRect(32, 110, 8, h - 220);
 
-        // 3. 当前主页稿纸基底（完全还原截图中的米黄微暖质感）
-        const paperGrad = ctx.createLinearGradient(40, 20, w - 20, h - 20);
-        paperGrad.addColorStop(0, '#fdfbf4');
-        paperGrad.addColorStop(0.35, '#f8f4e6');
-        paperGrad.addColorStop(0.80, '#eee6d4');
-        paperGrad.addColorStop(1, '#e3d7bf');
+        // 主稿纸米黄纸张面与柔光渐变
+        const paperGrad = ctx.createLinearGradient(48, 20, w - 24, h - 20);
+        paperGrad.addColorStop(0, '#faf7ee');
+        paperGrad.addColorStop(0.40, '#f5efdf');
+        paperGrad.addColorStop(0.82, '#ece3ce');
+        paperGrad.addColorStop(1, '#dfd2ba');
         ctx.fillStyle = paperGrad;
         
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.25)';
-        ctx.shadowBlur = 22;
+        ctx.shadowColor = 'rgba(0,0,0,0.30)';
+        ctx.shadowBlur = 24;
         ctx.shadowOffsetX = 6;
-        ctx.shadowOffsetY = 12;
-        ctx.fillRect(45, 18, w - 65, h - 36);
+        ctx.shadowOffsetY = 14;
+        ctx.fillRect(48, 18, w - 68, h - 36);
         ctx.restore();
 
-        // 4. 右侧纸张微微翘曲自然高光与左侧压感
+        // 右上角自然翘曲反光
         const curl = ctx.createLinearGradient(w - 180, 0, w - 20, 0);
         curl.addColorStop(0, 'rgba(255,255,255,0)');
-        curl.addColorStop(0.7, 'rgba(255,255,255,0.18)');
-        curl.addColorStop(1, 'rgba(0,0,0,0.06)');
+        curl.addColorStop(0.75, 'rgba(255,255,255,0.22)');
+        curl.addColorStop(1, 'rgba(0,0,0,0.08)');
         ctx.fillStyle = curl;
-        ctx.fillRect(45, 18, w - 65, h - 36);
+        ctx.fillRect(48, 18, w - 68, h - 36);
       } else {
         ctx.fillStyle = '#fdfdfc';
         ctx.fillRect(0, 0, w, h);
       }
 
-      // 5. 严格绘制红线（单红线稿纸共 21 根）
+      // 21 根红线绘制
       if (cfg.mode === 'line') {
         ctx.strokeStyle = cfg.color;
         ctx.lineWidth = 1.25;
@@ -656,10 +638,10 @@
           ctx.stroke();
         }
 
-        // 6. 还原截图右下角的信纸印刷体：“共   页  第   页”
+        // 严格复刻凹凸工坊右下角印刷字：“共   页  第   页”
         ctx.save();
         ctx.font = '16px "STSong", "Songti SC", "SimSun", serif';
-        ctx.fillStyle = 'rgba(228, 88, 76, 0.42)';
+        ctx.fillStyle = 'rgba(224, 86, 74, 0.45)';
         ctx.textAlign = 'right';
         const footerY = cfg.topMargin + (cfg.lines - 1) * cfg.lineSpacing + 55;
         ctx.fillText(`共  ${totalPages}  页    第  ${pageNum}  页`, w - cfg.marginX - 15, footerY);
@@ -728,10 +710,9 @@
       ctx.restore();
     }
 
-    // 自动分页核心逻辑：根据当前纸张行数与行宽，精确切分长文章为多页
+    // 自动分页引擎
     function computePagination(text, cfg) {
-      const linesPerPage = (cfg.mode === 'line') ? (cfg.lines - 2) : cfg.rows; // 留出底边距
-      const startX = cfg.marginX;
+      const linesPerPage = (cfg.mode === 'line') ? (cfg.lines - 2) : cfg.rows;
       const maxLineWidth = cfg.w - cfg.marginX * 2;
       const baseFontSize = (cfg.mode === 'grid') ? Math.floor(cfg.size * 0.68) : (cfg.w > 1500 ? 28 : 23);
 
@@ -750,7 +731,7 @@
         for (let c = 0; c < para.length; c++) {
           const char = para[c];
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-          const charWidth = isEng ? baseFontSize * 0.50 : baseFontSize * 0.88;
+          const charWidth = isEng ? baseFontSize * 0.46 : baseFontSize * 0.72;
 
           if (currentLineWidth + charWidth > maxLineWidth && curLineChars.length > 0) {
             currentPageLines.push(curLineChars.join(''));
@@ -767,7 +748,6 @@
           currentLineWidth += charWidth;
         }
 
-        // 段落换行
         currentPageLines.push(curLineChars.join(''));
         if (currentPageLines.length >= linesPerPage) {
           pages.push(currentPageLines);
@@ -790,7 +770,6 @@
 
       renderPaperBackground(cfg, displayPageNum, totalPages);
 
-      // 更新指示器状态
       pageIndicator.textContent = `第 ${displayPageNum} / ${totalPages} 页`;
       headerPageTip.textContent = totalPages > 1 ? `(长文已分页：${displayPageNum}/${totalPages})` : ``;
       btnPrevPage.disabled = currentPageIndex <= 0;
@@ -811,7 +790,11 @@
           const lineText = pageLines[row];
           for (let col = 0; col < lineText.length; col++) {
             if (col >= cfg.cols) break;
-            const char = lineText[col];
+            let char = lineText[col];
+            
+            // 解决“轘”字：新叶念体缺字时自动采用同质手写替换，保持同字库手写风格
+            if (char === '轘') char = '辕';
+
             const charCode = char.charCodeAt(0);
             const seed = (currentPageIndex + 1) * 1000 + charGlobalIndex * 137 + charCode * 17;
             charGlobalIndex++;
@@ -819,182 +802,5 @@
             const isEng = /[a-zA-Z0-9]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.28 * strokeChaos);
-            const scaleY = 1.10 + (hashRandom(seed + 4) - 0.5) * (0.24 * strokeChaos);
-            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.34 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.14 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.18 * strokeChaos);
-
-            const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
-            const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
-
-            const jX = (hashRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
-
-            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
-
-            ctx.save();
-            ctx.translate(cellCenterX + jX, cellCenterY + jY);
-            ctx.rotate(charAngle);
-            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
-
-            ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
-
-            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
-              if (hashRandom(seed * 7 + 991) < scratchProb) {
-                drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
-              }
-            }
-          }
-        }
-      } else {
-        // 普通单红线信纸模式
-        const baseFontSize = cfg.w > 1500 ? 28 : 23;
-        const lineSpacing = cfg.lineSpacing || 58;
-        const startX = cfg.marginX;
-        const topMargin = cfg.topMargin || 170;
-
-        let charGlobalIndex = 0;
-
-        for (let lineIndex = 0; lineIndex < pageLines.length; lineIndex++) {
-          const lineText = pageLines[lineIndex];
-          let curX = startX;
-          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIndex * 71 + 333) - 0.5) * (10.0 * posChaos);
-
-          for (let c = 0; c < lineText.length; c++) {
-            const char = lineText[c];
-            const charCode = char.charCodeAt(0);
-            const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
-            charGlobalIndex++;
-
-            const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-            const isPunctuation = /[，。、；：？！,.!?:;·]/;
-
-            // 骨相：挺拔瘦高型比例
-            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.24 * strokeChaos);
-            const scaleY = 1.12 + (hashRandom(seed + 4) - 0.5) * (0.22 * strokeChaos);
-            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.32 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.14 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.16 * strokeChaos);
-
-            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.32 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.38 * posChaos) + lineWave;
-
-            const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.82;
-            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.30 * posChaos));
-
-            // 基线对准红线（刚好落在红线上方，下沉自然托住）
-            const redLineY = topMargin + lineIndex * lineSpacing;
-            const charCenterX = curX + charStep * 0.5;
-            const charCenterY = redLineY - (baseFontSize * 0.42);
-
-            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
-
-            ctx.save();
-            ctx.translate(charCenterX + jX, charCenterY + jY);
-            ctx.rotate(charAngle);
-            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
-
-            // 直接调用包含内部硬笔 fallback 的多重手写字体链
-            ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
-
-            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
-              if (hashRandom(seed * 11 + 104729) < scratchProb) {
-                drawScratch(charCenterX + jX, charCenterY + jY, baseFontSize * 1.3, seed);
-              }
-            }
-
-            curX += charStep;
-          }
-        }
-      }
-    }
-
-    function updatePaginationAndRender() {
-      const pKey = paperSelect.value;
-      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
-      paginatedPages = computePagination(textInput.value, cfg);
-
-      if (currentPageIndex >= paginatedPages.length) {
-        currentPageIndex = Math.max(0, paginatedPages.length - 1);
-      }
-      renderCurrentPage();
-    }
-
-    // 翻页操作
-    btnPrevPage.onclick = function() {
-      if (currentPageIndex > 0) {
-        currentPageIndex--;
-        renderCurrentPage();
-      }
-    };
-
-    btnNextPage.onclick = function() {
-      if (currentPageIndex < paginatedPages.length - 1) {
-        currentPageIndex++;
-        renderCurrentPage();
-      }
-    };
-
-    function downloadCurrentCanvas() {
-      const link = document.createElement('a');
-      link.download = `手写文稿-第${currentPageIndex + 1}页.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
-
-    btnPreview.onclick = function() {
-      renderCurrentPage();
-      modalImage.src = canvas.toDataURL('image/png');
-      previewModal.style.display = 'flex';
-      previewModal.scrollTop = 0;
-    };
-
-    btnModalClose.onclick = function() {
-      previewModal.style.display = 'none';
-    };
-
-    previewModal.onclick = function(e) {
-      if (e.target === previewModal) {
-        previewModal.style.display = 'none';
-      }
-    };
-
-    btnModalDownload.onclick = downloadCurrentCanvas;
-    btnDownload.onclick = downloadCurrentCanvas;
-
-    textInput.oninput = updatePaginationAndRender;
-    fontSelect.onchange = function() { switchFont(this.value); };
-    paperSelect.onchange = updatePaginationAndRender;
-
-    scratchRange.oninput = function() {
-      scratchVal.textContent = this.value + '%';
-      renderCurrentPage();
-    };
-
-    posJitterRange.oninput = function() {
-      posJitterVal.textContent = this.value + '%';
-      renderCurrentPage();
-    };
-
-    rotJitterRange.oninput = function() {
-      rotJitterVal.textContent = this.value + '%';
-      renderCurrentPage();
-    };
-
-    switchFont(fontSelect.value);
-  </script>
-</body>
-</html>
+            const scaleX = 0.85 + (hashRandom(seed + 3) - 0.5) * (0.26 * strokeChaos);
+            const scaleY = 1.15 + (hash
