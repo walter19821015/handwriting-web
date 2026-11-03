@@ -745,6 +745,7 @@
     }
 
     // 分页计算：写满整页 20/21/22 行才翻页，杜绝中间留白
+    // 【增强版】：中文字符维持原逻辑不变；英文与西文单词进行整体分词与整行宽度测量，防止英文单词截断及半页留白
     function computePagination(text, pKey) {
       const calib = CURRENT_CFG;
       const isGrid = calib && calib.isGrid;
@@ -768,10 +769,12 @@
 
         curLineChars = [];
 
-        for (let c = 0; c < para.length; c++) {
-          const char = para[c];
-
-          if (isGrid) {
+        // ==============================================================
+        // 【分支 A：方格纸张】严格保持原中文格子切分逻辑，满 14 字换行
+        // ==============================================================
+        if (isGrid) {
+          for (let c = 0; c < para.length; c++) {
+            const char = para[c];
             // 红格子：满 14 个字符立刻切行！第 15 个字进入下一行第 1 格！
             if (curLineChars.length >= 14) {
               currentPageLines.push(curLineChars.join(''));
@@ -782,9 +785,45 @@
               }
             }
             curLineChars.push(char);
-          } else {
+          }
+
+          if (curLineChars.length > 0) {
+            currentPageLines.push(curLineChars.join(''));
+            curLineChars = [];
+            if (currentPageLines.length >= linesPerPage) {
+              pages.push(currentPageLines);
+              currentPageLines = [];
+            }
+          }
+        }
+        // ==============================================================
+        // 【分支 B：非方格纸张】(实拍信纸、草稿纸、可打印 A4/B5/A3 等)
+        // 区分中文与英文：纯中文维持原有的单行字数上限；英文按完整单词 Word-wrap 换行，填满整行
+        // ==============================================================
+        else {
+          // 检测当前段落是否以英文/西文为主
+          const englishCharCount = (para.match(/[a-zA-Z]/g) || []).length;
+          const isEnglishDominant = englishCharCount > (para.length * 0.3);
+
+          if (!isEnglishDominant) {
+            // ----------------------------------------------------------
+            // 纯中文逻辑：100% 保持原有逻辑不变
+            // ----------------------------------------------------------
             const maxCharsPerLine = (pKey === 'real_draft') ? 22 : 25;
-            if (curLineChars.length >= maxCharsPerLine) {
+            for (let c = 0; c < para.length; c++) {
+              const char = para[c];
+              if (curLineChars.length >= maxCharsPerLine) {
+                currentPageLines.push(curLineChars.join(''));
+                curLineChars = [];
+                if (currentPageLines.length >= linesPerPage) {
+                  pages.push(currentPageLines);
+                  currentPageLines = [];
+                }
+              }
+              curLineChars.push(char);
+            }
+
+            if (curLineChars.length > 0) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
               if (currentPageLines.length >= linesPerPage) {
@@ -792,16 +831,59 @@
                 currentPageLines = [];
               }
             }
-            curLineChars.push(char);
-          }
-        }
+          } else {
+            // ----------------------------------------------------------
+            // 英文逻辑：按完整单词分词 (Word-wrap)，防止单词被硬劈开，并铺满可用行宽
+            // ----------------------------------------------------------
+            let maxLineWidthPixels = 850;
+            let baseStep = 34.6;
 
-        if (curLineChars.length > 0) {
-          currentPageLines.push(curLineChars.join(''));
-          curLineChars = [];
-          if (currentPageLines.length >= linesPerPage) {
-            pages.push(currentPageLines);
-            currentPageLines = [];
+            if (calib) {
+              baseStep = (calib.stepX || 34.6) * 0.6;
+              const canvasWidth = calib.w || 1240;
+              maxLineWidthPixels = canvasWidth - (calib.startX || 180) - 100;
+            } else if (PRINT_PAPER_CONFIGS[pKey]) {
+              const cfg = PRINT_PAPER_CONFIGS[pKey];
+              maxLineWidthPixels = cfg.w - (cfg.marginX * 2);
+              baseStep = 24 * 0.55;
+            }
+
+            // 正则分词：英文单词作为一个不可分割的整体，中文单字切分，空格与标点单独保留
+            const tokens = para.match(/[a-zA-Z0-9'’\-]+|[\u4e00-\u9fa5]|\s+|./g) || [para];
+            let currentLineStr = '';
+            let currentLineWidth = 0;
+
+            for (let t = 0; t < tokens.length; t++) {
+              const token = tokens[t];
+              // 估算当前 token 的实际像素宽度
+              let tokenWidth = 0;
+              for (let i = 0; i < token.length; i++) {
+                const ch = token[i];
+                tokenWidth += /[a-zA-Z0-9\(\)\,\.\:\s]/.test(ch) ? baseStep : (baseStep * 1.6);
+              }
+
+              // 如果当前行加上这个完整单词会超出纸张边界，则整词折到下一行
+              if (currentLineWidth + tokenWidth > maxLineWidthPixels && currentLineStr.trim().length > 0) {
+                currentPageLines.push(currentLineStr);
+                if (currentPageLines.length >= linesPerPage) {
+                  pages.push(currentPageLines);
+                  currentPageLines = [];
+                }
+                currentLineStr = token.startsWith(' ') ? token.trimStart() : token;
+                currentLineWidth = tokenWidth;
+              } else {
+                currentLineStr += token;
+                currentLineWidth += tokenWidth;
+              }
+            }
+
+            if (currentLineStr.length > 0) {
+              currentPageLines.push(currentLineStr);
+              if (currentPageLines.length >= linesPerPage) {
+                pages.push(currentPageLines);
+                currentPageLines = [];
+              }
+            }
           }
         }
       }
