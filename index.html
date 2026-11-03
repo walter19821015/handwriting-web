@@ -148,8 +148,9 @@
     }
 
     #previewCanvas {
+      display: block;
       max-width: 100%;
-      height: auto; /* 保证绝对严格按原图比例缩放，绝不压扁拉长 */
+      height: auto;
       box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35), 0 5px 15px rgba(0, 0, 0, 0.15);
       border-radius: 2px;
     }
@@ -266,8 +267,8 @@
           <label for="paperSelect">纸张背景</label>
           <select class="form-select" id="paperSelect">
             <option value="real_redline" selected>实拍-单红线信稿纸</option>
-            <option value="real_grid_red">实拍-红格子稿纸 (竖版400格)</option>
-            <option value="real_draft">草稿纸-高清实拍 (绿色书脊双开)</option>
+            <option value="real_grid_red">实拍-红格子稿纸 (400字/页)</option>
+            <option value="real_draft">草稿纸-高清实拍</option>
             <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
             <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
             <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
@@ -397,7 +398,6 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    // 绑定自然加载完成重绘
     ['real_redline', 'real_grid_red', 'real_draft'].forEach(key => {
       imgCache[key].onload = () => { renderAll(); };
     });
@@ -503,41 +503,39 @@
     };
 
     // =========================================================================
-    // 严格物理标定架构（彻底锁死正方形与绝对行线）
+    // 纯图层坐标绝对标定（单字独立定位，单行独立落线）
     // =========================================================================
     const PAPER_CONFIGS = {
-      // 1. 实拍单红线：首行绝对留空，从第2根线起笔，每行物理Y独立绑定
+      // 1. 实拍单红线：空出首行，从第2根线绝对起笔
       real_redline: {
-        isPhoto: true, photoKey: 'real_redline', mode: 'photo_lines',
-        baseW: 900, baseH: 1200,
-        // 实拍单红线中，从第2根线到第19根线的绝对独立 Y 物理像素
-        linesY: [
+        isPhoto: true, photoKey: 'real_redline', mode: 'independent_lines',
+        startX: 145, maxLineWidth: 620, baseFontSize: 28,
+        // 实拍单红线各行物理Y绝对坐标（已空出第1根线153px）
+        lineY: [
           201, 248, 296, 343, 391, 439, 486, 534, 581, 629, 676, 724, 772, 819, 867, 915, 962, 1010
-        ],
-        startX: 145, maxLineWidth: 620, baseFontSize: 28
+        ]
       },
 
-      // 2. 实拍红格子：严格正方形方格！16列 x 18行独立格网
+      // 2. 实拍红格子：严格正方形方格！单字作为独立图层精准入格
       real_grid_red: {
-        isPhoto: true, photoKey: 'real_grid_red', mode: 'photo_grid_strict_square',
-        baseW: 900, baseH: 1200,
+        isPhoto: true, photoKey: 'real_grid_red', mode: 'independent_grid',
         cols: 16,
-        rows: 18, // 严格限制 18 行，留空首行
+        rows: 18, // 剔除第1行空行，实写18行
+        // 网格左上角第一格起始点坐标（已空出第1行）
         gridStartX: 116,
-        gridStartY: 142, // 从第2行红格顶部起笔
-        cellSize: 41.8,  // 严格正方形边长！宽=41.8, 高=41.8，绝不拉伸
-        baseFontSize: 34 // 饱满大字居中占满方格
+        gridStartY: 142,
+        cellSize: 41.5, // 绝对正方形！宽41.5 = 高41.5
+        baseFontSize: 36 // 大字饱满居中填满方格
       },
 
-      // 3. 实拍草稿纸：严格限制 10 行！写满第10行强制自动切页，杜绝写到底端白边
+      // 3. 实拍草稿纸：锁定右半页，单页严格锁定10行，底端绝不出界
       real_draft: {
-        isPhoto: true, photoKey: 'real_draft', mode: 'photo_lines',
-        baseW: 1200, baseH: 900,
-        // 右半页真正可用的 10 根横线绝对 Y 物理像素（首行留空，末端绝不出纸）
-        linesY: [
+        isPhoto: true, photoKey: 'real_draft', mode: 'independent_lines',
+        startX: 635, maxLineWidth: 490, baseFontSize: 26,
+        // 右半页真正可用的10根线条绝对Y坐标（首行留空，末行绝不踩到底部留白）
+        lineY: [
           171, 215, 260, 305, 349, 394, 439, 483, 528, 573
-        ],
-        startX: 635, maxLineWidth: 490, baseFontSize: 26
+        ]
       },
 
       // 普通矢量纸张
@@ -628,18 +626,18 @@
       ctx.restore();
     }
 
-    // 分页引擎（严格以可用行数为硬上限截断）
+    // 分页计算
     function computePagination(text, cfg) {
       let linesPerPage = 18;
       let maxLineWidth = 600;
       let baseFontSize = 24;
 
-      if (cfg.mode === 'photo_lines') {
-        linesPerPage = cfg.linesY.length; // 严格限定在该纸张的实际物理行数内
+      if (cfg.mode === 'independent_lines') {
+        linesPerPage = cfg.lineY.length; // 严格限死在设定的物理行数内
         maxLineWidth = cfg.maxLineWidth;
         baseFontSize = cfg.baseFontSize;
-      } else if (cfg.mode === 'photo_grid_strict_square') {
-        linesPerPage = cfg.rows; // 严格限定 18 行
+      } else if (cfg.mode === 'independent_grid') {
+        linesPerPage = cfg.rows; // 严格限死 18 行
         maxLineWidth = cfg.cols * cfg.cellSize;
         baseFontSize = cfg.baseFontSize;
       } else {
@@ -663,7 +661,7 @@
         for (let c = 0; c < para.length; c++) {
           const char = para[c];
 
-          if (cfg.mode === 'photo_grid_strict_square') {
+          if (cfg.mode === 'independent_grid') {
             if (curLineChars.length >= cfg.cols) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
@@ -711,37 +709,42 @@
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
 
-      // 彻底解决画布拉伸：严格获取当前背景图的自然长宽，1:1 设为画布分辨率
-      let targetW = cfg.baseW || cfg.w;
-      let targetH = cfg.baseH || cfg.h;
+      let canvasW = 900;
+      let canvasH = 1200;
 
       let currentPhoto = null;
       if (cfg.isPhoto) {
         currentPhoto = imgCache[cfg.photoKey];
         if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
-          targetW = currentPhoto.naturalWidth;
-          targetH = currentPhoto.naturalHeight;
+          canvasW = currentPhoto.naturalWidth;
+          canvasH = currentPhoto.naturalHeight;
+        } else {
+          canvasW = (cfg.photoKey === 'real_draft') ? 1200 : 900;
+          canvasH = (cfg.photoKey === 'real_draft') ? 900 : 1200;
         }
+      } else {
+        canvasW = cfg.w;
+        canvasH = cfg.h;
       }
 
-      canvas.width = targetW * DPR;
-      canvas.height = targetH * DPR;
-      canvas.style.width = targetW + 'px';
-      canvas.style.height = targetH + 'px';
+      canvas.width = canvasW * DPR;
+      canvas.height = canvasH * DPR;
+      canvas.style.width = canvasW + 'px';
+      canvas.style.height = canvasH + 'px';
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
       // 1. 铺设原图底图
       if (cfg.isPhoto) {
         if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
-          ctx.drawImage(currentPhoto, 0, 0, targetW, targetH);
+          ctx.drawImage(currentPhoto, 0, 0, canvasW, canvasH);
         } else {
           ctx.fillStyle = '#f5efe3';
-          ctx.fillRect(0, 0, targetW, targetH);
+          ctx.fillRect(0, 0, canvasW, canvasH);
         }
       } else {
         ctx.fillStyle = '#fdfdfc';
-        ctx.fillRect(0, 0, targetW, targetH);
+        ctx.fillRect(0, 0, canvasW, canvasH);
         if (cfg.mode === 'line_print') {
           ctx.strokeStyle = cfg.color;
           ctx.lineWidth = 1.0;
@@ -749,7 +752,7 @@
             const y = cfg.topMargin + i * cfg.lineSpacing;
             ctx.beginPath();
             ctx.moveTo(cfg.marginX, y);
-            ctx.lineTo(targetW - cfg.marginX, y);
+            ctx.lineTo(canvasW - cfg.marginX, y);
             ctx.stroke();
           }
         } else if (cfg.mode === 'grid_print') {
@@ -796,9 +799,9 @@
       ctx.globalCompositeOperation = 'source-over';
 
       // =========================================================================
-      // 3. 严格正方形红格子独立落格（彻底告别长方形与外溢）
+      // 3. 红格子独立贴图：每个字作为一个独立贴纸精准拍在格中
       // =========================================================================
-      if (cfg.mode === 'photo_grid_strict_square') {
+      if (cfg.mode === 'independent_grid') {
         const cellSize = cfg.cellSize;
         const baseFontSize = cfg.baseFontSize;
         let charGlobalIndex = 0;
@@ -818,19 +821,18 @@
             const isEng = /[a-zA-Z0-9]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-            // 保持手写微动态
             const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
             const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.16 * strokeChaos);
             const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.22 * strokeChaos);
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
             const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            // 正方形格子物理绝对中心：严格锁定正方形！
+            // 严格每个格子绝对居中，宽高 1:1 正方形
             const cellCenterX = cfg.gridStartX + col * cellSize + (cellSize * 0.5);
             const cellCenterY = cfg.gridStartY + row * cellSize + (cellSize * 0.52);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (cellSize * 0.12 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (cellSize * 0.12 * posChaos);
+            const jX = (hashRandom(seed + 6) - 0.5) * (cellSize * 0.10 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (cellSize * 0.10 * posChaos);
 
             const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
@@ -856,19 +858,17 @@
         }
       }
       // =========================================================================
-      // 4. 单红线与草稿纸：行独立物理落线（绝不溢出到底端空白）
+      // 4. 单红线与草稿纸：逐行作为独立横幅贴纸死死咬住红线
       // =========================================================================
-      else if (cfg.mode === 'photo_lines') {
+      else if (cfg.mode === 'independent_lines') {
         const baseFontSize = cfg.baseFontSize;
         const startX = cfg.startX;
         let charGlobalIndex = 0;
 
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          if (lineIdx >= cfg.linesY.length) break; // 严格限死最大可用行数，绝不画到纸外！
+          if (lineIdx >= cfg.lineY.length) break; // 严格在物理行数内截断，绝不画到纸外
 
-          // 取该行红线绝对物理像素坐标
-          const redLineY = cfg.linesY[lineIdx];
-
+          const redLineY = cfg.lineY[lineIdx];
           const lineText = pageLines[lineIdx];
           let curX = startX;
           const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (3.5 * posChaos);
@@ -889,14 +889,12 @@
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
             const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.18 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.18 * posChaos) + lineWave;
+            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.16 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.16 * posChaos) + lineWave;
 
-            // 紧凑横向步进
             const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.74;
             const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.18 * posChaos));
 
-            // 文字紧贴红线上方 3.5px 处
             const charCenterX = curX + charStep * 0.5;
             const charCenterY = redLineY - (baseFontSize * 0.38);
 
