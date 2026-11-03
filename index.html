@@ -240,20 +240,25 @@
 
       <div class="panel-section">
         <span class="section-title">文本内容</span>
-        <textarea class="text-input-area" id="manualTextInput">定风波·莫听穿林打叶声
-苏轼
+        <textarea class="text-input-area" id="manualTextInput">余从京域，言归东藩。背伊阙，越轘辕，经通谷，陵景山。日既西倾，车殆马烦。
+尔乃税驾乎蘅皋，秣驷乎芝田，容与乎阳林，流眄乎洛川。于是精移神骇，忽焉思散。
+俯则末察，仰以殊观，睹一丽人，于岩之畔。
 
-莫听穿林打叶声，何妨吟啸且徐行。竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。
-料峭春风吹酒醒，微冷，山头斜照却相迎。回首向来萧瑟处，归去，也无风雨也无晴。</textarea>
+乃援御者而告之曰：“尔有觌于彼者乎？彼何人斯？若此之艳也！”
+御者对曰：“臣闻河洛之神，名曰宓妃。然则君王之所见也，无乃是乎？其状若何？臣愿闻之。”
+
+余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出渌波。”</textarea>
       </div>
 
       <div class="panel-section">
         <div class="form-group">
           <label for="fontSelect">选择字型</label>
           <select class="form-select" id="fontSelect">
-            <optgroup label="—— 中文手写字库 (WOFF) ——">
-              <option value="honglei-xiaozhitiao-qingchunti.woff" selected>鸿雷小纸条青春体</option>
+            <optgroup label="—— 中文手写字库 (极细/针管硬笔) ——">
+              <option value="zao-zi-gong-fang-qing-shu.otf" selected>造字工房情书 (推荐纤细款🌟)</option>
+              <option value="zao-zi-gong-fang-qing-shu-2.otf">造字工房情书2 (正楷硬笔)</option>
               <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
+              <option value="honglei-xiaozhitiao-qingchunti.woff">鸿雷小纸条青春体</option>
               <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
               <option value="xingshixin-yingbi-xingshu-jianti.woff">邢世新硬笔行书简体</option>
               <option value="momo-yingbi-shouxieti.woff">默陌硬笔手写体</option>
@@ -338,12 +343,12 @@
 
       <div class="action-row">
         <button class="btn-action btn-primary" id="btnPreview" type="button">① 点击预览</button>
-        <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载文件</button>
+        <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载超清原图</button>
       </div>
     </section>
 
     <section class="preview-panel">
-      <div class="preview-header">主视窗实时排版（拖动滑块实时响应）</div>
+      <div class="preview-header">主视窗实时排版（Retina 2x 超清抗锯齿渲染）</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
@@ -386,12 +391,14 @@
     const btnModalClose = document.getElementById('btnModalClose');
     const btnModalDownload = document.getElementById('btnModalDownload');
 
-    // 文件上传相关 DOM
     const fileUploadInput = document.getElementById('fileUploadInput');
     const dropUploadBox = document.getElementById('dropUploadBox');
     const uploadStatusText = document.getElementById('uploadStatusText');
 
-    let currentFontFamily = `'Caveat', 'DynamicHandFont', cursive, sans-serif`;
+    let currentFontFamily = `'Caveat', cursive, sans-serif`;
+
+    // 核心参数：2倍超采样（消除 Retina 屏模糊，画质媲美印刷级）
+    const DPR = 2;
 
     function hashRandom(seed) {
       let h = (seed ^ 0xdeadbeef) >>> 0;
@@ -439,14 +446,12 @@
 
       try {
         if (ext === 'docx') {
-          // Word 纯前端解析
           const arrayBuffer = await file.arrayBuffer();
           const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
           textInput.value = result.value.trim();
           uploadStatusText.textContent = `✅ Word 内容已导入`;
           renderHandwriting();
         } else if (ext === 'pdf') {
-          // PDF 纯前端分页文本提取
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           let fullText = '';
@@ -460,7 +465,6 @@
           uploadStatusText.textContent = `✅ PDF 提取成功 (${pdf.numPages}页)`;
           renderHandwriting();
         } else if (file.type.startsWith('image/')) {
-          // 图片 OCR 本地离线识别
           uploadStatusText.textContent = `⏳ 正在识别图片中文字(OCR)...`;
           const worker = await Tesseract.createWorker('chi_sim+eng');
           const ret = await worker.recognize(file);
@@ -469,7 +473,6 @@
           uploadStatusText.textContent = `✅ 图片文字识别完成`;
           renderHandwriting();
         } else {
-          // 纯文字 (.txt, .md, .csv 等)
           const reader = new FileReader();
           reader.onload = function(e) {
             textInput.value = e.target.result.trim();
@@ -483,7 +486,6 @@
       }
     }
 
-    // 拖拽与点击上传交互绑定
     dropUploadBox.onclick = () => fileUploadInput.click();
     fileUploadInput.onchange = (e) => handleUploadedFile(e.target.files[0]);
 
@@ -504,7 +506,7 @@
       real_redline: {
         w: 1100, h: 1560, mode: 'line', isReal: true,
         marginX: 110, topMargin: 190, lineSpacing: 54, lines: 23,
-        color: 'rgba(215, 75, 68, 0.38)'
+        color: 'rgba(215, 75, 68, 0.40)'
       },
       real_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: true,
@@ -565,14 +567,21 @@
     function renderPaperBackground(cfg) {
       const w = cfg.w;
       const h = cfg.h;
-      canvas.width = w;
-      canvas.height = h;
+      
+      // 物理像素翻倍，解决 Mac 模糊，保持原有 CSS 显示比例
+      canvas.width = w * DPR;
+      canvas.height = h * DPR;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+
+      // 缩放坐标系，后续所有几何与文字绘制逻辑无需改动像素值
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
       if (cfg.isReal) {
         const grad = ctx.createRadialGradient(w * 0.28, h * 0.22, 60, w * 0.5, h * 0.55, w * 0.95);
-        grad.addColorStop(0, '#f9f6ee');
-        grad.addColorStop(0.55, '#f4ede2');
-        grad.addColorStop(1, '#e3d6c0');
+        grad.addColorStop(0, '#faf7f0');
+        grad.addColorStop(0.55, '#f5efe4');
+        grad.addColorStop(1, '#e6d8c3');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
 
@@ -621,9 +630,9 @@
 
       if (cfg.isReal) {
         const vignette = ctx.createLinearGradient(0, 0, w, h);
-        vignette.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+        vignette.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
         vignette.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
-        vignette.addColorStop(1, 'rgba(65, 45, 25, 0.15)');
+        vignette.addColorStop(1, 'rgba(65, 45, 25, 0.12)');
         ctx.fillStyle = vignette;
         ctx.fillRect(0, 0, w, h);
       }
@@ -632,8 +641,8 @@
     function drawScratch(centerX, centerY, size, seed) {
       const type = Math.floor(hashRandom(seed + 88) * 3);
       ctx.save();
-      ctx.strokeStyle = 'rgba(25, 30, 42, 0.88)';
-      ctx.lineWidth = 1.8 + hashRandom(seed + 89) * 0.8;
+      ctx.strokeStyle = 'rgba(15, 20, 30, 0.95)';
+      ctx.lineWidth = 1.6 + hashRandom(seed + 89) * 0.6;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
@@ -680,10 +689,12 @@
       const posChaos = (parseFloat(posJitterRange.value) || 0) / 100; 
       const strokeChaos = (parseFloat(rotJitterRange.value) || 0) / 100; 
 
-      ctx.globalCompositeOperation = 'multiply';
+      // 使用正常混合模式并加固墨水浓度，确保边缘锐利清晰
+      ctx.globalCompositeOperation = 'source-over';
 
       if (cfg.mode === 'grid') {
-        const baseFontSize = Math.floor(cfg.size * 0.74);
+        // 纤细手写适度收缩字号，保持留白美感
+        const baseFontSize = Math.floor(cfg.size * 0.68);
         let col = 0;
         let row = 0;
 
@@ -702,12 +713,11 @@
           const isEng = /[a-zA-Z0-9]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-          const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
-          const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
-          const skewX = (hashRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
-          const skewY = (hashRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
-          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.28 * strokeChaos);
-          const strokeBreath = (hashRandom(seed + 10) - 0.5) * strokeChaos;
+          const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.32 * strokeChaos);
+          const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.28 * strokeChaos);
+          const skewX = (hashRandom(seed + 8) - 0.5) * (0.38 * strokeChaos);
+          const skewY = (hashRandom(seed + 9) - 0.5) * (0.16 * strokeChaos);
+          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.24 * strokeChaos);
 
           const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
           const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
@@ -715,7 +725,8 @@
           const jX = (hashRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
           const jY = (hashRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
 
-          const pressure = 0.88 + (hashRandom(seed + 1) - 0.5) * 0.18;
+          // 浓黑中性笔真实压感（纯黑微调，不发灰）
+          const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
           ctx.save();
           ctx.translate(cellCenterX + jX, cellCenterY + jY);
@@ -723,20 +734,12 @@
           ctx.rotate(charAngle);
           ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
-          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
+          ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          if (strokeBreath > 0.15) {
-            ctx.lineWidth = 0.6 * (strokeBreath / 0.5);
-            ctx.strokeStyle = `rgba(25, 30, 42, ${pressure * 0.4})`;
-            ctx.strokeText(char, 0, 0);
-          }
-
-          ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
-          ctx.fillText(char, 0.4, 0.4);
-
-          ctx.fillStyle = `rgba(25, 30, 42, ${pressure})`;
+          // 直接高密度填墨，去掉任何外扩模糊描边
+          ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
           ctx.fillText(char, 0, 0);
 
           ctx.restore();
@@ -755,7 +758,8 @@
           }
         }
       } else {
-        const baseFontSize = cfg.w > 1500 ? 32 : 25;
+        // 普通信纸/行格纸模式：收敛字号到 21px 左右，打造 0.38mm 纤细针管笔效果
+        const baseFontSize = cfg.w > 1500 ? 26 : 21;
         const lineSpacing = cfg.lineSpacing || 54;
         const startX = cfg.marginX;
         const maxLineWidth = cfg.w - cfg.marginX * 2;
@@ -764,7 +768,7 @@
         let curX = startX;
         let lineIndex = 0;
 
-        let lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
+        let lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (12.0 * posChaos);
 
         for (let i = 0; i < text.length; i++) {
           const char = text[i];
@@ -774,51 +778,43 @@
           if (char === '\n') {
             curX = startX;
             lineIndex++;
-            lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
+            lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (12.0 * posChaos);
             continue;
           }
 
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-          const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.35 * strokeChaos);
-          const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.30 * strokeChaos);
-          const skewX = (hashRandom(seed + 8) - 0.5) * (0.42 * strokeChaos);
-          const skewY = (hashRandom(seed + 9) - 0.5) * (0.18 * strokeChaos);
-          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.30 * strokeChaos);
-          const strokeBreath = (hashRandom(seed + 10) - 0.5) * strokeChaos;
+          const scaleX = 1.0 + (hashRandom(seed + 3) - 0.5) * (0.32 * strokeChaos);
+          const scaleY = 1.0 + (hashRandom(seed + 4) - 0.5) * (0.28 * strokeChaos);
+          const skewX = (hashRandom(seed + 8) - 0.5) * (0.38 * strokeChaos);
+          const skewY = (hashRandom(seed + 9) - 0.5) * (0.16 * strokeChaos);
+          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.24 * strokeChaos);
 
-          const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.40 * posChaos);
-          const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.55 * posChaos) + lineWave;
+          const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.35 * posChaos);
+          const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.45 * posChaos) + lineWave;
 
-          const baseStep = isEng ? baseFontSize * 0.56 : baseFontSize * 0.98;
-          const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.45 * posChaos));
+          const baseStep = isEng ? baseFontSize * 0.52 : baseFontSize * 0.94;
+          const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.40 * posChaos));
 
           const curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.72 : lineSpacing * 0.65);
           const charCenterX = curX + charStep * 0.5;
           const charCenterY = curY;
 
-          const pressure = 0.88 + (hashRandom(seed + 1) - 0.5) * 0.18;
+          // 饱满黑墨水，消除发灰发虚
+          const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
           ctx.save();
           ctx.translate(charCenterX + jX, charCenterY + jY);
           ctx.rotate(charAngle);
           ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
-          ctx.font = `${isEng ? baseFontSize * 1.05 : baseFontSize}px ${currentFontFamily}`;
+          ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          if (strokeBreath > 0.15) {
-            ctx.lineWidth = 0.6 * (strokeBreath / 0.5);
-            ctx.strokeStyle = `rgba(25, 30, 42, ${pressure * 0.4})`;
-            ctx.strokeText(char, 0, 0);
-          }
-
-          ctx.fillStyle = `rgba(30, 36, 48, ${pressure * 0.25})`;
-          ctx.fillText(char, 0.4, 0.4);
-
-          ctx.fillStyle = `rgba(25, 30, 42, ${pressure})`;
+          // 核心锐度：纯实感墨水直绘
+          ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
           ctx.fillText(char, 0, 0);
 
           ctx.restore();
@@ -834,17 +830,15 @@
           if (curX > startX + maxLineWidth) {
             curX = startX;
             lineIndex++;
-            lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (14.0 * posChaos);
+            lineWave = (hashRandom(lineIndex * 71 + 333) - 0.5) * (12.0 * posChaos);
           }
         }
       }
-
-      ctx.globalCompositeOperation = 'source-over';
     }
 
     function downloadCurrentCanvas() {
       const link = document.createElement('a');
-      link.download = `手写文稿-${paperSelect.value}.png`;
+      link.download = `手写超清文稿-${paperSelect.value}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
