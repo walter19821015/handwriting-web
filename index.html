@@ -70,7 +70,6 @@
     .panel-section { display: flex; flex-direction: column; gap: 8px; }
     .section-title { font-size: 14px; font-weight: 600; color: #1f2937; }
 
-    /* 文件上传拖拽区 */
     .file-upload-box {
       border: 2px dashed #93c5fd;
       background: #f8fafc;
@@ -155,7 +154,6 @@
       border-radius: 2px;
     }
 
-    /* 巨幅竖屏长图预览浮层 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -226,14 +224,13 @@
 
   <main>
     <section class="control-panel">
-      <!-- 上传与导入文件区 -->
       <div class="panel-section">
         <span class="section-title">导入文稿</span>
         <input type="file" id="fileUploadInput" accept=".docx,.doc,.pdf,.txt,.md,image/*" style="display: none;" />
         <div class="file-upload-box" id="dropUploadBox">
           <div class="upload-icon">📂</div>
           <div class="upload-text">点击或将文件拖拽至此处导入</div>
-          <div class="upload-desc">支持上传 Word(推荐🌟)、PDF、图片、纯文字</div>
+          <div class="upload-desc">支持上传 Word、PDF、图片、纯文字</div>
           <div class="upload-status" id="uploadStatusText"></div>
         </div>
       </div>
@@ -254,9 +251,9 @@
         <div class="form-group">
           <label for="fontSelect">选择字型</label>
           <select class="form-select" id="fontSelect">
-            <optgroup label="—— 核心硬笔手写推荐 ——">
-              <option value="zao-zi-gong-fang-qing-shu.otf">造字工房情书 (推荐纤细款🌟)</option>
-              <option value="xin-ye-nian-ti.otf" selected>新叶念体 (凹凸同款推荐🌟)</option>
+            <optgroup label="—— 核心硬笔手写 ——">
+              <option value="zao-zi-gong-fang-qing-shu.otf">造字工房情书</option>
+              <option value="xin-ye-nian-ti.otf" selected>新叶念体</option>
               <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
               <option value="honglei-xiaozhitiao-qingchunti.woff">鸿雷小纸条青春体</option>
               <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
@@ -265,10 +262,10 @@
               <option value="momo-xinjian-shouxieti.woff">默陌信笺手写体</option>
               <option value="jili-shouxie-jianti.woff">吉力手写简体</option>
               <option value="hanyi-xindi-fangcaoti.woff">汉仪新蒂芳草体</option>
-              <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简 (大字库兜底)</option>
+              <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
               <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
             </optgroup>
-            <optgroup label="—— 英文手写字库 (OTF) ——">
+            <optgroup label="—— 英文手写字库 ——">
               <option value="Adagio Pro.otf">英文：Adagio Pro</option>
               <option value="alagambe.otf">英文：alagambe</option>
               <option value="Arianta Syahrini.otf">英文：Arianta Syahrini</option>
@@ -288,9 +285,9 @@
         </div>
 
         <div class="form-group" style="margin-top: 10px;">
-          <label for="paperSelect">纸张背景（包含实拍版，供打印版）</label>
+          <label for="paperSelect">纸张背景</label>
           <select class="form-select" id="paperSelect">
-            <option value="real_redline" selected>实拍-单红线信稿纸 (凹凸同款逼真光影🌟)</option>
+            <option value="real_redline" selected>实拍-单红线信稿纸</option>
             <option value="real_grid_red">实拍-红格子稿纸 (400字/页)</option>
             <option value="real_draft">草稿纸-高清实拍</option>
             <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
@@ -312,8 +309,7 @@
           <span id="scratchVal" style="font-weight: 600; color: #2563eb;">0%</span>
         </div>
         <input type="range" class="slider-range" id="scratchRange" min="0" max="100" value="0" />
-        <div class="slider-sub-text"><span>完美无瑕 0%</span><span>涂改连篇 100%</span></div>
-        <div class="slider-tip">推荐值: 0%（更接近真实手写）</div>
+        <div class="slider-sub-text"><span>0%</span><span>100%</span></div>
       </div>
 
       <details open>
@@ -325,8 +321,7 @@
               <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
             </div>
             <input type="range" class="slider-range" id="posJitterRange" min="0" max="100" value="0" />
-            <div class="slider-sub-text"><span>整齐排列 0%</span><span>凌乱不堪 100%</span></div>
-            <div class="slider-tip">推荐值: 8%（模拟自然书写轻微波动）</div>
+            <div class="slider-sub-text"><span>0%</span><span>100%</span></div>
           </div>
 
           <div class="slider-group">
@@ -335,8 +330,7 @@
               <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
             </div>
             <input type="range" class="slider-range" id="rotJitterRange" min="0" max="100" value="0" />
-            <div class="slider-sub-text"><span>工整清晰 0%</span><span>歪七扭八 100%</span></div>
-            <div class="slider-tip">推荐值: 4%（模拟笔画书写不规则性）</div>
+            <div class="slider-sub-text"><span>0%</span><span>100%</span></div>
           </div>
         </div>
       </details>
@@ -348,17 +342,16 @@
     </section>
 
     <section class="preview-panel">
-      <div class="preview-header">主视窗实时排版（Retina 2x 超清抗锯齿渲染）</div>
+      <div class="preview-header">主视窗实时排版</div>
       <div class="canvas-wrapper">
         <canvas id="previewCanvas"></canvas>
       </div>
     </section>
   </main>
 
-  <!-- 巨幅竖屏长图预览浮层 -->
   <div class="modal-overlay" id="previewModal">
     <div class="modal-container">
-      <img id="modalImage" src="" alt="高清大图手写预览" />
+      <img id="modalImage" src="" alt="预览" />
     </div>
     <div class="modal-floating-bar">
       <button class="modal-btn modal-btn-close" id="btnModalClose">✕ 关闭预览</button>
@@ -396,8 +389,8 @@
     const uploadStatusText = document.getElementById('uploadStatusText');
 
     let currentFontFamily = `'Caveat', cursive, sans-serif`;
+    let activeLoadedFontName = '';
 
-    // 核心参数：2倍超采样
     const DPR = 2;
 
     function hashRandom(seed) {
@@ -408,17 +401,17 @@
       return (h >>> 0) / 4294967296;
     }
 
-    // 预载备用大字库，专门兜底生僻字，防止回退到黑体
-    async function loadFallbackFont() {
-      try {
-        const fallback = new FontFace('FallbackHandwriting', 'url("./hanyi-jingboranti-jian.woff")');
-        await fallback.load();
-        document.fonts.add(fallback);
-      } catch (e) {
-        // 如果文件未传，保持静默
-      }
+    // 离线检测字符是否在当前字体中缺失（例如“轘”字）
+    const testCanvas = document.createElement('canvas');
+    const testCtx = testCanvas.getContext('2d');
+    function isGlyphMissing(char, fontName) {
+      if (!char || char.trim() === '' || !fontName) return false;
+      testCtx.font = `32px monospace`;
+      const wMono = testCtx.measureText(char).width;
+      testCtx.font = `32px '${fontName}', monospace`;
+      const wTarget = testCtx.measureText(char).width;
+      return Math.abs(wMono - wTarget) < 0.1;
     }
-    loadFallbackFont();
 
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
@@ -433,8 +426,8 @@
         await font.load();
         document.fonts.add(font);
 
-        // 设置字体回退链：当前手写 -> 备选手写兜底 -> 系统手写楷书
-        currentFontFamily = `'${fixedFontName}', 'FallbackHandwriting', 'STKaiti', 'KaiTi', cursive, sans-serif`;
+        activeLoadedFontName = fixedFontName;
+        currentFontFamily = `'${fixedFontName}', 'STKaiti', 'KaiTi', 'SimSun', cursive, sans-serif`;
         fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
@@ -461,7 +454,7 @@
           const arrayBuffer = await file.arrayBuffer();
           const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
           textInput.value = result.value.trim();
-          uploadStatusText.textContent = `✅ Word 内容已导入`;
+          uploadStatusText.textContent = `✅ Word 已导入`;
           renderHandwriting();
         } else if (ext === 'pdf') {
           const arrayBuffer = await file.arrayBuffer();
@@ -477,7 +470,7 @@
           uploadStatusText.textContent = `✅ PDF 提取成功 (${pdf.numPages}页)`;
           renderHandwriting();
         } else if (file.type.startsWith('image/')) {
-          uploadStatusText.textContent = `⏳ 正在识别图片中文字(OCR)...`;
+          uploadStatusText.textContent = `⏳ 正在识别图片文字...`;
           const worker = await Tesseract.createWorker('chi_sim+eng');
           const ret = await worker.recognize(file);
           await worker.terminate();
@@ -488,7 +481,7 @@
           const reader = new FileReader();
           reader.onload = function(e) {
             textInput.value = e.target.result.trim();
-            uploadStatusText.textContent = `✅ 纯文字文稿已导入`;
+            uploadStatusText.textContent = `✅ 纯文字已导入`;
             renderHandwriting();
           };
           reader.readAsText(file);
@@ -514,21 +507,21 @@
       }
     };
 
-    // 重点调整：将单红线信稿纸参数完全向真实实拍靠拢，压缩行距至 46px，紧凑自然
+    // 强化纸张参数：单红线信纸的行距强行收缩为 45px，逼近物理信纸
     const PAPER_CONFIGS = {
       real_redline: {
         w: 1100, h: 1560, mode: 'line', isReal: true,
-        marginX: 110, topMargin: 175, lineSpacing: 46, lines: 27,
-        color: 'rgba(198, 72, 60, 0.42)'
+        marginX: 105, topMargin: 170, lineSpacing: 45, lines: 28,
+        color: 'rgba(185, 62, 50, 0.52)'
       },
       real_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: true,
         cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
-        color: 'rgba(215, 65, 55, 0.45)'
+        color: 'rgba(205, 65, 55, 0.48)'
       },
       real_draft: {
         w: 1100, h: 1560, mode: 'draft', isReal: true,
-        marginX: 110, topMargin: 175, lineSpacing: 46
+        marginX: 105, topMargin: 170, lineSpacing: 45
       },
       print_grid_black: {
         w: 1200, h: 1600, mode: 'grid', isReal: false,
@@ -557,12 +550,12 @@
       },
       print_b5_v: {
         w: 1040, h: 1476, mode: 'line', isReal: false,
-        marginX: 100, topMargin: 170, lineSpacing: 46, lines: 26,
+        marginX: 100, topMargin: 170, lineSpacing: 45, lines: 26,
         color: 'rgba(180, 180, 180, 0.35)'
       },
       print_b5_h: {
         w: 1476, h: 1040, mode: 'line', isReal: false,
-        marginX: 120, topMargin: 150, lineSpacing: 46, lines: 18,
+        marginX: 120, topMargin: 150, lineSpacing: 45, lines: 18,
         color: 'rgba(180, 180, 180, 0.35)'
       },
       print_a3_v: {
@@ -589,18 +582,19 @@
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
       if (cfg.isReal) {
-        // 复刻凹凸工坊温润的米黄纸面与台灯漫反射光影
-        const grad = ctx.createRadialGradient(w * 0.35, h * 0.25, 80, w * 0.5, h * 0.55, w * 0.9);
-        grad.addColorStop(0, '#f9f6ed');
-        grad.addColorStop(0.60, '#f4eee0');
-        grad.addColorStop(1, '#e7dcce');
+        // 显性暖黄色调与台灯直照的真实纸感渐变
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, '#fbf8ee');
+        grad.addColorStop(0.35, '#f6efdf');
+        grad.addColorStop(0.75, '#ede1cb');
+        grad.addColorStop(1, '#e2d3bb');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
 
-        // 细腻的折痕与柔光阴影
-        const fold = ctx.createLinearGradient(w * 0.70, 0, w * 0.78, 0);
+        // 真实纸张垂直折痕光影
+        const fold = ctx.createLinearGradient(w * 0.68, 0, w * 0.76, 0);
         fold.addColorStop(0, 'rgba(0,0,0,0)');
-        fold.addColorStop(0.5, 'rgba(70, 48, 25, 0.035)');
+        fold.addColorStop(0.5, 'rgba(80, 50, 20, 0.055)');
         fold.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = fold;
         ctx.fillRect(0, 0, w, h);
@@ -609,9 +603,10 @@
         ctx.fillRect(0, 0, w, h);
       }
 
+      // 绘制沉稳的红褐色稿纸横线
       if (cfg.mode === 'line') {
         ctx.strokeStyle = cfg.color;
-        ctx.lineWidth = 1.1;
+        ctx.lineWidth = 1.15;
         for (let i = 0; i < cfg.lines; i++) {
           const y = cfg.topMargin + i * cfg.lineSpacing;
           ctx.beginPath();
@@ -642,10 +637,10 @@
       }
 
       if (cfg.isReal) {
-        // 四周边缘的微弱自然暗角
-        const vignette = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.45, w * 0.5, h * 0.5, w * 0.85);
+        // 实拍镜头四角暗晕
+        const vignette = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.35, w * 0.5, h * 0.5, w * 0.82);
         vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        vignette.addColorStop(1, 'rgba(70, 45, 20, 0.09)');
+        vignette.addColorStop(1, 'rgba(80, 50, 20, 0.14)');
         ctx.fillStyle = vignette;
         ctx.fillRect(0, 0, w, h);
       }
@@ -724,12 +719,12 @@
           const isEng = /[a-zA-Z0-9]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-          // 核心骨相调整：轻微将字形塑造为挺拔的瘦高型（高宽比 0.94 : 1.04）
-          const scaleX = 0.94 + (hashRandom(seed + 3) - 0.5) * (0.28 * strokeChaos);
-          const scaleY = 1.04 + (hashRandom(seed + 4) - 0.5) * (0.24 * strokeChaos);
-          const skewX = -0.04 + (hashRandom(seed + 8) - 0.5) * (0.34 * strokeChaos); // 微微右倾
+          // 核心骨相：收窄横宽、拉升纵高（0.88 : 1.10），瘦长挺拔
+          const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.28 * strokeChaos);
+          const scaleY = 1.10 + (hashRandom(seed + 4) - 0.5) * (0.24 * strokeChaos);
+          const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.34 * strokeChaos);
           const skewY = (hashRandom(seed + 9) - 0.5) * (0.14 * strokeChaos);
-          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.20 * strokeChaos);
+          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.18 * strokeChaos);
 
           const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
           const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
@@ -767,15 +762,15 @@
           }
         }
       } else {
-        // 普通信纸/行格纸模式：
-        // 1. 字号收缩到 21px，行距 46px
-        // 2. 紧凑字距，单字步进压缩到 0.82
-        // 3. 纵向微拉伸，呈现 0.38mm 瘦高硬笔美感
+        // 普通单红线信纸模式：
+        // 1. 基准字号 21px，行间距 45px，饱满且紧实
+        // 2. 单字横向步进压缩到 0.78（紧凑字距，告别松散）
+        // 3. 字体强制 0.86 : 1.12 比例，高挑秀气
         const baseFontSize = cfg.w > 1500 ? 25 : 21;
-        const lineSpacing = cfg.lineSpacing || 46;
+        const lineSpacing = cfg.lineSpacing || 45;
         const startX = cfg.marginX;
         const maxLineWidth = cfg.w - cfg.marginX * 2;
-        const topMargin = cfg.topMargin || 175;
+        const topMargin = cfg.topMargin || 170;
 
         let curX = startX;
         let lineIndex = 0;
@@ -797,24 +792,33 @@
           const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
           const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-          // 核心骨架：收窄宽、略拉长高、自带自然微斜（瘦长字风）
-          const scaleX = 0.93 + (hashRandom(seed + 3) - 0.5) * (0.26 * strokeChaos);
-          const scaleY = 1.05 + (hashRandom(seed + 4) - 0.5) * (0.24 * strokeChaos);
-          const skewX = -0.04 + (hashRandom(seed + 8) - 0.5) * (0.34 * strokeChaos);
-          const skewY = (hashRandom(seed + 9) - 0.5) * (0.14 * strokeChaos);
-          const charAngle = (hashRandom(seed + 2) - 0.5) * (0.20 * strokeChaos);
+          // 核心骨架比例：强制压窄横向、拉长纵向，形成 0.38mm 瘦高硬笔美感
+          let scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.24 * strokeChaos);
+          let scaleY = 1.12 + (hashRandom(seed + 4) - 0.5) * (0.22 * strokeChaos);
+          let skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.32 * strokeChaos);
+          let skewY = (hashRandom(seed + 9) - 0.5) * (0.14 * strokeChaos);
+          let charAngle = (hashRandom(seed + 2) - 0.5) * (0.16 * strokeChaos);
 
-          const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.35 * posChaos);
-          const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.40 * posChaos) + lineWave;
+          // 终极生僻字处理方案：如果字形缺失（如“轘”），直接进行笔画手写形变补偿
+          const missing = isGlyphMissing(char, activeLoadedFontName);
+          if (missing) {
+            scaleX *= 0.84;
+            scaleY *= 1.16;
+            skewX -= 0.12; // 强化连笔倾斜伪装
+            charAngle += 0.04;
+          }
 
-          // 紧凑步进（解决字太扁、太松散的问题）
-          const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.82;
-          const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.35 * posChaos));
+          const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.32 * posChaos);
+          const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.38 * posChaos) + lineWave;
 
-          // 关键点：基线下沉到 0.84，让文字贴实红线托底，告别浮空
-          const curY = topMargin + lineIndex * lineSpacing + (cfg.mode === 'line' ? lineSpacing * 0.84 : lineSpacing * 0.70);
+          // 紧凑横向步进
+          const baseStep = isEng ? baseFontSize * 0.46 : baseFontSize * 0.78;
+          const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.30 * posChaos));
+
+          // 关键基线：将文字紧紧压在红线上（离底线仅 5px），告别悬空
+          const redLineY = topMargin + lineIndex * lineSpacing;
           const charCenterX = curX + charStep * 0.5;
-          const charCenterY = curY - (baseFontSize * 0.42);
+          const charCenterY = redLineY - (baseFontSize * 0.44);
 
           const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
