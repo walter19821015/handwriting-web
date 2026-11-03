@@ -46,8 +46,9 @@
       max-width: 1600px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px;
+      padding: 20px 24px;
       gap: 24px;
+      align-items: flex-start;
     }
 
     .control-panel {
@@ -61,31 +62,14 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      max-height: calc(100vh - 100px);
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
       overflow-y: auto;
     }
 
     .panel-section { display: flex; flex-direction: column; gap: 6px; }
     .section-title { font-size: 13px; font-weight: 600; color: #1f2937; }
-
-    .file-upload-box {
-      border: 2px dashed #93c5fd;
-      background: #f8fafc;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-    .file-upload-box:hover { border-color: #2563eb; background: #eff6ff; }
-    .upload-icon { font-size: 20px; }
-    .upload-text { font-size: 12px; font-weight: 600; color: #1d4ed8; }
-    .upload-desc { font-size: 11px; color: #64748b; }
-    .upload-status { font-size: 11px; color: #2563eb; margin-top: 2px; }
 
     .text-input-area {
       width: 100%; height: 90px; padding: 10px; border: 1px solid #d1d5db;
@@ -161,33 +145,41 @@
     }
     .btn-copy-code:hover { background: #15803d; }
 
-    .action-row { display: flex; gap: 10px; margin-top: 4px; }
-    .btn-action {
-      flex: 1; padding: 10px; font-size: 13px; font-weight: 500; border-radius: 8px;
-      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
-    }
-    .btn-success { background: #059669; color: #ffffff; }
-    .btn-success:hover { background: #047857; }
-
     .preview-panel {
-      flex: 1; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;
-      padding: 22px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
-      position: relative;
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+      min-height: calc(100vh - 40px);
     }
     .preview-header {
       font-size: 13px; color: #6b7280; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6;
       display: flex; justify-content: space-between; align-items: center;
     }
+    
+    /* 彻底放开滚动容器：让画面可以上下随意滚动作对比 */
     .canvas-wrapper {
-      flex: 1; width: 100%; display: flex; justify-content: center; align-items: center;
-      background: #7a828e; border-radius: 8px; padding: 24px; overflow: auto;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: #7a828e;
+      border-radius: 8px;
+      padding: 24px;
+      overflow-y: visible;
     }
 
     #previewCanvas {
       display: block;
-      max-width: 100%;
-      height: auto;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+      width: 100%;
+      max-width: 820px;
+      height: auto !important; /* 保证原图比例，绝不缩压 */
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
       border-radius: 2px;
     }
 
@@ -227,42 +219,42 @@
         <div class="calib-row">
           <div class="calib-label-row">
             <span>水平起点 (X 原点)</span>
-            <span class="calib-num" id="valStartX">195</span>
+            <span class="calib-num" id="valStartX">183</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStartX" min="50" max="1000" step="1" value="195" />
+          <input type="range" class="calib-slider" id="sliderStartX" min="50" max="1000" step="1" value="183" />
         </div>
 
         <div class="calib-row">
           <div class="calib-label-row">
             <span>第2行线起始高度 (Y 原点)</span>
-            <span class="calib-num" id="valStartY">268</span>
+            <span class="calib-num" id="valStartY">263</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStartY" min="50" max="600" step="1" value="268" />
+          <input type="range" class="calib-slider" id="sliderStartY" min="50" max="600" step="1" value="263" />
         </div>
 
         <div class="calib-row">
           <div class="calib-label-row">
             <span>基础行间距 (ΔY)</span>
-            <span class="calib-num" id="valStepY">59.2</span>
+            <span class="calib-num" id="valStepY">53.4</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="59.2" />
+          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="53.4" />
         </div>
 
-        <!-- 专门解决“上面对齐，底下往上走”的渐变曲率修正滑块 -->
+        <!-- 强化底部补偿效果 -->
         <div class="calib-row">
           <div class="calib-label-row">
             <span>底部拉伸补偿 (向下沉贴)</span>
-            <span class="calib-num" id="valBottomDrift">0.0</span>
+            <span class="calib-num" id="valBottomDrift">2.6</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderBottomDrift" min="-2.0" max="4.0" step="0.1" value="0.0" />
+          <input type="range" class="calib-slider" id="sliderBottomDrift" min="-5.0" max="8.0" step="0.2" value="2.6" />
         </div>
 
         <div class="calib-row">
           <div class="calib-label-row">
             <span>水平字间距 / 格宽 (ΔX)</span>
-            <span class="calib-num" id="valStepX">56.0</span>
+            <span class="calib-num" id="valStepX">33.5</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStepX" min="20" max="90" step="0.5" value="56.0" />
+          <input type="range" class="calib-slider" id="sliderStepX" min="15" max="90" step="0.5" value="33.5" />
         </div>
 
         <div class="calib-row">
@@ -280,21 +272,10 @@
         <div class="form-group">
           <label for="paperSelect">选择当前测量背景纸</label>
           <select class="form-select" id="paperSelect">
-            <optgroup label="—— 实拍特写系列 (当前调试) ——">
+            <optgroup label="—— 实拍特写系列 ——">
               <option value="real_redline" selected>实拍-单红线信稿纸</option>
               <option value="real_draft">草稿纸-高清实拍 (绿色书脊)</option>
               <option value="real_grid_red">实拍-红格子稿纸 (16列自动换行)</option>
-            </optgroup>
-            <optgroup label="—— 印刷/打印标准纸张 ——">
-              <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
-              <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
-              <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
-              <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清</option>
-              <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清</option>
-              <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清</option>
-              <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清</option>
-              <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清</option>
-              <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清</option>
             </optgroup>
           </select>
         </div>
@@ -331,15 +312,11 @@
 于是越北沚，过南冈，纡素领，回清阳，动朱唇以徐言，陈交接之大纲。恨人神之道殊兮，怨盛年之莫当。抗罗袂以掩涕兮，泪流襟之浪浪。悼良会之永绝兮，哀一逝而异乡。无微情以效爱兮，献江南之明珰。虽潜处于太阴，长寄心于君王。忽不悟其所舍，怅神宵而蔽光。
 于是背下陵高，足往神留，遗情想像，顾望怀愁。冀灵体之复形，御轻舟而上溯。浮长川而忘返，思绵绵而增慕。夜耿耿而不寐，沾繁霜而至曙。命仆夫其就驾，吾将归乎东路。揽騑辔以抗策，怅盘桓而不能去。”</textarea>
       </div>
-
-      <div class="action-row">
-        <button class="btn-action btn-success" id="btnDownload" type="button" style="width:100%;">📥 下载超清原图</button>
-      </div>
     </section>
 
     <section class="preview-panel">
       <div class="preview-header">
-        <span>主视窗实时排版</span>
+        <span>主视窗实时排版（网页直接上下滚动，查看底部）</span>
         <span id="headerPageTip" style="font-weight: bold; color: #2563eb;"></span>
       </div>
       <div class="canvas-wrapper">
@@ -369,7 +346,6 @@
     const btnNextPage = document.getElementById('btnNextPage');
     const pageIndicator = document.getElementById('pageIndicator');
     const headerPageTip = document.getElementById('headerPageTip');
-    const btnDownload = document.getElementById('btnDownload');
 
     // 标定控件
     const sliderStartX = document.getElementById('sliderStartX');
@@ -401,10 +377,10 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    // 每一张纸的独立标定参数
+    // 继承截图中调出的参数
     const CALIB_DATA = {
       real_redline: {
-        startX: 195, startY: 268, stepX: 34, stepY: 59.2, bottomDrift: 0.8, fontSize: 35,
+        startX: 183, startY: 263, stepX: 33.5, stepY: 53.4, bottomDrift: 2.6, fontSize: 35,
         maxLines: 18, isGrid: false, w: 1200, h: 1600
       },
       real_draft: {
@@ -458,9 +434,9 @@
     btnCopyConfig.onclick = function() {
       const pKey = paperSelect.value;
       const c = CALIB_DATA[pKey];
-      const code = `// ${pKey} 对齐参数:\nstartX: ${c.startX}, startY: ${c.startY}, stepX: ${c.stepX}, stepY: ${c.stepY}, bottomDrift: ${c.bottomDrift}, fontSize: ${c.fontSize}`;
+      const code = `startX: ${c.startX}, startY: ${c.startY}, stepX: ${c.stepX}, stepY: ${c.stepY}, bottomDrift: ${c.bottomDrift}, fontSize: ${c.fontSize}`;
       navigator.clipboard.writeText(code).then(() => {
-        alert('✅ 已成功复制！请把这串数值发给我：\n\n' + code);
+        alert('✅ 已成功复制！数值已到剪贴板，请发回给我：\n\n' + code);
       });
     };
 
@@ -492,7 +468,6 @@
       renderAll();
     }
 
-    // 分页计算：过滤纯回车空行，不浪费横线，满行才切页
     function computePagination(text, pKey) {
       const calib = CALIB_DATA[pKey];
       const isGrid = calib && calib.isGrid;
@@ -506,7 +481,7 @@
 
       for (let p = 0; p < rawParagraphs.length; p++) {
         const para = rawParagraphs[p].trim();
-        if (para.length === 0) continue; // 关键：忽略纯空行，杜绝产生浮动错位行！
+        if (para.length === 0) continue;
 
         curLineChars = [];
 
@@ -563,18 +538,13 @@
       if (calib) {
         canvasW = calib.w;
         canvasH = calib.h;
-      } else if (pKey === 'print_a4_h' || pKey === 'print_a3_h') {
-        canvasW = 1754; canvasH = 1240;
       }
 
       canvas.width = canvasW * DPR;
       canvas.height = canvasH * DPR;
-      canvas.style.width = canvasW + 'px';
-      canvas.style.height = canvasH + 'px';
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // 1. 贴原版底图
       const img = imgCache[pKey];
       if (img && img.complete && img.naturalWidth > 0) {
         ctx.drawImage(img, 0, 0, canvasW, canvasH);
@@ -583,7 +553,6 @@
         ctx.fillRect(0, 0, canvasW, canvasH);
       }
 
-      // 2. 分页处理
       paginatedPages = computePagination(textInput.value, pKey);
       if (currentPageIndex >= paginatedPages.length) {
         currentPageIndex = Math.max(0, paginatedPages.length - 1);
@@ -602,19 +571,14 @@
 
       if (!calib) return;
 
-      // =========================================================================
-      // 3. 核心绘制：支持底部拉伸补偿，底下五行绝不向上飘！
-      // =========================================================================
       const drift = calib.bottomDrift || 0;
 
       if (calib.isGrid) {
-        // 红格子：按每格纯正方形投射，沉底压线
         for (let row = 0; row < pageLines.length; row++) {
           if (row >= calib.rows) break;
           const lineText = pageLines[row];
-
-          // 动态二次方下沉修正（越到底部，补得越多，拉回横线上）
-          const extraDown = (row * row) * (drift * 0.05);
+          // 强化补偿放大系数 (乘以 0.25，肉眼立刻可见)
+          const extraDown = (row * row) * (drift * 0.25);
 
           for (let col = 0; col < lineText.length; col++) {
             if (col >= calib.cols) break;
@@ -634,12 +598,11 @@
           }
         }
       } else {
-        // 横线纸：逐行绝对落线，配合底部下沉补偿
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
           if (lineIdx >= calib.maxLines) break;
 
-          // 核心补偿：越往下的行，补偿递增，彻底消灭底部往上飘的错位
-          const extraDown = (lineIdx * lineIdx) * (drift * 0.05);
+          // 强化补偿放大系数：行数越深，下沉越强
+          const extraDown = (lineIdx * lineIdx) * (drift * 0.25);
           const lineY = calib.startY + lineIdx * calib.stepY + extraDown;
 
           const lineText = pageLines[lineIdx];
@@ -667,13 +630,6 @@
 
     btnPrevPage.onclick = () => { if (currentPageIndex > 0) { currentPageIndex--; renderAll(); } };
     btnNextPage.onclick = () => { if (currentPageIndex < paginatedPages.length - 1) { currentPageIndex++; renderAll(); } };
-
-    btnDownload.onclick = function() {
-      const link = document.createElement('a');
-      link.download = `手写文稿-第${currentPageIndex + 1}页.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    };
 
     textInput.oninput = renderAll;
     fontSelect.onchange = function() { switchFont(this.value); };
