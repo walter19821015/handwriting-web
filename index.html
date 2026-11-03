@@ -395,24 +395,7 @@
       return (h >>> 0) / 4294967296;
     }
 
-    // 预载内部备选手写字库，确保兜底始终是自然硬笔
-    const fallbackFontsList = [
-      { name: 'Fallback_ZhongQi', file: 'zhongqi-chenweixun-yingbi-xingshu.woff' },
-      { name: 'Fallback_JingBo', file: 'hanyi-jingboranti-jian.woff' },
-      { name: 'Fallback_DuanNing', file: 'duanning-yingbi-xingshu-1-0.woff' }
-    ];
-
-    async function preloadInternalHandwritingFallbacks() {
-      for (const f of fallbackFontsList) {
-        try {
-          const font = new FontFace(f.name, `url("./${f.file}")`);
-          await font.load();
-          document.fonts.add(font);
-        } catch(e) {}
-      }
-    }
-    preloadInternalHandwritingFallbacks();
-
+    // 单一独立加载选中的字体，绝不链式卡死
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
       badgeContainer.style.background = '#eff6ff';
@@ -427,7 +410,7 @@
         document.fonts.add(font);
 
         activeLoadedFontName = fixedFontName;
-        currentFontFamily = `'${fixedFontName}', 'Fallback_ZhongQi', 'Fallback_JingBo', 'Fallback_DuanNing', cursive, sans-serif`;
+        currentFontFamily = `'${fixedFontName}', cursive, sans-serif`;
         
         fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
@@ -508,7 +491,6 @@
       }
     };
 
-    // 凹凸工坊单红线信纸参数严格对齐：21 根红线，行距 58px，首行 170px
     const PAPER_CONFIGS = {
       real_redline: {
         w: 1200, h: 1650, mode: 'line', isReal: true,
@@ -571,7 +553,6 @@
       }
     };
 
-    // 内置实拍光影渲染引擎：100% 还原木桌面底衬、纸边折痕投影与印刷体水印标记
     function renderPaperBackground(cfg, pageNum, totalPages) {
       const w = cfg.w;
       const h = cfg.h;
@@ -638,7 +619,7 @@
           ctx.stroke();
         }
 
-        // 严格复刻凹凸工坊右下角印刷字：“共   页  第   页”
+        // 凹凸工坊右下角信纸印刷标记
         ctx.save();
         ctx.font = '16px "STSong", "Songti SC", "SimSun", serif';
         ctx.fillStyle = 'rgba(224, 86, 74, 0.45)';
@@ -710,7 +691,6 @@
       ctx.restore();
     }
 
-    // 自动分页引擎
     function computePagination(text, cfg) {
       const linesPerPage = (cfg.mode === 'line') ? (cfg.lines - 2) : cfg.rows;
       const maxLineWidth = cfg.w - cfg.marginX * 2;
@@ -791,8 +771,6 @@
           for (let col = 0; col < lineText.length; col++) {
             if (col >= cfg.cols) break;
             let char = lineText[col];
-            
-            // 解决“轘”字：新叶念体缺字时自动采用同质手写替换，保持同字库手写风格
             if (char === '轘') char = '辕';
 
             const charCode = char.charCodeAt(0);
@@ -803,4 +781,178 @@
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
             const scaleX = 0.85 + (hashRandom(seed + 3) - 0.5) * (0.26 * strokeChaos);
-            const scaleY = 1.15 + (hash
+            const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.22 * strokeChaos);
+            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.32 * strokeChaos);
+            const skewY = (hashRandom(seed + 9) - 0.5) * (0.14 * strokeChaos);
+            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.16 * strokeChaos);
+
+            const cellCenterX = cfg.marginX + col * cfg.size + cfg.size * 0.5;
+            const cellCenterY = cfg.marginY + row * cfg.size + cfg.size * 0.5;
+
+            const jX = (hashRandom(seed + 6) - 0.5) * (cfg.size * 0.35 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (cfg.size * 0.35 * posChaos);
+
+            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
+
+            ctx.save();
+            ctx.translate(cellCenterX + jX, cellCenterY + jY);
+            ctx.rotate(charAngle);
+            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
+
+            ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
+            ctx.fillText(char, 0, 0);
+            ctx.restore();
+
+            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
+              if (hashRandom(seed * 7 + 991) < scratchProb) {
+                drawScratch(cellCenterX + jX, cellCenterY + jY, cfg.size, seed);
+              }
+            }
+          }
+        }
+      } else {
+        const baseFontSize = cfg.w > 1500 ? 28 : 23;
+        const lineSpacing = cfg.lineSpacing || 58;
+        const startX = cfg.marginX;
+        const topMargin = cfg.topMargin || 170;
+
+        let charGlobalIndex = 0;
+
+        for (let lineIndex = 0; lineIndex < pageLines.length; lineIndex++) {
+          const lineText = pageLines[lineIndex];
+          let curX = startX;
+          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIndex * 71 + 333) - 0.5) * (8.0 * posChaos);
+
+          for (let c = 0; c < lineText.length; c++) {
+            let char = lineText[c];
+            if (char === '轘') char = '辕';
+
+            const charCode = char.charCodeAt(0);
+            const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
+            charGlobalIndex++;
+
+            const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+            const isPunctuation = /[，。、；：？！,.!?:;·]/;
+
+            const scaleX = 0.85 + (hashRandom(seed + 3) - 0.5) * (0.24 * strokeChaos);
+            const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.22 * strokeChaos);
+            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.30 * strokeChaos);
+            const skewY = (hashRandom(seed + 9) - 0.5) * (0.12 * strokeChaos);
+            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.15 * strokeChaos);
+
+            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.30 * posChaos);
+            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.35 * posChaos) + lineWave;
+
+            const baseStep = isEng ? baseFontSize * 0.46 : baseFontSize * 0.72;
+            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.28 * posChaos));
+
+            const redLineY = topMargin + lineIndex * lineSpacing;
+            const charCenterX = curX + charStep * 0.5;
+            const charCenterY = redLineY - (baseFontSize * 0.42);
+
+            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
+
+            ctx.save();
+            ctx.translate(charCenterX + jX, charCenterY + jY);
+            ctx.rotate(charAngle);
+            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
+
+            ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
+            ctx.fillText(char, 0, 0);
+            ctx.restore();
+
+            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
+              if (hashRandom(seed * 11 + 104729) < scratchProb) {
+                drawScratch(charCenterX + jX, charCenterY + jY, baseFontSize * 1.3, seed);
+              }
+            }
+
+            curX += charStep;
+          }
+        }
+      }
+    }
+
+    function updatePaginationAndRender() {
+      const pKey = paperSelect.value;
+      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
+      paginatedPages = computePagination(textInput.value, cfg);
+
+      if (currentPageIndex >= paginatedPages.length) {
+        currentPageIndex = Math.max(0, paginatedPages.length - 1);
+      }
+      renderCurrentPage();
+    }
+
+    btnPrevPage.onclick = function() {
+      if (currentPageIndex > 0) {
+        currentPageIndex--;
+        renderCurrentPage();
+      }
+    };
+
+    btnNextPage.onclick = function() {
+      if (currentPageIndex < paginatedPages.length - 1) {
+        currentPageIndex++;
+        renderCurrentPage();
+      }
+    };
+
+    function downloadCurrentCanvas() {
+      const link = document.createElement('a');
+      link.download = `手写文稿-第${currentPageIndex + 1}页.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    btnPreview.onclick = function() {
+      renderCurrentPage();
+      modalImage.src = canvas.toDataURL('image/png');
+      previewModal.style.display = 'flex';
+      previewModal.scrollTop = 0;
+    };
+
+    btnModalClose.onclick = function() {
+      previewModal.style.display = 'none';
+    };
+
+    previewModal.onclick = function(e) {
+      if (e.target === previewModal) {
+        previewModal.style.display = 'none';
+      }
+    };
+
+    btnModalDownload.onclick = downloadCurrentCanvas;
+    btnDownload.onclick = downloadCurrentCanvas;
+
+    textInput.oninput = updatePaginationAndRender;
+    fontSelect.onchange = function() { switchFont(this.value); };
+    paperSelect.onchange = updatePaginationAndRender;
+
+    scratchRange.oninput = function() {
+      scratchVal.textContent = this.value + '%';
+      renderCurrentPage();
+    };
+
+    posJitterRange.oninput = function() {
+      posJitterVal.textContent = this.value + '%';
+      renderCurrentPage();
+    };
+
+    rotJitterRange.oninput = function() {
+      rotJitterVal.textContent = this.value + '%';
+      renderCurrentPage();
+    };
+
+    switchFont(fontSelect.value);
+  </script>
+</body>
+</html>
