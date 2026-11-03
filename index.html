@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>手写字迹生成器</title>
+  <title>手写字迹生成器 · 标定测量工程版</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +43,7 @@
     main {
       flex: 1;
       display: flex;
-      max-width: 1560px;
+      max-width: 1600px;
       width: 100%;
       margin: 0 auto;
       padding: 24px;
@@ -51,51 +51,48 @@
     }
 
     .control-panel {
-      width: 450px;
+      width: 440px;
       flex-shrink: 0;
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
-      padding: 22px;
+      padding: 20px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       max-height: calc(100vh - 100px);
       overflow-y: auto;
     }
 
-    .panel-section { display: flex; flex-direction: column; gap: 8px; }
-    .section-title { font-size: 14px; font-weight: 600; color: #1f2937; }
+    .panel-section { display: flex; flex-direction: column; gap: 6px; }
+    .section-title { font-size: 13px; font-weight: 600; color: #1f2937; }
 
     .file-upload-box {
       border: 2px dashed #93c5fd;
       background: #f8fafc;
-      border-radius: 10px;
-      padding: 14px 12px;
+      border-radius: 8px;
+      padding: 10px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
     }
-    .file-upload-box:hover, .file-upload-box.dragover {
-      border-color: #2563eb;
-      background: #eff6ff;
-    }
-    .upload-icon { font-size: 24px; }
-    .upload-text { font-size: 13px; font-weight: 600; color: #1d4ed8; }
+    .file-upload-box:hover { border-color: #2563eb; background: #eff6ff; }
+    .upload-icon { font-size: 20px; }
+    .upload-text { font-size: 12px; font-weight: 600; color: #1d4ed8; }
     .upload-desc { font-size: 11px; color: #64748b; }
-    .upload-status { font-size: 11px; color: #2563eb; margin-top: 2px; font-weight: 500; }
+    .upload-status { font-size: 11px; color: #2563eb; margin-top: 2px; }
 
     .text-input-area {
-      width: 100%; height: 110px; padding: 10px; border: 1px solid #d1d5db;
+      width: 100%; height: 90px; padding: 10px; border: 1px solid #d1d5db;
       border-radius: 8px; font-size: 13px; resize: vertical; font-family: inherit; line-height: 1.6;
     }
 
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group label { font-size: 13px; font-weight: 500; color: #4b5563; }
     .form-select {
       width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #d1d5db;
@@ -106,7 +103,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 12px;
+      padding: 6px 12px;
       background: #eff6ff;
       border: 1px solid #bfdbfe;
       border-radius: 6px;
@@ -114,24 +111,65 @@
       color: #1e40af;
     }
 
-    .slider-group { display: flex; flex-direction: column; gap: 6px; }
-    .slider-label-row { display: flex; justify-content: space-between; font-size: 13px; color: #4b5563; }
-    .slider-range { width: 100%; accent-color: #2563eb; cursor: pointer; }
-    .slider-sub-text { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+    /* 专用标定测量面板 */
+    .calib-panel {
+      background: #f0fdf4;
+      border: 2px solid #22c55e;
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .calib-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #15803d;
+    }
+    .calib-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .calib-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #374151;
+    }
+    .calib-num { font-weight: bold; color: #15803d; }
+    .calib-slider { width: 100%; accent-color: #16a34a; cursor: pointer; }
 
-    details { border: 1px solid #f3f4f6; border-radius: 8px; padding: 10px 12px; background: #f9fafb; }
-    details summary { font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; user-select: none; }
-    .advanced-content { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+    .btn-copy-code {
+      width: 100%;
+      padding: 10px;
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-copy-code:hover { background: #15803d; }
 
-    .action-row { display: flex; gap: 12px; margin-top: 4px; }
+    .action-row { display: flex; gap: 10px; margin-top: 4px; }
     .btn-action {
-      flex: 1; padding: 12px; font-size: 14px; font-weight: 500; border-radius: 8px;
-      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      flex: 1; padding: 10px; font-size: 13px; font-weight: 500; border-radius: 8px;
+      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
     }
     .btn-primary { background: #2563eb; color: #ffffff; }
     .btn-primary:hover { background: #1d4ed8; }
-    .btn-success { background: #16a34a; color: #ffffff; }
-    .btn-success:hover { background: #15803d; }
+    .btn-success { background: #059669; color: #ffffff; }
+    .btn-success:hover { background: #047857; }
 
     .preview-panel {
       flex: 1; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;
@@ -165,48 +203,109 @@
     .page-btn {
       background: #2563eb; color: #fff; border: none; width: 32px; height: 32px;
       border-radius: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-weight: bold; transition: background 0.2s;
+      font-weight: bold;
     }
     .page-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
     .page-indicator {
       font-size: 14px; font-weight: 600; color: #334155; background: #f1f5f9; padding: 6px 16px; border-radius: 20px;
     }
-
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(15, 23, 42, 0.90); backdrop-filter: blur(8px);
-      display: none; justify-content: center; align-items: flex-start;
-      z-index: 9999; overflow-y: auto; padding: 40px 16px 100px 16px;
-    }
-    .modal-container { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; }
-    #modalImage { display: block; width: 1000px; max-width: 95vw; height: auto; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7); border-radius: 4px; }
-    .modal-floating-bar {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 16px; background: rgba(30, 41, 59, 0.85);
-      backdrop-filter: blur(12px); padding: 10px 20px; border-radius: 30px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.1); z-index: 10000;
-    }
-    .modal-btn { padding: 10px 24px; border-radius: 20px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .modal-btn-close { background: #475569; color: #ffffff; }
-    .modal-btn-download { background: #16a34a; color: #ffffff; }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
+    <div class="brand">✍️ 手写模拟工坊 · 标定测量工程版</div>
   </header>
 
   <main>
     <section class="control-panel">
+      <!-- 专用卡尺测量标定面板 -->
+      <div class="calib-panel">
+        <div class="calib-header">
+          <span>🎯 卡尺测量面板（肉眼拉动对齐）</span>
+          <span style="font-size: 11px; color: #166534;">第1行自动留空</span>
+        </div>
+
+        <div class="calib-row">
+          <div class="calib-label-row">
+            <span>水平起点 (X 原点)</span>
+            <span class="calib-num" id="valStartX">195</span>
+          </div>
+          <input type="range" class="calib-slider" id="sliderStartX" min="50" max="1000" step="1" value="195" />
+        </div>
+
+        <div class="calib-row">
+          <div class="calib-label-row">
+            <span>起笔高度 (第2行线 Y 压线原点)</span>
+            <span class="calib-num" id="valStartY">268</span>
+          </div>
+          <input type="range" class="calib-slider" id="sliderStartY" min="50" max="600" step="1" value="268" />
+        </div>
+
+        <div class="calib-row">
+          <div class="calib-label-row">
+            <span>水平字间距 / 格宽 (ΔX)</span>
+            <span class="calib-num" id="valStepX">56.0</span>
+          </div>
+          <input type="range" class="calib-slider" id="sliderStepX" min="20" max="90" step="0.5" value="56.0" />
+        </div>
+
+        <div class="calib-row">
+          <div class="calib-label-row">
+            <span>行间距 / 横线步长 (ΔY)</span>
+            <span class="calib-num" id="valStepY">59.2</span>
+          </div>
+          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="59.2" />
+        </div>
+
+        <div class="calib-row">
+          <div class="calib-label-row">
+            <span>字号大小</span>
+            <span class="calib-num" id="valFontSize">35</span>
+          </div>
+          <input type="range" class="calib-slider" id="sliderFontSize" min="16" max="60" step="1" value="35" />
+        </div>
+
+        <button class="btn-copy-code" id="btnCopyConfig" type="button">📋 复制当前完美参数</button>
+      </div>
+
       <div class="panel-section">
-        <span class="section-title">导入文稿</span>
-        <input type="file" id="fileUploadInput" accept=".docx,.doc,.pdf,.txt,.md,image/*" style="display: none;" />
-        <div class="file-upload-box" id="dropUploadBox">
-          <div class="upload-icon">📂</div>
-          <div class="upload-text">点击或将文件拖拽至此处导入</div>
-          <div class="upload-desc">支持上传 Word、PDF、图片、纯文字</div>
-          <div class="upload-status" id="uploadStatusText"></div>
+        <div class="form-group">
+          <label for="paperSelect">选择当前测量背景纸</label>
+          <select class="form-select" id="paperSelect">
+            <optgroup label="—— 实拍特写系列 (当前调试) ——">
+              <option value="real_redline" selected>实拍-单红线信稿纸</option>
+              <option value="real_draft">草稿纸-高清实拍 (绿色书脊)</option>
+              <option value="real_grid_red">实拍-红格子稿纸 (16列自动换行)</option>
+            </optgroup>
+            <optgroup label="—— 印刷/打印标准纸张 ——">
+              <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
+              <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
+              <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
+              <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清</option>
+              <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清</option>
+              <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清</option>
+              <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清</option>
+              <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清</option>
+              <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 4px;">
+          <label for="fontSelect">选择字型</label>
+          <select class="form-select" id="fontSelect">
+            <option value="xin-ye-nian-ti.otf" selected>新叶念体</option>
+            <option value="zao-zi-gong-fang-qing-shu.otf">造字工房情书</option>
+            <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
+            <option value="honglei-xiaozhitiao-qingchunti.woff">鸿雷小纸条青春体</option>
+            <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
+            <option value="xingshixin-yingbi-xingshu-jianti.woff">邢世新硬笔行书简体</option>
+          </select>
+        </div>
+
+        <div class="font-badge" id="badgeContainer" style="margin-top: 4px;">
+          <span>状态：</span><strong id="fontStatusMsg">正在载入字库...</strong>
         </div>
       </div>
 
@@ -226,95 +325,14 @@
 于是背下陵高，足往神留，遗情想像，顾望怀愁。冀灵体之复形，御轻舟而上溯。浮长川而忘返，思绵绵而增慕。夜耿耿而不寐，沾繁霜而至曙。命仆夫其就驾，吾将归乎东路。揽騑辔以抗策，怅盘桓而不能去。”</textarea>
       </div>
 
-      <div class="panel-section">
-        <div class="form-group">
-          <label for="fontSelect">选择字型</label>
-          <select class="form-select" id="fontSelect">
-            <optgroup label="—— 核心硬笔手写 ——">
-              <option value="xin-ye-nian-ti.otf" selected>新叶念体</option>
-              <option value="zao-zi-gong-fang-qing-shu.otf">造字工房情书</option>
-              <option value="aa-duyiwuer-de-wenrou-zhi-gei-ni.woff">Aa独一无二的温柔只给你</option>
-              <option value="honglei-xiaozhitiao-qingchunti.woff">鸿雷小纸条青春体</option>
-              <option value="zhongqi-chenweixun-yingbi-xingshu.woff">钟齐陈伟勋硬笔行书</option>
-              <option value="xingshixin-yingbi-xingshu-jianti.woff">邢世新硬笔行书简体</option>
-              <option value="momo-yingbi-shouxieti.woff">默陌硬笔手写体</option>
-              <option value="momo-xinjian-shouxieti.woff">默陌信笺手写体</option>
-              <option value="jili-shouxie-jianti.woff">吉力手写简体</option>
-              <option value="hanyi-xindi-fangcaoti.woff">汉仪新蒂芳草体</option>
-              <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
-              <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <div class="font-badge" id="badgeContainer">
-          <span>状态：</span><strong id="fontStatusMsg">正在载入字库...</strong>
-        </div>
-
-        <div class="form-group" style="margin-top: 10px;">
-          <label for="paperSelect">纸张背景</label>
-          <select class="form-select" id="paperSelect">
-            <optgroup label="—— 实拍特写系列 ——">
-              <option value="real_redline" selected>实拍-单红线信稿纸</option>
-              <option value="real_draft">草稿纸-高清实拍</option>
-              <option value="real_grid_red">实拍-红格子稿纸</option>
-            </optgroup>
-            <optgroup label="—— 印刷/打印标准纸张 ——">
-              <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
-              <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
-              <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
-              <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清</option>
-              <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清</option>
-              <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清</option>
-              <option value="print_b5_h">可打印-B5纸-横向-600dpi 高清</option>
-              <option value="print_a3_v">可打印-A3纸-纵向-600dpi 高清</option>
-              <option value="print_a3_h">可打印-A3纸-横向-600dpi 高清</option>
-            </optgroup>
-          </select>
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <div class="slider-label-row">
-          <span>随机勾画涂改概率</span>
-          <span id="scratchVal" style="font-weight: 600; color: #2563eb;">0%</span>
-        </div>
-        <input type="range" class="slider-range" id="scratchRange" min="0" max="100" value="0" />
-        <div class="slider-sub-text"><span>0%</span><span>100%</span></div>
-      </div>
-
-      <details open>
-        <summary>高级设置</summary>
-        <div class="advanced-content">
-          <div class="slider-group">
-            <div class="slider-label-row">
-              <span>文字位置乱乱度</span>
-              <span id="posJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
-            </div>
-            <input type="range" class="slider-range" id="posJitterRange" min="0" max="100" value="0" />
-            <div class="slider-sub-text"><span>0%</span><span>100%</span></div>
-          </div>
-
-          <div class="slider-group">
-            <div class="slider-label-row">
-              <span>字体笔画紊乱度</span>
-              <span id="rotJitterVal" style="font-weight: 600; color: #2563eb;">0%</span>
-            </div>
-            <input type="range" class="slider-range" id="rotJitterRange" min="0" max="100" value="0" />
-            <div class="slider-sub-text"><span>0%</span><span>100%</span></div>
-          </div>
-        </div>
-      </details>
-
       <div class="action-row">
-        <button class="btn-action btn-primary" id="btnPreview" type="button">① 点击预览</button>
-        <button class="btn-action btn-success" id="btnDownload" type="button">📥 下载超清原图</button>
+        <button class="btn-action btn-success" id="btnDownload" type="button" style="width:100%;">📥 下载超清原图</button>
       </div>
     </section>
 
     <section class="preview-panel">
       <div class="preview-header">
-        <span>主视窗实时排版</span>
+        <span>主视窗实时排版（拖动左侧滑块，字迹实时对齐）</span>
         <span id="headerPageTip" style="font-weight: bold; color: #2563eb;"></span>
       </div>
       <div class="canvas-wrapper">
@@ -329,16 +347,6 @@
     </section>
   </main>
 
-  <div class="modal-overlay" id="previewModal">
-    <div class="modal-container">
-      <img id="modalImage" src="" alt="预览" />
-    </div>
-    <div class="modal-floating-bar">
-      <button class="modal-btn modal-btn-close" id="btnModalClose">✕ 关闭预览</button>
-      <button class="modal-btn modal-btn-download" id="btnModalDownload">📥 下载当前页原图</button>
-    </div>
-  </div>
-
   <script>
     const canvas = document.getElementById('previewCanvas');
     const ctx = canvas.getContext('2d');
@@ -346,32 +354,28 @@
     const textInput = document.getElementById('manualTextInput');
     const paperSelect = document.getElementById('paperSelect');
     const fontSelect = document.getElementById('fontSelect');
-    
-    const scratchRange = document.getElementById('scratchRange');
-    const scratchVal = document.getElementById('scratchVal');
-    const posJitterRange = document.getElementById('posJitterRange');
-    const posJitterVal = document.getElementById('posJitterVal');
-    const rotJitterRange = document.getElementById('rotJitterRange');
-    const rotJitterVal = document.getElementById('rotJitterVal');
-
     const fontStatusMsg = document.getElementById('fontStatusMsg');
     const badgeContainer = document.getElementById('badgeContainer');
-    const btnPreview = document.getElementById('btnPreview');
-    const btnDownload = document.getElementById('btnDownload');
-
-    const previewModal = document.getElementById('previewModal');
-    const modalImage = document.getElementById('modalImage');
-    const btnModalClose = document.getElementById('btnModalClose');
-    const btnModalDownload = document.getElementById('btnModalDownload');
+    const btnCopyConfig = document.getElementById('btnCopyConfig');
 
     const btnPrevPage = document.getElementById('btnPrevPage');
     const btnNextPage = document.getElementById('btnNextPage');
     const pageIndicator = document.getElementById('pageIndicator');
     const headerPageTip = document.getElementById('headerPageTip');
+    const btnDownload = document.getElementById('btnDownload');
 
-    const fileUploadInput = document.getElementById('fileUploadInput');
-    const dropUploadBox = document.getElementById('dropUploadBox');
-    const uploadStatusText = document.getElementById('uploadStatusText');
+    // 标定控件
+    const sliderStartX = document.getElementById('sliderStartX');
+    const sliderStartY = document.getElementById('sliderStartY');
+    const sliderStepX = document.getElementById('sliderStepX');
+    const sliderStepY = document.getElementById('sliderStepY');
+    const sliderFontSize = document.getElementById('sliderFontSize');
+
+    const valStartX = document.getElementById('valStartX');
+    const valStartY = document.getElementById('valStartY');
+    const valStepX = document.getElementById('valStepX');
+    const valStepY = document.getElementById('valStepY');
+    const valFontSize = document.getElementById('valFontSize');
 
     let currentFontFamily = `'Caveat', cursive, sans-serif`;
     let currentPageIndex = 0;
@@ -388,22 +392,72 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
+    // 每一张纸的独立标定参数（切换纸张时自动读写）
+    const CALIB_DATA = {
+      real_redline: {
+        startX: 195, startY: 268, stepX: 34, stepY: 59.2, fontSize: 35,
+        maxLines: 18, isGrid: false, w: 1200, h: 1600
+      },
+      real_draft: {
+        startX: 848, startY: 206, stepX: 30, stepY: 53.2, fontSize: 32,
+        maxLines: 13, isGrid: false, w: 1600, h: 1200
+      },
+      real_grid_red: {
+        startX: 154, startY: 195, stepX: 56.0, stepY: 67.0, fontSize: 42,
+        cols: 16, rows: 19, isGrid: true, w: 1200, h: 1600
+      }
+    };
+
+    function syncCalibUI() {
+      const pKey = paperSelect.value;
+      const data = CALIB_DATA[pKey];
+      if (!data) return;
+
+      sliderStartX.value = data.startX; valStartX.textContent = data.startX;
+      sliderStartY.value = data.startY; valStartY.textContent = data.startY;
+      sliderStepX.value = data.stepX; valStepX.textContent = data.stepX;
+      sliderStepY.value = data.stepY; valStepY.textContent = data.stepY;
+      sliderFontSize.value = data.fontSize; valFontSize.textContent = data.fontSize;
+    }
+
+    // 滑块实时事件
+    sliderStartX.oninput = function() {
+      const pKey = paperSelect.value;
+      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].startX = parseFloat(this.value); valStartX.textContent = this.value; renderAll(); }
+    };
+    sliderStartY.oninput = function() {
+      const pKey = paperSelect.value;
+      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].startY = parseFloat(this.value); valStartY.textContent = this.value; renderAll(); }
+    };
+    sliderStepX.oninput = function() {
+      const pKey = paperSelect.value;
+      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); }
+    };
+    sliderStepY.oninput = function() {
+      const pKey = paperSelect.value;
+      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); }
+    };
+    sliderFontSize.oninput = function() {
+      const pKey = paperSelect.value;
+      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); }
+    };
+
+    btnCopyConfig.onclick = function() {
+      const pKey = paperSelect.value;
+      const c = CALIB_DATA[pKey];
+      const code = `// ${pKey} 对齐参数:\nstartX: ${c.startX}, startY: ${c.startY}, stepX: ${c.stepX}, stepY: ${c.stepY}, fontSize: ${c.fontSize}`;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('✅ 已成功复制当前对齐参数到剪贴板！请把这一串内容发给我：\n\n' + code);
+      });
+    };
+
     ['real_redline', 'real_grid_red', 'real_draft'].forEach(key => {
       imgCache[key].onload = () => { renderAll(); };
     });
 
-    function hashRandom(seed) {
-      let h = (seed ^ 0xdeadbeef) >>> 0;
-      h = Math.imul(h ^ (h >>> 16), 2246822507);
-      h = Math.imul(h ^ (h >>> 13), 3266489909);
-      h ^= h >>> 16;
-      return (h >>> 0) / 4294967296;
-    }
-
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
       badgeContainer.style.background = '#eff6ff';
-      badgeContainer.style.borderColor = '#bfdbfe';
       badgeContainer.style.color = '#1e40af';
 
       try {
@@ -416,233 +470,37 @@
         currentFontFamily = `'${fixedFontName}', cursive, sans-serif`;
         fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
-        badgeContainer.style.borderColor = '#bbf7d0';
         badgeContainer.style.color = '#15803d';
       } catch (err) {
         fontStatusMsg.textContent = '❌ 加载失败: ' + err.message;
         badgeContainer.style.background = '#fef2f2';
-        badgeContainer.style.borderColor = '#fecaca';
         badgeContainer.style.color = '#dc2626';
       }
       renderAll();
     }
 
-    async function handleUploadedFile(file) {
-      if (!file) return;
-      uploadStatusText.textContent = `⏳ 正在读取: ${file.name}...`;
-      const ext = file.name.split('.').pop().toLowerCase();
-
-      try {
-        if (ext === 'docx') {
-          const arrayBuffer = await file.arrayBuffer();
-          const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-          textInput.value = result.value.trim();
-        } else if (ext === 'pdf') {
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          let fullText = '';
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            fullText += content.items.map(item => item.str).join(' ') + '\n\n';
-          }
-          textInput.value = fullText.trim();
-        } else {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            textInput.value = e.target.result.trim();
-            renderAll();
-          };
-          reader.readAsText(file);
-          return;
-        }
-        uploadStatusText.textContent = `✅ 导入成功`;
-      } catch (err) {
-        uploadStatusText.textContent = `❌ 读取失败: ${err.message}`;
-      }
-      renderAll();
-    }
-
-    dropUploadBox.onclick = () => fileUploadInput.click();
-    fileUploadInput.onchange = (e) => handleUploadedFile(e.target.files[0]);
-
-    dropUploadBox.ondragover = (e) => {
-      e.preventDefault();
-      dropUploadBox.classList.add('dragover');
-    };
-    dropUploadBox.ondragleave = () => dropUploadBox.classList.remove('dragover');
-    dropUploadBox.ondrop = (e) => {
-      e.preventDefault();
-      dropUploadBox.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        handleUploadedFile(e.dataTransfer.files[0]);
-      }
-    };
-
-    // =========================================================================
-    // 物理恒定等比标定系统（绝对消除任何行距乘法累积误差）
-    // =========================================================================
-    const PAPER_CONFIGS = {
-      // 1. 单红线信稿纸（1200x1600）：第1根红线留空，从第2根线绝对起笔，线间距严格锁死为图片高度的 3.70%
-      real_redline: {
-        isPhoto: true, photoKey: 'real_redline', mode: 'strict_ratio_lines',
-        w: 1200, h: 1600,
-        leftRatio: 0.162,
-        maxLineWidthRatio: 0.675,
-        firstLineRatio: 0.167, // 第2根红线占画布总高度比
-        stepRatio: 0.0370,     // 严格恒定红线间距比
-        maxLines: 19,
-        fontSizeRatio: 0.0225
-      },
-
-      // 2. 草稿纸（1600x1200）：第1根横线留空，从第2根线绝对起笔，间距严格锁死为图片高度的 4.68%
-      real_draft: {
-        isPhoto: true, photoKey: 'real_draft', mode: 'strict_ratio_lines',
-        w: 1600, h: 1200,
-        leftRatio: 0.530,
-        maxLineWidthRatio: 0.388,
-        firstLineRatio: 0.173, // 第2根横线占画布总高度比
-        stepRatio: 0.0468,     // 严格恒定横线间距比
-        maxLines: 13,          // 自然写满整页右侧
-        fontSizeRatio: 0.0270
-      },
-
-      // 3. 红格子稿纸（1200x1600）：第1行留空，从第2行起笔，每行满16格强制换行，字底贴合底线
-      real_grid_red: {
-        isPhoto: true, photoKey: 'real_grid_red', mode: 'grid',
-        w: 1200, h: 1600,
-        cols: 16,
-        rows: 19,
-        startXRatio: 0.128,
-        startYRatio: 0.122,
-        cellWRatio: 0.0520,
-        cellHRatio: 0.0418,
-        fontSizeRatio: 0.0275
-      },
-
-      // ================= 完整恢复所有系统纸张模板 =================
-      print_redline_a4_new: {
-        w: 1240, h: 1754, mode: 'line_print', isPhoto: false,
-        marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25,
-        color: 'rgba(225, 70, 60, 0.4)'
-      },
-      print_grid_black: {
-        w: 1200, h: 1600, mode: 'grid_print', isPhoto: false,
-        cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
-        color: 'rgba(50, 50, 50, 0.4)'
-      },
-      print_grid_red: {
-        w: 1200, h: 1600, mode: 'grid_print', isPhoto: false,
-        cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
-        color: 'rgba(215, 65, 55, 0.45)'
-      },
-      print_a4_v: {
-        w: 1240, h: 1754, mode: 'line_print', isPhoto: false,
-        marginX: 120, topMargin: 190, lineSpacing: 54, lines: 26,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_a4_h: {
-        w: 1754, h: 1240, mode: 'line_print', isPhoto: false,
-        marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_b5_v: {
-        w: 1040, h: 1476, mode: 'line_print', isPhoto: false,
-        marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_b5_h: {
-        w: 1476, h: 1040, mode: 'line_print', isPhoto: false,
-        marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_a3_v: {
-        w: 1754, h: 2480, mode: 'line_print', isPhoto: false,
-        marginX: 160, topMargin: 240, lineSpacing: 64, lines: 32,
-        color: 'rgba(180, 180, 180, 0.35)'
-      },
-      print_a3_h: {
-        w: 2480, h: 1754, mode: 'line_print', isPhoto: false,
-        marginX: 180, topMargin: 200, lineSpacing: 64, lines: 22,
-        color: 'rgba(180, 180, 180, 0.35)'
-      }
-    };
-
-    function drawScratch(centerX, centerY, size, seed) {
-      const type = Math.floor(hashRandom(seed + 88) * 3);
-      ctx.save();
-      ctx.strokeStyle = 'rgba(15, 20, 30, 0.95)';
-      ctx.lineWidth = 1.8 + hashRandom(seed + 89) * 0.6;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (type === 0) {
-        ctx.beginPath();
-        ctx.moveTo(centerX - size * 0.35, centerY + size * 0.15);
-        ctx.lineTo(centerX + size * 0.35, centerY - size * 0.22);
-        ctx.moveTo(centerX - size * 0.28, centerY + size * 0.26);
-        ctx.lineTo(centerX + size * 0.38, centerY - size * 0.10);
-        ctx.stroke();
-      } else if (type === 1) {
-        ctx.beginPath();
-        const startX = centerX - size * 0.36;
-        const endX = centerX + size * 0.36;
-        const midY = centerY - size * 0.05;
-        ctx.moveTo(startX, midY - 3);
-        ctx.lineTo(endX, midY + 2);
-        ctx.lineTo(startX + 4, midY + 5);
-        ctx.lineTo(endX - 2, midY + 7);
-        ctx.stroke();
-      } else {
-        ctx.beginPath();
-        const startX = centerX - size * 0.38;
-        const midY = centerY - size * 0.05;
-        ctx.moveTo(startX, midY);
-        for (let s = 1; s <= 4; s++) {
-          const segX = startX + (size * 0.76 * s) / 4;
-          const segY = midY + ((s % 2 === 0) ? 4 : -4);
-          ctx.lineTo(segX, segY);
-        }
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // 分页计算：正文自动紧凑流式排满，遇到原文回车才另起行，本页行满才翻页
-    function computePagination(text, cfg, actualW, actualH) {
-      const linesPerPage = cfg.maxLines || cfg.rows || cfg.lines || 20;
-      let maxLineWidth = 600;
-      let baseFontSize = 24;
-
-      if (cfg.mode === 'strict_ratio_lines') {
-        maxLineWidth = actualW * cfg.maxLineWidthRatio;
-        baseFontSize = actualH * cfg.fontSizeRatio;
-      } else if (cfg.mode === 'grid') {
-        maxLineWidth = cfg.cols * (actualW * cfg.cellWRatio);
-        baseFontSize = actualH * cfg.fontSizeRatio;
-      } else {
-        maxLineWidth = cfg.w - cfg.marginX * 2;
-        baseFontSize = 22;
-      }
+    // 分页计算：格纸满16字强制转行，横线纸满行强制翻页
+    function computePagination(text, pKey) {
+      const calib = CALIB_DATA[pKey];
+      const isGrid = calib && calib.isGrid;
+      const linesPerPage = calib ? (calib.maxLines || calib.rows || 18) : 20;
 
       const pages = [];
       let currentPageLines = [];
       let curLineChars = [];
-      let currentLineWidth = 0;
 
       const paragraphs = text.split('\n');
 
       for (let p = 0; p < paragraphs.length; p++) {
         const para = paragraphs[p];
         curLineChars = [];
-        currentLineWidth = 0;
 
         for (let c = 0; c < para.length; c++) {
           const char = para[c];
 
-          if (cfg.mode === 'grid') {
-            // 红格子：满 16 个字符立即换行，绝不允许出现第 17 个字！
-            if (curLineChars.length === cfg.cols) {
+          if (isGrid) {
+            // 红格子：满 16 个字符立即换行！绝不溢出到第 17 格！
+            if (curLineChars.length >= 16) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
               if (currentPageLines.length >= linesPerPage) {
@@ -652,29 +510,23 @@
             }
             curLineChars.push(char);
           } else {
-            const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-            const charWidth = isEng ? baseFontSize * 0.48 : baseFontSize * 0.74;
-
-            if (currentLineWidth + charWidth > maxLineWidth && curLineChars.length > 0) {
+            // 普通横线：按行宽截断
+            const maxCharsPerLine = (pKey === 'real_draft') ? 22 : 25;
+            if (curLineChars.length >= maxCharsPerLine) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
-              currentLineWidth = 0;
-
               if (currentPageLines.length >= linesPerPage) {
                 pages.push(currentPageLines);
                 currentPageLines = [];
               }
             }
-
             curLineChars.push(char);
-            currentLineWidth += charWidth;
           }
         }
 
         if (curLineChars.length > 0) {
           currentPageLines.push(curLineChars.join(''));
           curLineChars = [];
-          currentLineWidth = 0;
           if (currentPageLines.length >= linesPerPage) {
             pages.push(currentPageLines);
             currentPageLines = [];
@@ -691,18 +543,16 @@
 
     function renderAll() {
       const pKey = paperSelect.value;
-      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
+      const calib = CALIB_DATA[pKey];
 
-      let canvasW = cfg.w;
-      let canvasH = cfg.h;
-
-      let currentPhoto = null;
-      if (cfg.isPhoto) {
-        currentPhoto = imgCache[cfg.photoKey];
-        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
-          canvasW = currentPhoto.naturalWidth;
-          canvasH = currentPhoto.naturalHeight;
-        }
+      // 原图尺寸 1:1 绝对保证，绝不拉伸变形！
+      let canvasW = 1200;
+      let canvasH = 1600;
+      if (calib) {
+        canvasW = calib.w;
+        canvasH = calib.h;
+      } else if (pKey === 'print_a4_h' || pKey === 'print_a3_h') {
+        canvasW = 1754; canvasH = 1240;
       }
 
       canvas.width = canvasW * DPR;
@@ -712,51 +562,17 @@
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // 1. 铺设底图
-      if (cfg.isPhoto) {
-        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
-          ctx.drawImage(currentPhoto, 0, 0, canvasW, canvasH);
-        } else {
-          ctx.fillStyle = '#f5efe3';
-          ctx.fillRect(0, 0, canvasW, canvasH);
-        }
+      // 1. 贴原版底图
+      const img = imgCache[pKey];
+      if (img && img.complete && img.naturalWidth > 0) {
+        ctx.drawImage(img, 0, 0, canvasW, canvasH);
       } else {
         ctx.fillStyle = '#fdfdfc';
         ctx.fillRect(0, 0, canvasW, canvasH);
-        if (cfg.mode === 'line_print') {
-          ctx.strokeStyle = cfg.color;
-          ctx.lineWidth = 1.0;
-          for (let i = 0; i < cfg.lines; i++) {
-            const y = cfg.topMargin + i * cfg.lineSpacing;
-            ctx.beginPath();
-            ctx.moveTo(cfg.marginX, y);
-            ctx.lineTo(canvasW - cfg.marginX, y);
-            ctx.stroke();
-          }
-        } else if (cfg.mode === 'grid_print') {
-          ctx.strokeStyle = cfg.color;
-          ctx.lineWidth = 1.0;
-          const totalW = cfg.cols * cfg.size;
-          const totalH = cfg.rows * cfg.size;
-          for (let r = 0; r <= cfg.rows; r++) {
-            const y = cfg.marginY + r * cfg.size;
-            ctx.beginPath();
-            ctx.moveTo(cfg.marginX, y);
-            ctx.lineTo(cfg.marginX + totalW, y);
-            ctx.stroke();
-          }
-          for (let c = 0; c <= cfg.cols; c++) {
-            const x = cfg.marginX + c * cfg.size;
-            ctx.beginPath();
-            ctx.moveTo(x, cfg.marginY);
-            ctx.lineTo(x, cfg.marginY + totalH);
-            ctx.stroke();
-          }
-        }
       }
 
       // 2. 分页处理
-      paginatedPages = computePagination(textInput.value, cfg, canvasW, canvasH);
+      paginatedPages = computePagination(textInput.value, pKey);
       if (currentPageIndex >= paginatedPages.length) {
         currentPageIndex = Math.max(0, paginatedPages.length - 1);
       }
@@ -770,231 +586,83 @@
       btnNextPage.disabled = currentPageIndex >= totalPages - 1;
 
       const pageLines = paginatedPages[currentPageIndex] || [];
-      const scratchProb = (parseFloat(scratchRange.value) || 0) / 100;
-      const posChaos = (parseFloat(posJitterRange.value) || 0) / 100; 
-      const strokeChaos = (parseFloat(rotJitterRange.value) || 0) / 100; 
-
       ctx.globalCompositeOperation = 'source-over';
 
-      // =========================================================================
-      // 3. 红格子：满 16 个字符换行，字底贴合底线
-      // =========================================================================
-      if (cfg.mode === 'grid') {
-        const cellW = canvasW * cfg.cellWRatio;
-        const cellH = canvasH * cfg.cellHRatio;
-        const startX = canvasW * cfg.startXRatio;
-        const startY = canvasH * cfg.startYRatio;
-        const baseFontSize = canvasH * cfg.fontSizeRatio;
-        let charGlobalIndex = 0;
+      if (!calib) return;
 
+      // =========================================================================
+      // 3. 核心绘制：纯绝对几何定点，完全跟随滑块手柄变动！
+      // =========================================================================
+      if (calib.isGrid) {
+        // 红格子：按每格纯正方形投射，沉底压线
         for (let row = 0; row < pageLines.length; row++) {
-          if (row >= cfg.rows) break;
+          if (row >= calib.rows) break;
           const lineText = pageLines[row];
 
           for (let col = 0; col < lineText.length; col++) {
-            if (col >= cfg.cols) break;
+            if (col >= calib.cols) break;
             const char = lineText[col];
 
-            const charCode = char.charCodeAt(0);
-            const seed = (currentPageIndex + 1) * 1000 + charGlobalIndex * 137 + charCode * 17;
-            charGlobalIndex++;
-
-            const isEng = /[a-zA-Z0-9]/.test(char);
-            const isPunctuation = /[，。、；：？！,.!?:;·]/;
-
-            const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
-            const scaleY = 1.15 + (hashRandom(seed + 4) - 0.5) * (0.16 * strokeChaos);
-            const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.22 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
-
-            const cellCenterX = startX + col * cellW + (cellW * 0.5);
-            const cellBottomY = startY + (row + 1) * cellH;
-
-            const jX = (hashRandom(seed + 6) - 0.5) * (cellW * 0.08 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (cellH * 0.06 * posChaos);
-
-            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
+            const cellCenterX = calib.startX + col * calib.stepX + (calib.stepX * 0.5);
+            const cellBottomY = calib.startY + (row + 1) * calib.stepY;
 
             ctx.save();
-            ctx.translate(cellCenterX + jX, cellBottomY - 4 + jY);
-            ctx.rotate(charAngle);
-            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
-
-            ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
+            ctx.translate(cellCenterX, cellBottomY - 4);
+            ctx.font = `${calib.fontSize}px ${currentFontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'alphabetic';
-
-            ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
+            ctx.fillStyle = '#0f172a';
             ctx.fillText(char, 0, 0);
             ctx.restore();
-
-            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
-              if (hashRandom(seed * 7 + 991) < scratchProb) {
-                drawScratch(cellCenterX + jX, cellBottomY - cellH * 0.5, Math.min(cellW, cellH), seed);
-              }
-            }
           }
         }
-      }
-      // =========================================================================
-      // 4. 单红线与草稿纸：严格按实际画面尺寸百分比落线，行间距绝对恒定！
-      // =========================================================================
-      else if (cfg.mode === 'strict_ratio_lines') {
-        const baseFontSize = canvasH * cfg.fontSizeRatio;
-        const startX = canvasW * cfg.leftRatio;
-        const firstLineY = canvasH * cfg.firstLineRatio;
-        const lineSpacing = canvasH * cfg.stepRatio;
-
-        let charGlobalIndex = 0;
-
+      } else {
+        // 横线纸：逐行绝对落线
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          if (lineIdx >= cfg.maxLines) break;
+          if (lineIdx >= calib.maxLines) break;
 
-          // 核心：严格以第一根可用物理线为基准，加上绝对恒定的等比步长，绝不偏移！
-          const lineY = firstLineY + lineIdx * lineSpacing;
+          const lineY = calib.startY + lineIdx * calib.stepY;
           const lineText = pageLines[lineIdx];
-          let curX = startX;
-          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (1.5 * posChaos);
+          let curX = calib.startX;
 
           for (let c = 0; c < lineText.length; c++) {
             const char = lineText[c];
-
-            const charCode = char.charCodeAt(0);
-            const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
-            charGlobalIndex++;
-
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-            const isPunctuation = /[，。、；：？！,.!?:;·]/;
-
-            const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
-            const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.14 * strokeChaos);
-            const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.20 * strokeChaos);
-            const skewY = (hashRandom(seed + 9) - 0.5) * (0.08 * strokeChaos);
-            const charAngle = (hashRandom(seed + 2) - 0.5) * (0.10 * strokeChaos);
-
-            const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.10 * posChaos);
-            const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.08 * posChaos) + lineWave;
-
-            const baseStep = isEng ? baseFontSize * 0.48 : baseFontSize * 0.74;
-            const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.12 * posChaos));
-
-            const charCenterX = curX + charStep * 0.5;
-            const charBaseY = lineY - 2; // 字脚实贴红线/横线上方 2px
-
-            const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
+            const charStep = isEng ? calib.stepX * 0.6 : calib.stepX;
 
             ctx.save();
-            ctx.translate(charCenterX + jX, charBaseY + jY);
-            ctx.rotate(charAngle);
-            ctx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
-
-            ctx.font = `${isEng ? baseFontSize * 1.02 : baseFontSize}px ${currentFontFamily}`;
+            ctx.translate(curX + charStep * 0.5, lineY - 2);
+            ctx.font = `${calib.fontSize}px ${currentFontFamily}`;
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic'; // 严格基线贴线，字字稳稳托在线上
-
-            ctx.fillStyle = `rgba(12, 16, 24, ${inkOpacity})`;
+            ctx.textBaseline = 'alphabetic'; // 严格基线贴线，字脚实贴横线
+            ctx.fillStyle = '#0f172a';
             ctx.fillText(char, 0, 0);
             ctx.restore();
-
-            if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
-              if (hashRandom(seed * 11 + 104729) < scratchProb) {
-                drawScratch(charCenterX + jX, lineY - baseFontSize * 0.4, baseFontSize * 1.2, seed);
-              }
-            }
 
             curX += charStep;
           }
         }
       }
-      // ================= 打印模板的绘制逻辑 =================
-      else {
-        const baseFontSize = 22;
-        let lineSpacing = cfg.lineSpacing || 54;
-        let startX = cfg.marginX;
-        let topMargin = cfg.topMargin || 170;
-
-        for (let lineIndex = 0; lineIndex < pageLines.length; lineIndex++) {
-          const lineText = pageLines[lineIndex];
-          let curX = startX;
-          const redLineY = topMargin + lineIndex * lineSpacing;
-
-          for (let c = 0; c < lineText.length; c++) {
-            const char = lineText[c];
-            const baseStep = baseFontSize * 0.74;
-            ctx.save();
-            ctx.font = `${baseFontSize}px ${currentFontFamily}`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = `rgba(12, 16, 24, 0.94)`;
-            ctx.fillText(char, curX + baseStep * 0.5, redLineY - 2);
-            ctx.restore();
-            curX += baseStep;
-          }
-        }
-      }
     }
 
-    btnPrevPage.onclick = function() {
-      if (currentPageIndex > 0) {
-        currentPageIndex--;
-        renderAll();
-      }
-    };
+    btnPrevPage.onclick = () => { if (currentPageIndex > 0) { currentPageIndex--; renderAll(); } };
+    btnNextPage.onclick = () => { if (currentPageIndex < paginatedPages.length - 1) { currentPageIndex++; renderAll(); } };
 
-    btnNextPage.onclick = function() {
-      if (currentPageIndex < paginatedPages.length - 1) {
-        currentPageIndex++;
-        renderAll();
-      }
-    };
-
-    function downloadCurrentCanvas() {
+    btnDownload.onclick = function() {
       const link = document.createElement('a');
       link.download = `手写文稿-第${currentPageIndex + 1}页.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-    }
-
-    btnPreview.onclick = function() {
-      renderAll();
-      modalImage.src = canvas.toDataURL('image/png');
-      previewModal.style.display = 'flex';
-      previewModal.scrollTop = 0;
     };
-
-    btnModalClose.onclick = function() {
-      previewModal.style.display = 'none';
-    };
-
-    previewModal.onclick = function(e) {
-      if (e.target === previewModal) {
-        previewModal.style.display = 'none';
-      }
-    };
-
-    btnModalDownload.onclick = downloadCurrentCanvas;
-    btnDownload.onclick = downloadCurrentCanvas;
 
     textInput.oninput = renderAll;
     fontSelect.onchange = function() { switchFont(this.value); };
-    paperSelect.onchange = renderAll;
-
-    scratchRange.oninput = function() {
-      scratchVal.textContent = this.value + '%';
+    paperSelect.onchange = function() {
+      syncCalibUI();
       renderAll();
     };
 
-    posJitterRange.oninput = function() {
-      posJitterVal.textContent = this.value + '%';
-      renderAll();
-    };
-
-    rotJitterRange.oninput = function() {
-      rotJitterVal.textContent = this.value + '%';
-      renderAll();
-    };
-
+    syncCalibUI();
     renderAll();
     switchFont(fontSelect.value);
   </script>
