@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>手写字迹生成器 · 标定测量工程版</title>
+  <title>手写字迹生成器 · 标定工程版</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,7 +111,7 @@
       color: #1e40af;
     }
 
-    /* 专用标定测量面板 */
+    /* 专用标定面板 */
     .calib-panel {
       background: #f0fdf4;
       border: 2px solid #22c55e;
@@ -166,8 +166,6 @@
       flex: 1; padding: 10px; font-size: 13px; font-weight: 500; border-radius: 8px;
       border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
     }
-    .btn-primary { background: #2563eb; color: #ffffff; }
-    .btn-primary:hover { background: #1d4ed8; }
     .btn-success { background: #059669; color: #ffffff; }
     .btn-success:hover { background: #047857; }
 
@@ -214,7 +212,7 @@
 <body>
 
   <header>
-    <div class="brand">✍️ 手写模拟工坊 · 标定测量工程版</div>
+    <div class="brand">✍️ 手写模拟工坊 · 标定工程版</div>
   </header>
 
   <main>
@@ -222,8 +220,8 @@
       <!-- 专用卡尺测量标定面板 -->
       <div class="calib-panel">
         <div class="calib-header">
-          <span>🎯 卡尺测量面板（肉眼拉动对齐）</span>
-          <span style="font-size: 11px; color: #166534;">第1行自动留空</span>
+          <span>🎯 卡尺对齐手柄</span>
+          <span style="font-size: 11px; color: #166534;">首行已留空</span>
         </div>
 
         <div class="calib-row">
@@ -236,10 +234,27 @@
 
         <div class="calib-row">
           <div class="calib-label-row">
-            <span>起笔高度 (第2行线 Y 压线原点)</span>
+            <span>第2行线起始高度 (Y 原点)</span>
             <span class="calib-num" id="valStartY">268</span>
           </div>
           <input type="range" class="calib-slider" id="sliderStartY" min="50" max="600" step="1" value="268" />
+        </div>
+
+        <div class="calib-row">
+          <div class="calib-label-row">
+            <span>基础行间距 (ΔY)</span>
+            <span class="calib-num" id="valStepY">59.2</span>
+          </div>
+          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="59.2" />
+        </div>
+
+        <!-- 专门解决“上面对齐，底下往上走”的渐变曲率修正滑块 -->
+        <div class="calib-row">
+          <div class="calib-label-row">
+            <span>底部拉伸补偿 (向下沉贴)</span>
+            <span class="calib-num" id="valBottomDrift">0.0</span>
+          </div>
+          <input type="range" class="calib-slider" id="sliderBottomDrift" min="-2.0" max="4.0" step="0.1" value="0.0" />
         </div>
 
         <div class="calib-row">
@@ -248,14 +263,6 @@
             <span class="calib-num" id="valStepX">56.0</span>
           </div>
           <input type="range" class="calib-slider" id="sliderStepX" min="20" max="90" step="0.5" value="56.0" />
-        </div>
-
-        <div class="calib-row">
-          <div class="calib-label-row">
-            <span>行间距 / 横线步长 (ΔY)</span>
-            <span class="calib-num" id="valStepY">59.2</span>
-          </div>
-          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="59.2" />
         </div>
 
         <div class="calib-row">
@@ -318,7 +325,7 @@
 乃援御者而告之曰：“尔有觌于彼者乎？彼何人斯？若此之艳也！”
 御者对曰：“臣闻河洛之神，名曰宓妃。然则君王之所见也，无乃是乎？其状若何？臣愿闻之。”
 
-余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出游波。
+余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出渌波。
 
 于是屏翳收风，川后静波。冯夷鸣鼓，女娲清歌。腾文鱼以警乘，鸣玉鸾以偕逝。六龙俨其齐首，载云车之容裔，鲸鲵踊跃而夹毂，水禽翔而为卫。
 于是越北沚，过南冈，纡素领，回清阳，动朱唇以徐言，陈交接之大纲。恨人神之道殊兮，怨盛年之莫当。抗罗袂以掩涕兮，泪流襟之浪浪。悼良会之永绝兮，哀一逝而异乡。无微情以效爱兮，献江南之明珰。虽潜处于太阴，长寄心于君王。忽不悟其所舍，怅神宵而蔽光。
@@ -332,7 +339,7 @@
 
     <section class="preview-panel">
       <div class="preview-header">
-        <span>主视窗实时排版（拖动左侧滑块，字迹实时对齐）</span>
+        <span>主视窗实时排版</span>
         <span id="headerPageTip" style="font-weight: bold; color: #2563eb;"></span>
       </div>
       <div class="canvas-wrapper">
@@ -369,12 +376,14 @@
     const sliderStartY = document.getElementById('sliderStartY');
     const sliderStepX = document.getElementById('sliderStepX');
     const sliderStepY = document.getElementById('sliderStepY');
+    const sliderBottomDrift = document.getElementById('sliderBottomDrift');
     const sliderFontSize = document.getElementById('sliderFontSize');
 
     const valStartX = document.getElementById('valStartX');
     const valStartY = document.getElementById('valStartY');
     const valStepX = document.getElementById('valStepX');
     const valStepY = document.getElementById('valStepY');
+    const valBottomDrift = document.getElementById('valBottomDrift');
     const valFontSize = document.getElementById('valFontSize');
 
     let currentFontFamily = `'Caveat', cursive, sans-serif`;
@@ -392,18 +401,18 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    // 每一张纸的独立标定参数（切换纸张时自动读写）
+    // 每一张纸的独立标定参数
     const CALIB_DATA = {
       real_redline: {
-        startX: 195, startY: 268, stepX: 34, stepY: 59.2, fontSize: 35,
+        startX: 195, startY: 268, stepX: 34, stepY: 59.2, bottomDrift: 0.8, fontSize: 35,
         maxLines: 18, isGrid: false, w: 1200, h: 1600
       },
       real_draft: {
-        startX: 848, startY: 206, stepX: 30, stepY: 53.2, fontSize: 32,
+        startX: 848, startY: 206, stepX: 30, stepY: 53.2, bottomDrift: 0.6, fontSize: 32,
         maxLines: 13, isGrid: false, w: 1600, h: 1200
       },
       real_grid_red: {
-        startX: 154, startY: 195, stepX: 56.0, stepY: 67.0, fontSize: 42,
+        startX: 154, startY: 195, stepX: 56.0, stepY: 67.0, bottomDrift: 0.0, fontSize: 42,
         cols: 16, rows: 19, isGrid: true, w: 1200, h: 1600
       }
     };
@@ -417,10 +426,10 @@
       sliderStartY.value = data.startY; valStartY.textContent = data.startY;
       sliderStepX.value = data.stepX; valStepX.textContent = data.stepX;
       sliderStepY.value = data.stepY; valStepY.textContent = data.stepY;
+      sliderBottomDrift.value = data.bottomDrift || 0; valBottomDrift.textContent = data.bottomDrift || 0;
       sliderFontSize.value = data.fontSize; valFontSize.textContent = data.fontSize;
     }
 
-    // 滑块实时事件
     sliderStartX.oninput = function() {
       const pKey = paperSelect.value;
       if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].startX = parseFloat(this.value); valStartX.textContent = this.value; renderAll(); }
@@ -437,6 +446,10 @@
       const pKey = paperSelect.value;
       if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); }
     };
+    sliderBottomDrift.oninput = function() {
+      const pKey = paperSelect.value;
+      if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); }
+    };
     sliderFontSize.oninput = function() {
       const pKey = paperSelect.value;
       if (CALIB_DATA[pKey]) { CALIB_DATA[pKey].fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); }
@@ -445,9 +458,9 @@
     btnCopyConfig.onclick = function() {
       const pKey = paperSelect.value;
       const c = CALIB_DATA[pKey];
-      const code = `// ${pKey} 对齐参数:\nstartX: ${c.startX}, startY: ${c.startY}, stepX: ${c.stepX}, stepY: ${c.stepY}, fontSize: ${c.fontSize}`;
+      const code = `// ${pKey} 对齐参数:\nstartX: ${c.startX}, startY: ${c.startY}, stepX: ${c.stepX}, stepY: ${c.stepY}, bottomDrift: ${c.bottomDrift}, fontSize: ${c.fontSize}`;
       navigator.clipboard.writeText(code).then(() => {
-        alert('✅ 已成功复制当前对齐参数到剪贴板！请把这一串内容发给我：\n\n' + code);
+        alert('✅ 已成功复制！请把这串数值发给我：\n\n' + code);
       });
     };
 
@@ -479,7 +492,7 @@
       renderAll();
     }
 
-    // 分页计算：格纸满16字强制转行，横线纸满行强制翻页
+    // 分页计算：过滤纯回车空行，不浪费横线，满行才切页
     function computePagination(text, pKey) {
       const calib = CALIB_DATA[pKey];
       const isGrid = calib && calib.isGrid;
@@ -489,17 +502,18 @@
       let currentPageLines = [];
       let curLineChars = [];
 
-      const paragraphs = text.split('\n');
+      const rawParagraphs = text.split('\n');
 
-      for (let p = 0; p < paragraphs.length; p++) {
-        const para = paragraphs[p];
+      for (let p = 0; p < rawParagraphs.length; p++) {
+        const para = rawParagraphs[p].trim();
+        if (para.length === 0) continue; // 关键：忽略纯空行，杜绝产生浮动错位行！
+
         curLineChars = [];
 
         for (let c = 0; c < para.length; c++) {
           const char = para[c];
 
           if (isGrid) {
-            // 红格子：满 16 个字符立即换行！绝不溢出到第 17 格！
             if (curLineChars.length >= 16) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
@@ -510,7 +524,6 @@
             }
             curLineChars.push(char);
           } else {
-            // 普通横线：按行宽截断
             const maxCharsPerLine = (pKey === 'real_draft') ? 22 : 25;
             if (curLineChars.length >= maxCharsPerLine) {
               currentPageLines.push(curLineChars.join(''));
@@ -545,7 +558,6 @@
       const pKey = paperSelect.value;
       const calib = CALIB_DATA[pKey];
 
-      // 原图尺寸 1:1 绝对保证，绝不拉伸变形！
       let canvasW = 1200;
       let canvasH = 1600;
       if (calib) {
@@ -591,20 +603,25 @@
       if (!calib) return;
 
       // =========================================================================
-      // 3. 核心绘制：纯绝对几何定点，完全跟随滑块手柄变动！
+      // 3. 核心绘制：支持底部拉伸补偿，底下五行绝不向上飘！
       // =========================================================================
+      const drift = calib.bottomDrift || 0;
+
       if (calib.isGrid) {
         // 红格子：按每格纯正方形投射，沉底压线
         for (let row = 0; row < pageLines.length; row++) {
           if (row >= calib.rows) break;
           const lineText = pageLines[row];
 
+          // 动态二次方下沉修正（越到底部，补得越多，拉回横线上）
+          const extraDown = (row * row) * (drift * 0.05);
+
           for (let col = 0; col < lineText.length; col++) {
             if (col >= calib.cols) break;
             const char = lineText[col];
 
             const cellCenterX = calib.startX + col * calib.stepX + (calib.stepX * 0.5);
-            const cellBottomY = calib.startY + (row + 1) * calib.stepY;
+            const cellBottomY = calib.startY + (row + 1) * calib.stepY + extraDown;
 
             ctx.save();
             ctx.translate(cellCenterX, cellBottomY - 4);
@@ -617,11 +634,14 @@
           }
         }
       } else {
-        // 横线纸：逐行绝对落线
+        // 横线纸：逐行绝对落线，配合底部下沉补偿
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
           if (lineIdx >= calib.maxLines) break;
 
-          const lineY = calib.startY + lineIdx * calib.stepY;
+          // 核心补偿：越往下的行，补偿递增，彻底消灭底部往上飘的错位
+          const extraDown = (lineIdx * lineIdx) * (drift * 0.05);
+          const lineY = calib.startY + lineIdx * calib.stepY + extraDown;
+
           const lineText = pageLines[lineIdx];
           let curX = calib.startX;
 
@@ -634,7 +654,7 @@
             ctx.translate(curX + charStep * 0.5, lineY - 2);
             ctx.font = `${calib.fontSize}px ${currentFontFamily}`;
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic'; // 严格基线贴线，字脚实贴横线
+            ctx.textBaseline = 'alphabetic';
             ctx.fillStyle = '#0f172a';
             ctx.fillText(char, 0, 0);
             ctx.restore();
