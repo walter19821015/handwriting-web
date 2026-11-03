@@ -151,7 +151,7 @@
       display: block;
       max-width: 100%;
       height: auto;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35), 0 5px 15px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
       border-radius: 2px;
     }
 
@@ -219,7 +219,7 @@
 乃援御者而告之曰：“尔有觌于彼者乎？彼何人斯？若此之艳也！”
 御者对曰：“臣闻河洛之神，名曰宓妃。然则君王之所见也，无乃是乎？其状若何？臣愿闻之。”
 
-余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出渌波。
+余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出游波。
 
 于是屏翳收风，川后静波。冯夷鸣鼓，女娲清歌。腾文鱼以警乘，鸣玉鸾以偕逝。六龙俨其齐首，载云车之容裔，鲸鲵踊跃而夹毂，水禽翔而为卫。
 于是越北沚，过南冈，纡素领，回清阳，动朱唇以徐言，陈交接之大纲。恨人神之道殊兮，怨盛年之莫当。抗罗袂以掩涕兮，泪流襟之浪浪。悼良会之永绝兮，哀一逝而异乡。无微情以效爱兮，献江南之明珰。虽潜处于太阴，长寄心于君王。忽不悟其所舍，怅神宵而蔽光。
@@ -244,18 +244,6 @@
               <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
               <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
             </optgroup>
-            <optgroup label="—— 英文手写字库 ——">
-              <option value="Adagio Pro.otf">英文：Adagio Pro</option>
-              <option value="alagambe.otf">英文：alagambe</option>
-              <option value="Arianta Syahrini.otf">英文：Arianta Syahrini</option>
-              <option value="Darleston.otf">英文：Darleston</option>
-              <option value="Signaturia.otf">英文：Signaturia</option>
-              <option value="Evergreen-Light.otf">英文：Evergreen-Light</option>
-              <option value="Lafesta-Regular.otf">英文：Lafesta-Regular</option>
-              <option value="Everglow.otf">英文：Everglow</option>
-              <option value="Baekrajan.otf">英文：Baekrajan</option>
-              <option value="Morgana.otf">英文：Morgana</option>
-            </optgroup>
           </select>
         </div>
 
@@ -267,8 +255,8 @@
           <label for="paperSelect">纸张背景</label>
           <select class="form-select" id="paperSelect">
             <optgroup label="—— 实拍特写系列 ——">
-              <option value="real_draft" selected>草稿纸-高清实拍</option>
-              <option value="real_redline">实拍-单红线信稿纸</option>
+              <option value="real_redline" selected>实拍-单红线信稿纸</option>
+              <option value="real_draft">草稿纸-高清实拍</option>
               <option value="real_grid_red">实拍-红格子稿纸</option>
             </optgroup>
             <optgroup label="—— 印刷/打印标准纸张 ——">
@@ -492,44 +480,44 @@
     };
 
     // =========================================================================
-    // 物理参数严格标定
+    // 物理恒定等比标定系统（绝对消除任何行距乘法累积误差）
     // =========================================================================
     const PAPER_CONFIGS = {
-      // 1. 草稿纸（1600x1200）：第 1 根线绝对留空，从第 2 根线开始，精准写死 13 根线的物理Y坐标，写满13行才翻页
-      real_draft: {
-        isPhoto: true, photoKey: 'real_draft', mode: 'absolute_lines',
-        w: 1600, h: 1200,
-        startX: 848,
-        maxLineWidth: 620,
-        fontSize: 32,
-        lineYCoords: [
-          208, 263, 318, 373, 428, 483, 538, 593, 648, 703, 758, 813, 868
-        ]
-      },
-
-      // 2. 单红线信稿纸（1200x1600）：第 1 根红线留空，从第 2 根线(Y=268)开始，逐行精准写死 18 根线的物理Y坐标
+      // 1. 单红线信稿纸（1200x1600）：第1根红线留空，从第2根线绝对起笔，线间距严格锁死为图片高度的 3.70%
       real_redline: {
-        isPhoto: true, photoKey: 'real_redline', mode: 'absolute_lines',
+        isPhoto: true, photoKey: 'real_redline', mode: 'strict_ratio_lines',
         w: 1200, h: 1600,
-        startX: 195,
-        maxLineWidth: 810,
-        fontSize: 35,
-        lineYCoords: [
-          268, 327, 386, 445, 504, 563, 622, 681, 740, 799, 858, 917, 976, 1035, 1094, 1153, 1212, 1271
-        ]
+        leftRatio: 0.162,
+        maxLineWidthRatio: 0.675,
+        firstLineRatio: 0.167, // 第2根红线占画布总高度比
+        stepRatio: 0.0370,     // 严格恒定红线间距比
+        maxLines: 19,
+        fontSizeRatio: 0.0225
       },
 
-      // 3. 红格子稿纸（1200x1600）：第 1 行留空，从第 2 行起笔，每行绝对限死 16 个格，满 16 格强制换行
+      // 2. 草稿纸（1600x1200）：第1根横线留空，从第2根线绝对起笔，间距严格锁死为图片高度的 4.68%
+      real_draft: {
+        isPhoto: true, photoKey: 'real_draft', mode: 'strict_ratio_lines',
+        w: 1600, h: 1200,
+        leftRatio: 0.530,
+        maxLineWidthRatio: 0.388,
+        firstLineRatio: 0.173, // 第2根横线占画布总高度比
+        stepRatio: 0.0468,     // 严格恒定横线间距比
+        maxLines: 13,          // 自然写满整页右侧
+        fontSizeRatio: 0.0270
+      },
+
+      // 3. 红格子稿纸（1200x1600）：第1行留空，从第2行起笔，每行满16格强制换行，字底贴合底线
       real_grid_red: {
         isPhoto: true, photoKey: 'real_grid_red', mode: 'grid',
         w: 1200, h: 1600,
-        cols: 16,            // 绝不允许超过 16 列
-        rows: 19,            // 可写 19 行
-        startX: 154,         // 左框线坐标
-        startY: 195,         // 从第 2 行红格顶部起笔
-        cellW: 62.5,         // 左右字距撑满
-        cellH: 67.0,         // 单格垂直高度
-        fontSize: 44
+        cols: 16,
+        rows: 19,
+        startXRatio: 0.128,
+        startYRatio: 0.122,
+        cellWRatio: 0.0520,
+        cellHRatio: 0.0418,
+        fontSizeRatio: 0.0275
       },
 
       // ================= 完整恢复所有系统纸张模板 =================
@@ -620,20 +608,28 @@
       ctx.restore();
     }
 
-    // =========================================================================
-    // 严格流式分页引擎（彻底解决越线、跳行、多出空白页与出圈问题）
-    // =========================================================================
-    function computePagination(text, cfg) {
-      const linesPerPage = (cfg.mode === 'absolute_lines') ? cfg.lineYCoords.length : (cfg.rows || cfg.lines || 20);
-      const maxLineWidth = cfg.maxLineWidth || (cfg.mode === 'grid' ? cfg.cols * cfg.cellW : (cfg.w - cfg.marginX * 2));
-      const baseFontSize = cfg.fontSize || 22;
+    // 分页计算：正文自动紧凑流式排满，遇到原文回车才另起行，本页行满才翻页
+    function computePagination(text, cfg, actualW, actualH) {
+      const linesPerPage = cfg.maxLines || cfg.rows || cfg.lines || 20;
+      let maxLineWidth = 600;
+      let baseFontSize = 24;
+
+      if (cfg.mode === 'strict_ratio_lines') {
+        maxLineWidth = actualW * cfg.maxLineWidthRatio;
+        baseFontSize = actualH * cfg.fontSizeRatio;
+      } else if (cfg.mode === 'grid') {
+        maxLineWidth = cfg.cols * (actualW * cfg.cellWRatio);
+        baseFontSize = actualH * cfg.fontSizeRatio;
+      } else {
+        maxLineWidth = cfg.w - cfg.marginX * 2;
+        baseFontSize = 22;
+      }
 
       const pages = [];
       let currentPageLines = [];
       let curLineChars = [];
       let currentLineWidth = 0;
 
-      // 遇到原文回车换行才换段
       const paragraphs = text.split('\n');
 
       for (let p = 0; p < paragraphs.length; p++) {
@@ -645,7 +641,7 @@
           const char = para[c];
 
           if (cfg.mode === 'grid') {
-            // 红格子：满 16 个字符立即截断推进，严禁任何字符出现在第 17 格！
+            // 红格子：满 16 个字符立即换行，绝不允许出现第 17 个字！
             if (curLineChars.length === cfg.cols) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
@@ -675,7 +671,6 @@
           }
         }
 
-        // 段落结束，放入当前行
         if (curLineChars.length > 0) {
           currentPageLines.push(curLineChars.join(''));
           curLineChars = [];
@@ -696,10 +691,19 @@
 
     function renderAll() {
       const pKey = paperSelect.value;
-      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_draft;
+      const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
 
-      const canvasW = cfg.w;
-      const canvasH = cfg.h;
+      let canvasW = cfg.w;
+      let canvasH = cfg.h;
+
+      let currentPhoto = null;
+      if (cfg.isPhoto) {
+        currentPhoto = imgCache[cfg.photoKey];
+        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
+          canvasW = currentPhoto.naturalWidth;
+          canvasH = currentPhoto.naturalHeight;
+        }
+      }
 
       canvas.width = canvasW * DPR;
       canvas.height = canvasH * DPR;
@@ -710,9 +714,8 @@
 
       // 1. 铺设底图
       if (cfg.isPhoto) {
-        const img = imgCache[cfg.photoKey];
-        if (img && img.complete && img.naturalWidth > 0) {
-          ctx.drawImage(img, 0, 0, canvasW, canvasH);
+        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
+          ctx.drawImage(currentPhoto, 0, 0, canvasW, canvasH);
         } else {
           ctx.fillStyle = '#f5efe3';
           ctx.fillRect(0, 0, canvasW, canvasH);
@@ -753,7 +756,7 @@
       }
 
       // 2. 分页处理
-      paginatedPages = computePagination(textInput.value, cfg);
+      paginatedPages = computePagination(textInput.value, cfg, canvasW, canvasH);
       if (currentPageIndex >= paginatedPages.length) {
         currentPageIndex = Math.max(0, paginatedPages.length - 1);
       }
@@ -774,12 +777,14 @@
       ctx.globalCompositeOperation = 'source-over';
 
       // =========================================================================
-      // 3. 红格子：单字绝对入格，绝不越线，字底沉贴底线
+      // 3. 红格子：满 16 个字符换行，字底贴合底线
       // =========================================================================
       if (cfg.mode === 'grid') {
-        const cellW = cfg.cellW;
-        const cellH = cfg.cellH;
-        const baseFontSize = cfg.fontSize;
+        const cellW = canvasW * cfg.cellWRatio;
+        const cellH = canvasH * cfg.cellHRatio;
+        const startX = canvasW * cfg.startXRatio;
+        const startY = canvasH * cfg.startYRatio;
+        const baseFontSize = canvasH * cfg.fontSizeRatio;
         let charGlobalIndex = 0;
 
         for (let row = 0; row < pageLines.length; row++) {
@@ -787,7 +792,7 @@
           const lineText = pageLines[row];
 
           for (let col = 0; col < lineText.length; col++) {
-            if (col >= cfg.cols) break; // 严格限死 16 列，杜绝出格
+            if (col >= cfg.cols) break;
             const char = lineText[col];
 
             const charCode = char.charCodeAt(0);
@@ -803,8 +808,8 @@
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
             const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            const cellCenterX = cfg.startX + col * cellW + (cellW * 0.5);
-            const cellBottomY = cfg.startY + (row + 1) * cellH;
+            const cellCenterX = startX + col * cellW + (cellW * 0.5);
+            const cellBottomY = startY + (row + 1) * cellH;
 
             const jX = (hashRandom(seed + 6) - 0.5) * (cellW * 0.08 * posChaos);
             const jY = (hashRandom(seed + 7) - 0.5) * (cellH * 0.06 * posChaos);
@@ -833,21 +838,24 @@
         }
       }
       // =========================================================================
-      // 4. 草稿纸与单红线：逐行严格绑定物理线 Y 坐标，行行压线
+      // 4. 单红线与草稿纸：严格按实际画面尺寸百分比落线，行间距绝对恒定！
       // =========================================================================
-      else if (cfg.mode === 'absolute_lines') {
-        const baseFontSize = cfg.fontSize;
-        const startX = cfg.startX;
+      else if (cfg.mode === 'strict_ratio_lines') {
+        const baseFontSize = canvasH * cfg.fontSizeRatio;
+        const startX = canvasW * cfg.leftRatio;
+        const firstLineY = canvasH * cfg.firstLineRatio;
+        const lineSpacing = canvasH * cfg.stepRatio;
+
         let charGlobalIndex = 0;
 
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          if (lineIdx >= cfg.lineYCoords.length) break;
+          if (lineIdx >= cfg.maxLines) break;
 
-          // 核心：直接取出该行对应物理线的绝对 Y 坐标！
-          const lineY = cfg.lineYCoords[lineIdx];
+          // 核心：严格以第一根可用物理线为基准，加上绝对恒定的等比步长，绝不偏移！
+          const lineY = firstLineY + lineIdx * lineSpacing;
           const lineText = pageLines[lineIdx];
           let curX = startX;
-          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (2.0 * posChaos);
+          const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIdx * 71 + 333) - 0.5) * (1.5 * posChaos);
 
           for (let c = 0; c < lineText.length; c++) {
             const char = lineText[c];
