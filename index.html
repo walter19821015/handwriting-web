@@ -148,7 +148,7 @@
     }
 
     #previewCanvas {
-      max-width: 100%; max-height: 800px; width: auto; height: auto;
+      max-width: 100%; max-height: 820px; width: auto; height: auto;
       box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35), 0 5px 15px rgba(0, 0, 0, 0.15);
       border-radius: 2px;
     }
@@ -395,7 +395,6 @@
       return (h >>> 0) / 4294967296;
     }
 
-    // 单一独立加载选中的字体，绝不链式卡死
     async function switchFont(fileName) {
       fontStatusMsg.textContent = '⏳ 正在载入字库...';
       badgeContainer.style.background = '#eff6ff';
@@ -491,20 +490,21 @@
       }
     };
 
+    // 纸张配置定义（唯独 real_redline 严格对齐最新实拍信纸，其余保持原样）
     const PAPER_CONFIGS = {
       real_redline: {
-        w: 1200, h: 1650, mode: 'line', isReal: true,
-        marginX: 110, topMargin: 170, lineSpacing: 58, lines: 21,
-        color: 'rgba(224, 86, 74, 0.60)'
+        w: 1100, h: 1560, mode: 'line', isRealSpecial: true,
+        marginX: 110, topMargin: 160, lineSpacing: 54, lines: 21,
+        color: 'rgba(215, 75, 68, 0.48)'
       },
       real_grid_red: {
         w: 1200, h: 1600, mode: 'grid', isReal: true,
         cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49,
-        color: 'rgba(205, 65, 55, 0.48)'
+        color: 'rgba(215, 65, 55, 0.45)'
       },
       real_draft: {
-        w: 1200, h: 1650, mode: 'draft', isReal: true,
-        marginX: 110, topMargin: 170, lineSpacing: 58
+        w: 1100, h: 1560, mode: 'draft', isReal: true,
+        marginX: 120, topMargin: 190, lineSpacing: 54
       },
       print_grid_black: {
         w: 1200, h: 1600, mode: 'grid', isReal: false,
@@ -518,27 +518,27 @@
       },
       print_redline_a4_new: {
         w: 1240, h: 1754, mode: 'line', isReal: false,
-        marginX: 120, topMargin: 200, lineSpacing: 56, lines: 24,
-        color: 'rgba(215, 70, 60, 0.4)'
+        marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25,
+        color: 'rgba(225, 70, 60, 0.4)'
       },
       print_a4_v: {
         w: 1240, h: 1754, mode: 'line', isReal: false,
-        marginX: 120, topMargin: 190, lineSpacing: 56, lines: 24,
+        marginX: 120, topMargin: 190, lineSpacing: 54, lines: 26,
         color: 'rgba(180, 180, 180, 0.35)'
       },
       print_a4_h: {
         w: 1754, h: 1240, mode: 'line', isReal: false,
-        marginX: 140, topMargin: 170, lineSpacing: 54, lines: 18,
+        marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17,
         color: 'rgba(180, 180, 180, 0.35)'
       },
       print_b5_v: {
         w: 1040, h: 1476, mode: 'line', isReal: false,
-        marginX: 100, topMargin: 170, lineSpacing: 52, lines: 22,
+        marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24,
         color: 'rgba(180, 180, 180, 0.35)'
       },
       print_b5_h: {
         w: 1476, h: 1040, mode: 'line', isReal: false,
-        marginX: 120, topMargin: 150, lineSpacing: 52, lines: 16,
+        marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16,
         color: 'rgba(180, 180, 180, 0.35)'
       },
       print_a3_v: {
@@ -564,53 +564,49 @@
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      if (cfg.isReal) {
-        // 木纹暖灰桌面衬底
+      // 仅实拍单红线稿纸启用专属仿真光影与实木桌面衬底，其余纸张完全沿用原渲染模式
+      if (cfg.isRealSpecial) {
+        // 木质暖调桌面
         const woodGrad = ctx.createLinearGradient(0, 0, w, h);
-        woodGrad.addColorStop(0, '#755c47');
-        woodGrad.addColorStop(0.5, '#6b513c');
-        woodGrad.addColorStop(1, '#5c4330');
+        woodGrad.addColorStop(0, '#7c634f');
+        woodGrad.addColorStop(0.5, '#6a513e');
+        woodGrad.addColorStop(1, '#5a4231');
         ctx.fillStyle = woodGrad;
         ctx.fillRect(0, 0, w, h);
 
-        // 左侧露出的上一页纸张边缘与厚度阴影
+        // 左侧露出的上一页底纸与厚度阴影
         ctx.fillStyle = '#eae2d1';
-        ctx.fillRect(25, 14, w - 50, h - 28);
-        ctx.fillStyle = 'rgba(215, 75, 65, 0.15)';
-        ctx.fillRect(32, 110, 8, h - 220);
+        ctx.fillRect(18, 12, w - 36, h - 24);
+        ctx.fillStyle = 'rgba(215, 75, 65, 0.16)';
+        ctx.fillRect(24, 100, 6, h - 200);
 
-        // 主稿纸米黄纸张面与柔光渐变
-        const paperGrad = ctx.createLinearGradient(48, 20, w - 24, h - 20);
-        paperGrad.addColorStop(0, '#faf7ee');
-        paperGrad.addColorStop(0.40, '#f5efdf');
-        paperGrad.addColorStop(0.82, '#ece3ce');
-        paperGrad.addColorStop(1, '#dfd2ba');
+        // 主信纸米黄暖纸面
+        const paperGrad = ctx.createLinearGradient(38, 16, w - 18, h - 16);
+        paperGrad.addColorStop(0, '#faf7ed');
+        paperGrad.addColorStop(0.35, '#f6f0e2');
+        paperGrad.addColorStop(0.80, '#eee5d2');
+        paperGrad.addColorStop(1, '#dfd1b8');
         ctx.fillStyle = paperGrad;
         
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.30)';
-        ctx.shadowBlur = 24;
-        ctx.shadowOffsetX = 6;
-        ctx.shadowOffsetY = 14;
-        ctx.fillRect(48, 18, w - 68, h - 36);
+        ctx.shadowColor = 'rgba(0,0,0,0.32)';
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 10;
+        ctx.fillRect(38, 14, w - 54, h - 28);
         ctx.restore();
 
-        // 右上角自然翘曲反光
-        const curl = ctx.createLinearGradient(w - 180, 0, w - 20, 0);
+        // 右上角自然翘曲漫反射微光
+        const curl = ctx.createLinearGradient(w - 160, 0, w - 16, 0);
         curl.addColorStop(0, 'rgba(255,255,255,0)');
-        curl.addColorStop(0.75, 'rgba(255,255,255,0.22)');
-        curl.addColorStop(1, 'rgba(0,0,0,0.08)');
+        curl.addColorStop(0.75, 'rgba(255,255,255,0.20)');
+        curl.addColorStop(1, 'rgba(0,0,0,0.06)');
         ctx.fillStyle = curl;
-        ctx.fillRect(48, 18, w - 68, h - 36);
-      } else {
-        ctx.fillStyle = '#fdfdfc';
-        ctx.fillRect(0, 0, w, h);
-      }
+        ctx.fillRect(38, 14, w - 54, h - 28);
 
-      // 21 根红线绘制
-      if (cfg.mode === 'line') {
+        // 21 根真实质感红线
         ctx.strokeStyle = cfg.color;
-        ctx.lineWidth = 1.25;
+        ctx.lineWidth = 1.15;
         for (let i = 0; i < cfg.lines; i++) {
           const y = cfg.topMargin + i * cfg.lineSpacing;
           ctx.beginPath();
@@ -619,15 +615,48 @@
           ctx.stroke();
         }
 
-        // 凹凸工坊右下角信纸印刷标记
+        // 右下角“共   页  第   页”信纸印刷体印记
         ctx.save();
         ctx.font = '16px "STSong", "Songti SC", "SimSun", serif';
-        ctx.fillStyle = 'rgba(224, 86, 74, 0.45)';
+        ctx.fillStyle = 'rgba(215, 75, 68, 0.40)';
         ctx.textAlign = 'right';
-        const footerY = cfg.topMargin + (cfg.lines - 1) * cfg.lineSpacing + 55;
-        ctx.fillText(`共  ${totalPages}  页    第  ${pageNum}  页`, w - cfg.marginX - 15, footerY);
+        const footerY = cfg.topMargin + (cfg.lines - 1) * cfg.lineSpacing + 50;
+        ctx.fillText(`共  ${totalPages}  页    第  ${pageNum}  页`, w - cfg.marginX - 10, footerY);
         ctx.restore();
 
+        return;
+      }
+
+      // 其它纸张恢复原本的渲染机制，保持不变
+      if (cfg.isReal) {
+        const grad = ctx.createRadialGradient(w * 0.28, h * 0.22, 60, w * 0.5, h * 0.55, w * 0.95);
+        grad.addColorStop(0, '#faf7f0');
+        grad.addColorStop(0.55, '#f5efe4');
+        grad.addColorStop(1, '#e6d8c3');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+        const fold = ctx.createLinearGradient(w * 0.72, 0, w * 0.79, 0);
+        fold.addColorStop(0, 'rgba(0,0,0,0)');
+        fold.addColorStop(0.5, 'rgba(65, 45, 25, 0.04)');
+        fold.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = fold;
+        ctx.fillRect(0, 0, w, h);
+      } else {
+        ctx.fillStyle = '#fdfdfc';
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      if (cfg.mode === 'line') {
+        ctx.strokeStyle = cfg.color;
+        ctx.lineWidth = 1.0;
+        for (let i = 0; i < cfg.lines; i++) {
+          const y = cfg.topMargin + i * cfg.lineSpacing;
+          ctx.beginPath();
+          ctx.moveTo(cfg.marginX, y);
+          ctx.lineTo(w - cfg.marginX, y);
+          ctx.stroke();
+        }
       } else if (cfg.mode === 'grid') {
         const totalW = cfg.cols * cfg.size;
         const totalH = cfg.rows * cfg.size;
@@ -648,6 +677,15 @@
           ctx.lineTo(x, cfg.marginY + totalH);
           ctx.stroke();
         }
+      }
+
+      if (cfg.isReal) {
+        const vignette = ctx.createLinearGradient(0, 0, w, h);
+        vignette.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
+        vignette.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
+        vignette.addColorStop(1, 'rgba(65, 45, 25, 0.12)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, w, h);
       }
     }
 
@@ -694,7 +732,7 @@
     function computePagination(text, cfg) {
       const linesPerPage = (cfg.mode === 'line') ? (cfg.lines - 2) : cfg.rows;
       const maxLineWidth = cfg.w - cfg.marginX * 2;
-      const baseFontSize = (cfg.mode === 'grid') ? Math.floor(cfg.size * 0.68) : (cfg.w > 1500 ? 28 : 23);
+      const baseFontSize = (cfg.mode === 'grid') ? Math.floor(cfg.size * 0.68) : (cfg.w > 1500 ? 28 : 24);
 
       const pages = [];
       let currentPageLines = [];
@@ -770,8 +808,7 @@
           const lineText = pageLines[row];
           for (let col = 0; col < lineText.length; col++) {
             if (col >= cfg.cols) break;
-            let char = lineText[col];
-            if (char === '轘') char = '辕';
+            const char = lineText[col];
 
             const charCode = char.charCodeAt(0);
             const seed = (currentPageIndex + 1) * 1000 + charGlobalIndex * 137 + charCode * 17;
@@ -815,10 +852,11 @@
           }
         }
       } else {
-        const baseFontSize = cfg.w > 1500 ? 28 : 23;
-        const lineSpacing = cfg.lineSpacing || 58;
+        // 饱满瘦长手写排版
+        const baseFontSize = cfg.w > 1500 ? 28 : 24;
+        const lineSpacing = cfg.lineSpacing || 54;
         const startX = cfg.marginX;
-        const topMargin = cfg.topMargin || 170;
+        const topMargin = cfg.topMargin || 160;
 
         let charGlobalIndex = 0;
 
@@ -828,8 +866,7 @@
           const lineWave = (hashRandom((currentPageIndex + 1) * 500 + lineIndex * 71 + 333) - 0.5) * (8.0 * posChaos);
 
           for (let c = 0; c < lineText.length; c++) {
-            let char = lineText[c];
-            if (char === '轘') char = '辕';
+            const char = lineText[c];
 
             const charCode = char.charCodeAt(0);
             const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
@@ -838,6 +875,7 @@
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
             const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
+            // 保持瘦长挺拔比例
             const scaleX = 0.85 + (hashRandom(seed + 3) - 0.5) * (0.24 * strokeChaos);
             const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.22 * strokeChaos);
             const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.30 * strokeChaos);
@@ -847,12 +885,14 @@
             const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.30 * posChaos);
             const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.35 * posChaos) + lineWave;
 
+            // 紧凑步进（0.72 倍字号）
             const baseStep = isEng ? baseFontSize * 0.46 : baseFontSize * 0.72;
             const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.28 * posChaos));
 
+            // 基线轻压红线
             const redLineY = topMargin + lineIndex * lineSpacing;
             const charCenterX = curX + charStep * 0.5;
-            const charCenterY = redLineY - (baseFontSize * 0.42);
+            const charCenterY = redLineY - (baseFontSize * 0.40);
 
             const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
