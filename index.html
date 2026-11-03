@@ -258,31 +258,31 @@
       <div class="calib-panel" id="calibPanelBox">
         <div class="calib-header">
           <span>🎯 卡尺对齐手柄</span>
-          <span style="font-size: 11px; color: #166534;">第1行已留空</span>
+          <span style="font-size: 11px; color: #166534;">标准 A4 规格 · 首行起笔</span>
         </div>
 
         <div class="calib-row">
           <div class="calib-label-row">
             <span>水平起点 (X 原点)</span>
-            <span class="calib-num" id="valStartX">155</span>
+            <span class="calib-num" id="valStartX">160</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStartX" min="50" max="1000" step="1" value="155" />
+          <input type="range" class="calib-slider" id="sliderStartX" min="50" max="1000" step="1" value="160" />
         </div>
 
         <div class="calib-row">
           <div class="calib-label-row">
-            <span>第2行线起始高度 (Y 原点)</span>
-            <span class="calib-num" id="valStartY">191</span>
+            <span>第1行压线起始高度 (Y 原点)</span>
+            <span class="calib-num" id="valStartY">143</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStartY" min="50" max="600" step="1" value="191" />
+          <input type="range" class="calib-slider" id="sliderStartY" min="50" max="600" step="1" value="143" />
         </div>
 
         <div class="calib-row">
           <div class="calib-label-row">
             <span>基础行间距 (ΔY)</span>
-            <span class="calib-num" id="valStepY">60.4</span>
+            <span class="calib-num" id="valStepY">66.2</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="60.4" />
+          <input type="range" class="calib-slider" id="sliderStepY" min="30" max="90" step="0.2" value="66.2" />
         </div>
 
         <div class="calib-row">
@@ -296,23 +296,22 @@
         <div class="calib-row">
           <div class="calib-label-row">
             <span>水平字间距 / 格宽 (ΔX)</span>
-            <span class="calib-num" id="valStepX">64.0</span>
+            <span class="calib-num" id="valStepX">66.0</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderStepX" min="15" max="90" step="0.5" value="64.0" />
+          <input type="range" class="calib-slider" id="sliderStepX" min="15" max="90" step="0.5" value="66.0" />
         </div>
 
         <div class="calib-row">
           <div class="calib-label-row">
             <span>字号大小</span>
-            <span class="calib-num" id="valFontSize">42</span>
+            <span class="calib-num" id="valFontSize">44</span>
           </div>
-          <input type="range" class="calib-slider" id="sliderFontSize" min="16" max="60" step="1" value="42" />
+          <input type="range" class="calib-slider" id="sliderFontSize" min="16" max="60" step="1" value="44" />
         </div>
 
         <button class="btn-save-cfg" id="btnSaveConfig" type="button">💾 保存当前背景参数</button>
       </div>
 
-      <!-- 完整还原的文件导入组件 -->
       <div class="panel-section">
         <span class="section-title">导入文稿</span>
         <input type="file" id="fileUploadInput" accept=".docx,.doc,.pdf,.txt,.md,image/*" style="display: none;" />
@@ -333,7 +332,7 @@
 乃援御者而告之曰：“尔有觌于彼者乎？彼何人斯？若此之艳也！”
 御者对曰：“臣闻河洛之神，名曰宓妃。然则君王之所见也，无乃是乎？其状若何？臣愿闻之。”
 
-余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出渌波。
+余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出游波。
 
 于是屏翳收风，川后静波。冯夷鸣鼓，女娲清歌。腾文鱼以警乘，鸣玉鸾以偕逝。六龙俨其齐首，载云车之容裔，鲸鲵踊跃而夹毂，水禽翔而为卫。
 于是越北沚，过南冈，纡素领，回清阳，动朱唇以徐言，陈交接之大纲。恨人神之道殊兮，怨盛年之莫当。抗罗袂以掩涕兮，泪流襟之浪浪。悼良会之永绝兮，哀一逝而异乡。无微情以效爱兮，献江南之明珰。虽潜处于太阴，长寄心于君王。忽不悟其所舍，怅神宵而蔽光。
@@ -377,13 +376,14 @@
           <span>状态：</span><strong id="fontStatusMsg">正在载入字库...</strong>
         </div>
 
+        <!-- 纯净名称纸张选项 -->
         <div class="form-group" style="margin-top: 8px;">
           <label for="paperSelect">选择纸张背景</label>
           <select class="form-select" id="paperSelect">
-            <optgroup label="—— 实拍特写系列 ——">
-              <option value="real_grid_red" selected>实拍-红格子稿纸 (14列换行)</option>
-              <option value="real_redline">实拍-单红线信稿纸 (填满整页)</option>
-              <option value="real_draft">草稿纸-高清实拍 (填满整页)</option>
+            <optgroup label="—— 实拍特写系列 (标准A4) ——">
+              <option value="real_grid_red" selected>实拍-红格子稿纸</option>
+              <option value="real_redline">实拍-单红线信稿纸</option>
+              <option value="real_draft">草稿纸-高清实拍</option>
             </optgroup>
             <optgroup label="—— 印刷/打印标准纸张 ——">
               <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
@@ -530,23 +530,24 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    // 实拍特写纸张默认配置（填满整页：草稿纸写满14行，单红线写满20行，红格写满19行）
+    // 统一为标准 A4 画布规格（竖版 1240x1754，横版展开草稿纸 1754x1240）
+    // 坐标已全部按照 A4 比例等比拓展自适应
     const DEFAULT_PHOTO_CONFIGS = {
       real_grid_red: {
-        startX: 155, startY: 191, stepX: 64.0, stepY: 60.4, bottomDrift: 0.6, fontSize: 42,
-        cols: 14, rows: 19, isGrid: true, w: 1200, h: 1600
+        startX: 160, startY: 143, stepX: 66.0, stepY: 66.2, bottomDrift: 0.6, fontSize: 44,
+        cols: 14, rows: 21, isGrid: true, w: 1240, h: 1754
       },
       real_redline: {
-        startX: 183, startY: 263, stepX: 33.5, stepY: 53.4, bottomDrift: 2.6, fontSize: 35,
-        maxLines: 20, isGrid: false, w: 1200, h: 1600
+        startX: 189, startY: 230, stepX: 34.6, stepY: 58.5, bottomDrift: 2.6, fontSize: 38,
+        maxLines: 21, isGrid: false, w: 1240, h: 1754
       },
       real_draft: {
-        startX: 848, startY: 206, stepX: 30, stepY: 53.2, bottomDrift: 0.6, fontSize: 32,
-        maxLines: 14, isGrid: false, w: 1600, h: 1200
+        startX: 930, startY: 158, stepX: 30.7, stepY: 42.8, bottomDrift: 0.6, fontSize: 34,
+        maxLines: 20, isGrid: false, w: 1754, h: 1240
       }
     };
 
-    // 所有标准矢量打印纸配置（绝对完整保留）
+    // 其他可打印矢量纸张
     const PRINT_PAPER_CONFIGS = {
       print_redline_a4_new: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25, color: 'rgba(225, 70, 60, 0.4)' },
       print_grid_black: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(50, 50, 50, 0.4)' },
@@ -561,7 +562,7 @@
 
     function getActiveConfig(pKey) {
       if (!DEFAULT_PHOTO_CONFIGS[pKey]) return null;
-      const saved = localStorage.getItem('hw_cfg_' + pKey);
+      const saved = localStorage.getItem('hw_cfg_a4_' + pKey);
       if (saved) {
         try { return Object.assign({}, DEFAULT_PHOTO_CONFIGS[pKey], JSON.parse(saved)); } catch(e) {}
       }
@@ -575,7 +576,7 @@
       CURRENT_CFG = getActiveConfig(pKey);
 
       if (!CURRENT_CFG) {
-        calibPanelBox.style.display = 'none'; // 切换到印刷纸张时隐藏微调手柄
+        calibPanelBox.style.display = 'none';
       } else {
         calibPanelBox.style.display = 'flex';
         sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
@@ -594,10 +595,10 @@
     sliderBottomDrift.oninput = function() { CURRENT_CFG.bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); };
     sliderFontSize.oninput = function() { CURRENT_CFG.fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); };
 
-    // 核心保存事件：只保存当前背景纸，独立永久有效！
+    // 独立永久保存当前背景配置
     btnSaveConfig.onclick = function() {
       const pKey = paperSelect.value;
-      localStorage.setItem('hw_cfg_' + pKey, JSON.stringify(CURRENT_CFG));
+      localStorage.setItem('hw_cfg_a4_' + pKey, JSON.stringify(CURRENT_CFG));
       btnSaveConfig.textContent = '✅ 已成功保存当前页面设置！';
       btnSaveConfig.style.background = '#059669';
       setTimeout(() => {
@@ -735,16 +736,14 @@
       ctx.restore();
     }
 
-    // =========================================================================
-    // 核心分页引擎：写满整页禁止提前空行；红格满14字第15字坚决强制换行！
-    // =========================================================================
+    // 分页计算：写满整页禁止提前空行，满14格第15字必定折行
     function computePagination(text, pKey) {
       const calib = CURRENT_CFG;
       const isGrid = calib && calib.isGrid;
-      
-      let linesPerPage = 20;
+
+      let linesPerPage = 21;
       if (calib) {
-        linesPerPage = calib.maxLines || calib.rows || 18;
+        linesPerPage = calib.maxLines || calib.rows || 21;
       } else if (PRINT_PAPER_CONFIGS[pKey]) {
         linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
       }
@@ -757,7 +756,7 @@
 
       for (let p = 0; p < rawParagraphs.length; p++) {
         const para = rawParagraphs[p].trim();
-        if (para.length === 0) continue; // 忽略多余空回车，杜绝产生半页空白
+        if (para.length === 0) continue;
 
         curLineChars = [];
 
@@ -765,7 +764,7 @@
           const char = para[c];
 
           if (isGrid) {
-            // 红格子：满 14 个字符立刻切行！第 15 个字坚决换到下一行第 1 格！
+            // 红格子：满 14 个字符立刻切行！第 15 个字必定进入下一行第 1 格！
             if (curLineChars.length >= 14) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
@@ -812,8 +811,9 @@
       const calib = CURRENT_CFG;
       const printCfg = PRINT_PAPER_CONFIGS[pKey];
 
-      let canvasW = 1200;
-      let canvasH = 1600;
+      // 严格按照 A4 标准分辨率投射
+      let canvasW = 1240;
+      let canvasH = 1754;
 
       if (isPhoto && calib) {
         canvasW = calib.w;
@@ -828,7 +828,7 @@
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // 1. 底图铺设（实拍贴原图，打印纸绘制标准矢量红线与网格，绝不留白）
+      // 1. 底图铺设
       if (isPhoto) {
         const img = imgCache[pKey];
         if (img && img.complete && img.naturalWidth > 0) {
@@ -897,19 +897,20 @@
       let charGlobalIndex = 0;
 
       // =========================================================================
-      // 3. 实拍纸张绘制（支持手动微调、防出格与底部沉贴）
+      // 3. 实拍纸张绘制（标准 A4 比例投射）
       // =========================================================================
       if (isPhoto && calib) {
         const drift = calib.bottomDrift || 0;
 
         if (calib.isGrid) {
+          // 红格子：第1排方格直接写字，满14字立刻换行，写满21行才切页
           for (let row = 0; row < pageLines.length; row++) {
             if (row >= calib.rows) break;
             const lineText = pageLines[row];
             const extraDown = (row * row) * (drift * 0.25);
 
             for (let col = 0; col < lineText.length; col++) {
-              if (col >= 14) break; // 严格限死 14 列，杜绝任何字符跨出红框！
+              if (col >= 14) break;
               const char = lineText[col];
 
               const charCode = char.charCodeAt(0);
@@ -953,7 +954,7 @@
             }
           }
         } else {
-          // 横线纸：逐行绝对咬线排满整页
+          // 横线纸：第1根横线直接压线写字，写满全部物理横线
           for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
             if (lineIdx >= calib.maxLines) break;
 
@@ -977,7 +978,7 @@
               const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
               const scaleY = 1.16 + (hashRandom(seed + 4) - 0.5) * (0.14 * strokeChaos);
               const skewX = -0.07 + (hashRandom(seed + 8) - 0.5) * (0.20 * strokeChaos);
-              const skewY = (hashRandom(seed + 9) - 0.5) * (0.08 * strokeChaos);
+              const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
               const charAngle = (hashRandom(seed + 2) - 0.5) * (0.10 * strokeChaos);
 
               const jX = (hashRandom(seed + 6) - 0.5) * (calib.fontSize * 0.10 * posChaos);
@@ -1012,7 +1013,7 @@
         }
       }
       // =========================================================================
-      // 4. 标准印刷纸张绘制逻辑（彻底恢复显示，绝不白屏）
+      // 4. 标准印刷纸张绘制
       // =========================================================================
       else if (printCfg) {
         const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : 24;
@@ -1038,7 +1039,6 @@
             }
           }
         } else {
-          // 打印横线纸
           for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
             if (lineIdx >= printCfg.lines) break;
             const lineText = pageLines[lineIdx];
