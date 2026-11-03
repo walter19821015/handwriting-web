@@ -244,18 +244,6 @@
               <option value="hanyi-jingboranti-jian.woff">汉仪井柏然体简</option>
               <option value="duanning-yingbi-xingshu-1-0.woff">段宁硬笔行书1.0</option>
             </optgroup>
-            <optgroup label="—— 英文手写字库 ——">
-              <option value="Adagio Pro.otf">英文：Adagio Pro</option>
-              <option value="alagambe.otf">英文：alagambe</option>
-              <option value="Arianta Syahrini.otf">英文：Arianta Syahrini</option>
-              <option value="Darleston.otf">英文：Darleston</option>
-              <option value="Signaturia.otf">英文：Signaturia</option>
-              <option value="Evergreen-Light.otf">英文：Evergreen-Light</option>
-              <option value="Lafesta-Regular.otf">英文：Lafesta-Regular</option>
-              <option value="Everglow.otf">英文：Everglow</option>
-              <option value="Baekrajan.otf">英文：Baekrajan</option>
-              <option value="Morgana.otf">英文：Morgana</option>
-            </optgroup>
           </select>
         </div>
 
@@ -266,8 +254,8 @@
         <div class="form-group" style="margin-top: 10px;">
           <label for="paperSelect">纸张背景</label>
           <select class="form-select" id="paperSelect">
-            <option value="real_redline" selected>实拍-单红线信稿纸</option>
-            <option value="real_grid_red">实拍-红格子稿纸 (400字/页)</option>
+            <option value="real_grid_red" selected>实拍-红格子稿纸 (400字/页)</option>
+            <option value="real_redline">实拍-单红线信稿纸</option>
             <option value="real_draft">草稿纸-高清实拍</option>
             <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
             <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
@@ -382,8 +370,6 @@
     const uploadStatusText = document.getElementById('uploadStatusText');
 
     let currentFontFamily = `'Caveat', cursive, sans-serif`;
-    let activeLoadedFontName = '';
-
     let currentPageIndex = 0;
     let paginatedPages = [];
 
@@ -423,9 +409,7 @@
         await font.load();
         document.fonts.add(font);
 
-        activeLoadedFontName = fixedFontName;
         currentFontFamily = `'${fixedFontName}', cursive, sans-serif`;
-        
         fontStatusMsg.textContent = '✅ 字型加载就绪';
         badgeContainer.style.background = '#f0fdf4';
         badgeContainer.style.borderColor = '#bbf7d0';
@@ -442,7 +426,6 @@
     async function handleUploadedFile(file) {
       if (!file) return;
       uploadStatusText.textContent = `⏳ 正在读取: ${file.name}...`;
-
       const ext = file.name.split('.').pop().toLowerCase();
 
       try {
@@ -450,7 +433,6 @@
           const arrayBuffer = await file.arrayBuffer();
           const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
           textInput.value = result.value.trim();
-          uploadStatusText.textContent = `✅ Word 已导入`;
         } else if (ext === 'pdf') {
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -458,28 +440,19 @@
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const content = await page.getTextContent();
-            const pageStrings = content.items.map(item => item.str);
-            fullText += pageStrings.join(' ') + '\n\n';
+            fullText += content.items.map(item => item.str).join(' ') + '\n\n';
           }
           textInput.value = fullText.trim();
-          uploadStatusText.textContent = `✅ PDF 提取成功 (${pdf.numPages}页)`;
-        } else if (file.type.startsWith('image/')) {
-          uploadStatusText.textContent = `⏳ 正在识别图片文字...`;
-          const worker = await Tesseract.createWorker('chi_sim+eng');
-          const ret = await worker.recognize(file);
-          await worker.terminate();
-          textInput.value = ret.data.text.trim();
-          uploadStatusText.textContent = `✅ 图片文字识别完成`;
         } else {
           const reader = new FileReader();
           reader.onload = function(e) {
             textInput.value = e.target.result.trim();
-            uploadStatusText.textContent = `✅ 纯文字已导入`;
             renderAll();
           };
           reader.readAsText(file);
           return;
         }
+        uploadStatusText.textContent = `✅ 导入成功`;
       } catch (err) {
         uploadStatusText.textContent = `❌ 读取失败: ${err.message}`;
       }
@@ -503,36 +476,37 @@
     };
 
     // =========================================================================
-    // 纯图层坐标绝对标定（单字独立定位，单行独立落线）
+    // 凹凸工坊 1:1 标准物理标定
     // =========================================================================
     const PAPER_CONFIGS = {
-      // 1. 实拍单红线：空出首行，从第2根线绝对起笔
+      // 1. 实拍红格子：严格标准 20列 x 20行（400字稿纸），单字独立居中入格
+      real_grid_red: {
+        isPhoto: true, photoKey: 'real_grid_red', mode: 'strict_400_grid',
+        w: 1200, h: 1600,
+        cols: 20, // 凹凸标准 20 列
+        rows: 20, // 凹凸标准 20 行
+        startRowIdx: 1, // 空出第 1 行
+        startX: 110,
+        startY: 200,
+        cellSize: 49.0, // 纯正方形 49x49
+        fontSize: 35
+      },
+
+      // 2. 实拍单红线：空出首行，从第 2 根线逐行绝对压线
       real_redline: {
-        isPhoto: true, photoKey: 'real_redline', mode: 'independent_lines',
-        startX: 145, maxLineWidth: 620, baseFontSize: 28,
-        // 实拍单红线各行物理Y绝对坐标（已空出第1根线153px）
+        isPhoto: true, photoKey: 'real_redline', mode: 'strict_lines',
+        w: 900, h: 1200,
+        startX: 145, maxLineWidth: 620, fontSize: 27,
         lineY: [
           201, 248, 296, 343, 391, 439, 486, 534, 581, 629, 676, 724, 772, 819, 867, 915, 962, 1010
         ]
       },
 
-      // 2. 实拍红格子：严格正方形方格！单字作为独立图层精准入格
-      real_grid_red: {
-        isPhoto: true, photoKey: 'real_grid_red', mode: 'independent_grid',
-        cols: 16,
-        rows: 18, // 剔除第1行空行，实写18行
-        // 网格左上角第一格起始点坐标（已空出第1行）
-        gridStartX: 116,
-        gridStartY: 142,
-        cellSize: 41.5, // 绝对正方形！宽41.5 = 高41.5
-        baseFontSize: 36 // 大字饱满居中填满方格
-      },
-
-      // 3. 实拍草稿纸：锁定右半页，单页严格锁定10行，底端绝不出界
+      // 3. 实拍草稿纸：右半页平直对齐，严格限制 10 行，写满强制自动切页换纸
       real_draft: {
-        isPhoto: true, photoKey: 'real_draft', mode: 'independent_lines',
-        startX: 635, maxLineWidth: 490, baseFontSize: 26,
-        // 右半页真正可用的10根线条绝对Y坐标（首行留空，末行绝不踩到底部留白）
+        isPhoto: true, photoKey: 'real_draft', mode: 'strict_lines',
+        w: 1200, h: 900,
+        startX: 635, maxLineWidth: 490, fontSize: 25,
         lineY: [
           171, 215, 260, 305, 349, 394, 439, 483, 528, 573
         ]
@@ -626,20 +600,19 @@
       ctx.restore();
     }
 
-    // 分页计算
     function computePagination(text, cfg) {
       let linesPerPage = 18;
       let maxLineWidth = 600;
       let baseFontSize = 24;
 
-      if (cfg.mode === 'independent_lines') {
-        linesPerPage = cfg.lineY.length; // 严格限死在设定的物理行数内
-        maxLineWidth = cfg.maxLineWidth;
-        baseFontSize = cfg.baseFontSize;
-      } else if (cfg.mode === 'independent_grid') {
-        linesPerPage = cfg.rows; // 严格限死 18 行
+      if (cfg.mode === 'strict_400_grid') {
+        linesPerPage = cfg.rows - cfg.startRowIdx; // 19 行
         maxLineWidth = cfg.cols * cfg.cellSize;
-        baseFontSize = cfg.baseFontSize;
+        baseFontSize = cfg.fontSize;
+      } else if (cfg.mode === 'strict_lines') {
+        linesPerPage = cfg.lineY.length;
+        maxLineWidth = cfg.maxLineWidth;
+        baseFontSize = cfg.fontSize;
       } else {
         linesPerPage = cfg.lines || cfg.rows || 20;
         maxLineWidth = cfg.w - cfg.marginX * 2;
@@ -661,7 +634,7 @@
         for (let c = 0; c < para.length; c++) {
           const char = para[c];
 
-          if (cfg.mode === 'independent_grid') {
+          if (cfg.mode === 'strict_400_grid') {
             if (curLineChars.length >= cfg.cols) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
@@ -709,23 +682,8 @@
       const pKey = paperSelect.value;
       const cfg = PAPER_CONFIGS[pKey] || PAPER_CONFIGS.real_redline;
 
-      let canvasW = 900;
-      let canvasH = 1200;
-
-      let currentPhoto = null;
-      if (cfg.isPhoto) {
-        currentPhoto = imgCache[cfg.photoKey];
-        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
-          canvasW = currentPhoto.naturalWidth;
-          canvasH = currentPhoto.naturalHeight;
-        } else {
-          canvasW = (cfg.photoKey === 'real_draft') ? 1200 : 900;
-          canvasH = (cfg.photoKey === 'real_draft') ? 900 : 1200;
-        }
-      } else {
-        canvasW = cfg.w;
-        canvasH = cfg.h;
-      }
+      const canvasW = cfg.w;
+      const canvasH = cfg.h;
 
       canvas.width = canvasW * DPR;
       canvas.height = canvasH * DPR;
@@ -734,10 +692,11 @@
 
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // 1. 铺设原图底图
+      // 1. 铺底图
       if (cfg.isPhoto) {
-        if (currentPhoto && currentPhoto.complete && currentPhoto.naturalWidth > 0) {
-          ctx.drawImage(currentPhoto, 0, 0, canvasW, canvasH);
+        const img = imgCache[cfg.photoKey];
+        if (img && img.complete && img.naturalWidth > 0) {
+          ctx.drawImage(img, 0, 0, canvasW, canvasH);
         } else {
           ctx.fillStyle = '#f5efe3';
           ctx.fillRect(0, 0, canvasW, canvasH);
@@ -799,16 +758,17 @@
       ctx.globalCompositeOperation = 'source-over';
 
       // =========================================================================
-      // 3. 红格子独立贴图：每个字作为一个独立贴纸精准拍在格中
+      // 3. 400 格红格子：严格 20 列正方形独立居中入格
       // =========================================================================
-      if (cfg.mode === 'independent_grid') {
+      if (cfg.mode === 'strict_400_grid') {
         const cellSize = cfg.cellSize;
-        const baseFontSize = cfg.baseFontSize;
+        const baseFontSize = cfg.fontSize;
         let charGlobalIndex = 0;
 
-        for (let row = 0; row < pageLines.length; row++) {
+        for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
+          const row = lineIdx + cfg.startRowIdx; // 空出第 1 行
           if (row >= cfg.rows) break;
-          const lineText = pageLines[row];
+          const lineText = pageLines[lineIdx];
 
           for (let col = 0; col < lineText.length; col++) {
             if (col >= cfg.cols) break;
@@ -827,9 +787,9 @@
             const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
             const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-            // 严格每个格子绝对居中，宽高 1:1 正方形
-            const cellCenterX = cfg.gridStartX + col * cellSize + (cellSize * 0.5);
-            const cellCenterY = cfg.gridStartY + row * cellSize + (cellSize * 0.52);
+            // 严格每个格子绝对居中
+            const cellCenterX = cfg.startX + col * cellSize + (cellSize * 0.5);
+            const cellCenterY = cfg.startY + row * cellSize + (cellSize * 0.52);
 
             const jX = (hashRandom(seed + 6) - 0.5) * (cellSize * 0.10 * posChaos);
             const jY = (hashRandom(seed + 7) - 0.5) * (cellSize * 0.10 * posChaos);
@@ -858,15 +818,15 @@
         }
       }
       // =========================================================================
-      // 4. 单红线与草稿纸：逐行作为独立横幅贴纸死死咬住红线
+      // 4. 单红线与草稿纸：逐行绝对落线，写满截断换纸
       // =========================================================================
-      else if (cfg.mode === 'independent_lines') {
-        const baseFontSize = cfg.baseFontSize;
+      else if (cfg.mode === 'strict_lines') {
+        const baseFontSize = cfg.fontSize;
         const startX = cfg.startX;
         let charGlobalIndex = 0;
 
         for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          if (lineIdx >= cfg.lineY.length) break; // 严格在物理行数内截断，绝不画到纸外
+          if (lineIdx >= cfg.lineY.length) break; // 严格在规定行内，绝不出界
 
           const redLineY = cfg.lineY[lineIdx];
           const lineText = pageLines[lineIdx];
