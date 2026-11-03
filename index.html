@@ -258,7 +258,7 @@
       <div class="calib-panel" id="calibPanelBox">
         <div class="calib-header">
           <span>🎯 卡尺对齐手柄</span>
-          <span style="font-size: 11px; color: #166534;">标准 A4 规格 · 首行起笔</span>
+          <span style="font-size: 11px; color: #166534;">标准 A4 规格 · 填满翻页</span>
         </div>
 
         <div class="calib-row">
@@ -332,7 +332,7 @@
 乃援御者而告之曰：“尔有觌于彼者乎？彼何人斯？若此之艳也！”
 御者对曰：“臣闻河洛之神，名曰宓妃。然则君王之所见也，无乃是乎？其状若何？臣愿闻之。”
 
-余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出游波。
+余告之曰：“其形也，翩若惊鸿，婉若游龙。荣曜秋菊，华茂春松。髣髴兮若轻云之蔽月，飘飖兮若流风之回雪。远而望之，皎若太阳升朝霞；迫而察之，灼若芙蕖出渌波。
 
 于是屏翳收风，川后静波。冯夷鸣鼓，女娲清歌。腾文鱼以警乘，鸣玉鸾以偕逝。六龙俨其齐首，载云车之容裔，鲸鲵踊跃而夹毂，水禽翔而为卫。
 于是越北沚，过南冈，纡素领，回清阳，动朱唇以徐言，陈交接之大纲。恨人神之道殊兮，怨盛年之莫当。抗罗袂以掩涕兮，泪流襟之浪浪。悼良会之永绝兮，哀一逝而异乡。无微情以效爱兮，献江南之明珰。虽潜处于太阴，长寄心于君王。忽不悟其所舍，怅神宵而蔽光。
@@ -376,11 +376,10 @@
           <span>状态：</span><strong id="fontStatusMsg">正在载入字库...</strong>
         </div>
 
-        <!-- 纯净名称纸张选项 -->
         <div class="form-group" style="margin-top: 8px;">
           <label for="paperSelect">选择纸张背景</label>
           <select class="form-select" id="paperSelect">
-            <optgroup label="—— 实拍特写系列 (标准A4) ——">
+            <optgroup label="—— 实拍特写系列 ——">
               <option value="real_grid_red" selected>实拍-红格子稿纸</option>
               <option value="real_redline">实拍-单红线信稿纸</option>
               <option value="real_draft">草稿纸-高清实拍</option>
@@ -530,8 +529,10 @@
     imgCache.real_grid_red.src = './paper-grid.jpg';
     imgCache.real_draft.src = './paper-draft.jpg';
 
-    // 统一为标准 A4 画布规格（竖版 1240x1754，横版展开草稿纸 1754x1240）
-    // 坐标已全部按照 A4 比例等比拓展自适应
+    // 严格锁定：
+    // 草稿纸：第 1 根线下方起笔，整页右侧写满 14 行才翻页
+    // 单红线：补足 22 行写满到底，消灭末尾空行
+    // 红格子：写满 21 行方格才翻页
     const DEFAULT_PHOTO_CONFIGS = {
       real_grid_red: {
         startX: 160, startY: 143, stepX: 66.0, stepY: 66.2, bottomDrift: 0.6, fontSize: 44,
@@ -539,15 +540,14 @@
       },
       real_redline: {
         startX: 189, startY: 230, stepX: 34.6, stepY: 58.5, bottomDrift: 2.6, fontSize: 38,
-        maxLines: 21, isGrid: false, w: 1240, h: 1754
+        maxLines: 22, isGrid: false, w: 1240, h: 1754
       },
       real_draft: {
-        startX: 930, startY: 158, stepX: 30.7, stepY: 42.8, bottomDrift: 0.6, fontSize: 34,
-        maxLines: 20, isGrid: false, w: 1754, h: 1240
+        startX: 930, startY: 215, stepX: 30.7, stepY: 42.8, bottomDrift: 0.6, fontSize: 34,
+        maxLines: 14, isGrid: false, w: 1754, h: 1240
       }
     };
 
-    // 其他可打印矢量纸张
     const PRINT_PAPER_CONFIGS = {
       print_redline_a4_new: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25, color: 'rgba(225, 70, 60, 0.4)' },
       print_grid_black: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(50, 50, 50, 0.4)' },
@@ -595,7 +595,6 @@
     sliderBottomDrift.oninput = function() { CURRENT_CFG.bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); };
     sliderFontSize.oninput = function() { CURRENT_CFG.fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); };
 
-    // 独立永久保存当前背景配置
     btnSaveConfig.onclick = function() {
       const pKey = paperSelect.value;
       localStorage.setItem('hw_cfg_a4_' + pKey, JSON.stringify(CURRENT_CFG));
@@ -811,7 +810,6 @@
       const calib = CURRENT_CFG;
       const printCfg = PRINT_PAPER_CONFIGS[pKey];
 
-      // 严格按照 A4 标准分辨率投射
       let canvasW = 1240;
       let canvasH = 1754;
 
@@ -897,13 +895,12 @@
       let charGlobalIndex = 0;
 
       // =========================================================================
-      // 3. 实拍纸张绘制（标准 A4 比例投射）
+      // 3. 实拍纸张绘制
       // =========================================================================
       if (isPhoto && calib) {
         const drift = calib.bottomDrift || 0;
 
         if (calib.isGrid) {
-          // 红格子：第1排方格直接写字，满14字立刻换行，写满21行才切页
           for (let row = 0; row < pageLines.length; row++) {
             if (row >= calib.rows) break;
             const lineText = pageLines[row];
@@ -954,7 +951,6 @@
             }
           }
         } else {
-          // 横线纸：第1根横线直接压线写字，写满全部物理横线
           for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
             if (lineIdx >= calib.maxLines) break;
 
