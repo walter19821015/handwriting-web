@@ -1091,7 +1091,9 @@ if (lineStartX + currentLineWidth + charStep > lineEndX && currentLineStr.length
               ctx.textAlign = 'center';
               ctx.textBaseline = 'alphabetic';
               ctx.fillStyle = `rgba(15, 23, 42, ${inkOpacity})`;
+              if (curX + charStep <= 1040) {
               ctx.fillText(char, 0, 0);
+            }
               ctx.restore();
 
               if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
