@@ -590,14 +590,26 @@
 
     let CURRENT_CFG = getActiveConfig(paperSelect.value);
 
-   function syncCalibUI() {
+function syncCalibUI() {
       const pKey = paperSelect.value;
       CURRENT_CFG = getActiveConfig(pKey);
 
-      // 无论实拍还是可打印纸张，面板都显示，方便随时拉动字号
       calibPanelBox.style.display = 'flex';
 
+      // 提取不需要在打印模式使用的其他滑块
+      const nonFontSliders = [sliderStartX, sliderStartY, sliderStepX, sliderStepY, sliderBottomDrift, btnSaveConfig];
+
       if (CURRENT_CFG) {
+        // 【实拍页面】：全部滑块正常激活高亮可用
+        nonFontSliders.forEach(el => {
+          if (el) {
+            el.disabled = false;
+            if (el.parentElement) el.parentElement.style.opacity = '1';
+          }
+        });
+        sliderFontSize.disabled = false;
+        if (sliderFontSize.parentElement) sliderFontSize.parentElement.style.opacity = '1';
+
         sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
         sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
         sliderStepX.value = CURRENT_CFG.stepX; valStepX.textContent = CURRENT_CFG.stepX;
@@ -605,9 +617,19 @@
         sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
         sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
       } else if (PRINT_PAPER_CONFIGS[pKey]) {
-        // 可打印纸张：自动带入一个匹配当前横线高度的基准字号，滑块可自由拖大或拖小
+        // 【可打印页面】：只有字体大小可用，其他参数全部置灰且禁止滑动
+        nonFontSliders.forEach(el => {
+          if (el) {
+            el.disabled = true;
+            if (el.parentElement) el.parentElement.style.opacity = '0.35'; // 灰度不可选
+          }
+        });
+
+        sliderFontSize.disabled = false;
+        if (sliderFontSize.parentElement) sliderFontSize.parentElement.style.opacity = '1';
+
         const pCfg = PRINT_PAPER_CONFIGS[pKey];
-        const defaultSize = pCfg.lineSpacing ? Math.round(pCfg.lineSpacing * 0.68) : (pCfg.size ? Math.round(pCfg.size * 0.72) : 38);
+        const defaultSize = pCfg.lineSpacing ? Math.round(pCfg.lineSpacing * 0.82) : (pCfg.size ? Math.round(pCfg.size * 0.80) : 46);
         sliderFontSize.value = defaultSize; 
         valFontSize.textContent = defaultSize;
       }
@@ -850,24 +872,33 @@
 
           // 计算当前纸张横线的实际可用净宽
 // 可用宽度严格等于横线两端总长度，不预留空隙，写到最后一个像素才换行
-          const availableLineWidth = Math.max(300, lineEndX - lineStartX);
-
+// 【核心拦截竖线】：直接以当前行起始坐标 lineStartX 为基准推进
+          // lineEndX 就是横线最右端的竖线，任何字只要右边缘超过 lineEndX，立刻换行
           let currentLineStr = '';
-          let currentLineWidth = 0;
+          let currentPenX = lineStartX;
 
           for (let c = 0; c < para.length; c++) {
             const char = para[c];
             const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
 
+            // 实拍与打印统一按真实字宽步进计算
             let charStep = 0;
             if (calib) {
-              charStep = isEng ? calib.stepX * 0.55 : calib.stepX * 0.88;
+              charStep = isEng ? calib.stepX * 0.58 : calib.stepX;
             } else {
-              charStep = isEng ? (baseFontSize * 0.52) : (baseFontSize * 0.85);
+              charStep = isEng ? (baseFontSize * 0.55) : (baseFontSize * 0.95);
             }
 
-            // 只有当下一个字彻底超出横线终点时，才进行换行
-            if (currentLineWidth + charStep > availableLineWidth && currentLineStr.length > 0) {
+            // 绝对边界检测：当前字符如果排下去，其右边缘(currentPenX + charStep)超过了横线末端竖线(lineEndX)，坚决换行
+            if (currentPenX + charStep > lineEndX && currentLineStr.length > 0) {
+              currentLines.push(currentLineStr);
+              currentLineStr = '';
+              currentPenX = lineStartX;
+            }
+
+            currentLineStr += char;
+            currentPenX += charStep;
+          }
               currentPageLines.push(currentLineStr);
               currentLineStr = '';
               currentLineWidth = 0;
