@@ -812,7 +812,7 @@
             // ----------------------------------------------------------
             // 纯中文逻辑：100% 保持原有逻辑不变
             // ----------------------------------------------------------
-            const maxCharsPerLine = (pKey === 'real_draft') ? 22 : 25;
+            const maxCharsPerLine = (pKey === 'real_draft') ? 19 : 25;
             for (let c = 0; c < para.length; c++) {
               const char = para[c];
               if (curLineChars.length >= maxCharsPerLine) {
@@ -864,7 +864,7 @@
             }
 
             // 净可用宽度（起点到右侧警戒红线之间的安全距离）
-const maxAllowedWidth = Math.max(300, (rightBorderX - 80) - startX);
+const maxAllowedWidth = Math.max(300, rightBorderX - startX);
 
             // 正则分词：英文单词不可拆散，空格、标点单独处理
             const tokens = para.match(/[a-zA-Z0-9'’\-]+|[\u4e00-\u9fa5]|\s+|./g) || [para];
