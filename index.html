@@ -864,7 +864,11 @@
             }
 
             // 净可用宽度（起点到右侧警戒红线之间的安全距离）
-            const maxAllowedWidth = Math.max(300, rightBorderX - startX);
+            let maxAllowedWidth = Math.max(300, rightBorderX - startX);
+        if (pKey === 'real_draft') {
+          // 草稿纸独立收缩 65px：把右边界严格卡在横线末尾前，绝不出格
+          maxAllowedWidth = Math.max(300, (rightBorderX - 65) - startX);
+        }
 
             // 正则分词：英文单词不可拆散，空格、标点单独处理
             const tokens = para.match(/[a-zA-Z0-9'’\-]+|[\u4e00-\u9fa5]|\s+|./g) || [para];
