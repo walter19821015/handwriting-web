@@ -812,34 +812,27 @@
             // ----------------------------------------------------------
             // 纯中文逻辑：100% 保持原有逻辑不变
             // ----------------------------------------------------------
-// 获取当前字间距与纸张右边界
-          const charStep = (typeof stepX !== 'undefined' && stepX > 0) ? stepX : (typeof baseStep !== 'undefined' && baseStep > 0 ? baseStep : 30.7);
-          let limitWidth = 1200;
+let maxCharsPerLine = 25;
           if (pKey === 'real_draft') {
-            limitWidth = 21 * charStep; // 实拍草稿纸锁死 21 字
+            maxCharsPerLine = 21; // 草稿纸：死守21字，绝不溢出
           } else if (pKey === 'real_redline') {
-            limitWidth = 22 * charStep; // 实拍单红线原样锁定
-          } else if (typeof rightBorderX !== 'undefined' && typeof startX !== 'undefined' && rightBorderX > startX) {
-            limitWidth = rightBorderX - startX; // 可打印纸按右侧边界卡死
-          } else if (typeof canvas !== 'undefined' && canvas.width) {
-            limitWidth = canvas.width - 600;
+            maxCharsPerLine = 22; // 实拍单红线：原版字数
+          } else {
+            maxCharsPerLine = 42; // 所有可打印纸张：直接放宽到42字，写满横线
           }
 
-          let currentLineWidth = 0;
           for (let c = 0; c < para.length; c++) {
             const char = para[c];
-            const charWidth = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char) ? (charStep * 0.6) : charStep;
-
-            // 只要当前行写到右侧边界，立即自动折行！
-            if (currentLineWidth + charWidth > limitWidth && curLineChars.length > 0) {
+            if (curLineChars.length >= maxCharsPerLine) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
-              currentLineWidth = 0;
               if (currentPageLines.length >= linesPerPage) {
                 pages.push(currentPageLines);
                 currentPageLines = [];
               }
             }
+            curLineChars.push(char);
+          }
               curLineChars.push(char);
             }
 
