@@ -198,16 +198,26 @@
       background: #7a828e;
       border-radius: 8px;
       padding: 24px;
+      overflow-x: auto;
       overflow-y: visible;
     }
 
     #previewCanvas {
       display: block;
       width: 100%;
-      max-width: 820px;
+      max-width: 960px;
       height: auto !important;
       box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
       border-radius: 2px;
+    }
+
+    #modalImage {
+      display: block;
+      width: 100%;
+      max-width: 1200px;
+      height: auto !important;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      border-radius: 4px;
     }
 
     .pagination-bar {
@@ -816,11 +826,12 @@
             if (pKey === 'real_redline') lineEndX = 1040;
             else if (pKey === 'real_draft') lineEndX = 1580;
             else lineEndX = (calib.w || 1240) - 150;
-          } else if (printCfg) {
+         } else if (printCfg) {
             // 所有可打印类条纸：严格取横线左右端点
             lineStartX = printCfg.marginX;
             lineEndX = printCfg.w - printCfg.marginX; // 横线的最右端
-            baseFontSize = 24;
+            // 动态匹配行高：字号占行距的 68%（例如行距 56 时约为 38px，A3 行距 64 时约为 43.5px），绝不再写死 24px
+            baseFontSize = printCfg.lineSpacing ? Math.round(printCfg.lineSpacing * 0.68) : 38;
           }
 
           // 计算当前纸张横线的实际可用净宽
@@ -1084,8 +1095,11 @@
       // =========================================================================
       // 4. 标准印刷纸张绘制
       // =========================================================================
-      else if (printCfg) {
-        const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : 24;
+     else if (printCfg) {
+        // 与排版逻辑严格同频：条纸字号直接占行距的 68%，不再是渺小的 24px
+        const baseFontSize = printCfg.mode === 'grid_print' 
+          ? printCfg.size * 0.72 
+          : (printCfg.lineSpacing ? Math.round(printCfg.lineSpacing * 0.68) : 38);
 
         if (printCfg.mode === 'grid_print') {
           for (let row = 0; row < pageLines.length; row++) {
@@ -1117,14 +1131,15 @@
             for (let c = 0; c < lineText.length; c++) {
               const char = lineText[c];
               const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-              const charStep = isEng ? baseFontSize * 0.55 : baseFontSize * 0.85;
+              const charStep = isEng ? baseFontSize * 0.58 : baseFontSize * 0.95;
 
               ctx.save();
               ctx.font = `${baseFontSize}px ${currentFontFamily}`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'alphabetic';
               ctx.fillStyle = '#0f172a';
-              ctx.fillText(char, curX + charStep * 0.5, lineY - 2);
+              // 饱满自然地坐落在横线上方 3px 处
+              ctx.fillText(char, curX + charStep * 0.5, lineY - 3);
               ctx.restore();
 
               curX += charStep;
