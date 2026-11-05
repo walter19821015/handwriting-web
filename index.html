@@ -596,19 +596,22 @@ function syncCalibUI() {
 
       calibPanelBox.style.display = 'flex';
 
-      // 提取不需要在打印模式使用的其他滑块
-      const nonFontSliders = [sliderStartX, sliderStartY, sliderStepX, sliderStepY, sliderBottomDrift, btnSaveConfig];
+      // 获取需要控制状态的滑块父级容器
+      const getBox = (el) => el ? el.closest('.control-group') || el.parentElement : null;
+      const otherInputs = [sliderStartX, sliderStartY, sliderStepX, sliderStepY, sliderBottomDrift];
 
       if (CURRENT_CFG) {
-        // 【实拍页面】：全部滑块正常激活高亮可用
-        nonFontSliders.forEach(el => {
+        // 【实拍页面】：全部滑块激活可用
+        otherInputs.forEach(el => {
           if (el) {
             el.disabled = false;
-            if (el.parentElement) el.parentElement.style.opacity = '1';
+            const box = getBox(el);
+            if (box) box.style.opacity = '1';
           }
         });
         sliderFontSize.disabled = false;
-        if (sliderFontSize.parentElement) sliderFontSize.parentElement.style.opacity = '1';
+        const fontBox = getBox(sliderFontSize);
+        if (fontBox) fontBox.style.opacity = '1';
 
         sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
         sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
@@ -617,16 +620,18 @@ function syncCalibUI() {
         sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
         sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
       } else if (PRINT_PAPER_CONFIGS[pKey]) {
-        // 【可打印页面】：只有字体大小可用，其他参数全部置灰且禁止滑动
-        nonFontSliders.forEach(el => {
+        // 【可打印页面】：只有字体大小可用，其他全部置灰
+        otherInputs.forEach(el => {
           if (el) {
             el.disabled = true;
-            if (el.parentElement) el.parentElement.style.opacity = '0.35'; // 灰度不可选
+            const box = getBox(el);
+            if (box) box.style.opacity = '0.35';
           }
         });
 
         sliderFontSize.disabled = false;
-        if (sliderFontSize.parentElement) sliderFontSize.parentElement.style.opacity = '1';
+        const fontBox = getBox(sliderFontSize);
+        if (fontBox) fontBox.style.opacity = '1';
 
         const pCfg = PRINT_PAPER_CONFIGS[pKey];
         const defaultSize = pCfg.lineSpacing ? Math.round(pCfg.lineSpacing * 0.82) : (pCfg.size ? Math.round(pCfg.size * 0.80) : 46);
@@ -634,8 +639,6 @@ function syncCalibUI() {
         valFontSize.textContent = defaultSize;
       }
     }
-
-    sliderStartX.oninput = function() { CURRENT_CFG.startX = parseFloat(this.value); valStartX.textContent = this.value; renderAll(); };
     sliderStartY.oninput = function() { CURRENT_CFG.startY = parseFloat(this.value); valStartY.textContent = this.value; renderAll(); };
     sliderStepX.oninput = function() { CURRENT_CFG.stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); };
     sliderStepY.oninput = function() { CURRENT_CFG.stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); };
