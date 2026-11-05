@@ -198,26 +198,16 @@
       background: #7a828e;
       border-radius: 8px;
       padding: 24px;
-      overflow-x: auto;
       overflow-y: visible;
     }
 
     #previewCanvas {
       display: block;
       width: 100%;
-      max-width: 960px;
+      max-width: 820px;
       height: auto !important;
       box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
       border-radius: 2px;
-    }
-
-    #modalImage {
-      display: block;
-      width: 100%;
-      max-width: 1200px;
-      height: auto !important;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
-      border-radius: 4px;
     }
 
     .pagination-bar {
@@ -590,26 +580,20 @@
 
     let CURRENT_CFG = getActiveConfig(paperSelect.value);
 
-   function syncCalibUI() {
+    function syncCalibUI() {
       const pKey = paperSelect.value;
       CURRENT_CFG = getActiveConfig(pKey);
 
-      // 无论实拍还是可打印纸张，面板都显示，方便随时拉动字号
-      calibPanelBox.style.display = 'flex';
-
-      if (CURRENT_CFG) {
+      if (!CURRENT_CFG) {
+        calibPanelBox.style.display = 'none';
+      } else {
+        calibPanelBox.style.display = 'flex';
         sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
         sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
         sliderStepX.value = CURRENT_CFG.stepX; valStepX.textContent = CURRENT_CFG.stepX;
         sliderStepY.value = CURRENT_CFG.stepY; valStepY.textContent = CURRENT_CFG.stepY;
         sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
         sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
-      } else if (PRINT_PAPER_CONFIGS[pKey]) {
-        // 可打印纸张：自动带入一个匹配当前横线高度的基准字号，滑块可自由拖大或拖小
-        const pCfg = PRINT_PAPER_CONFIGS[pKey];
-        const defaultSize = pCfg.lineSpacing ? Math.round(pCfg.lineSpacing * 0.68) : (pCfg.size ? Math.round(pCfg.size * 0.72) : 38);
-        sliderFontSize.value = defaultSize; 
-        valFontSize.textContent = defaultSize;
       }
     }
 
@@ -618,15 +602,7 @@
     sliderStepX.oninput = function() { CURRENT_CFG.stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); };
     sliderStepY.oninput = function() { CURRENT_CFG.stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); };
     sliderBottomDrift.oninput = function() { CURRENT_CFG.bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); };
-    sliderFontSize.oninput = function() {
-  valFontSize.textContent = this.value;
-  if (CURRENT_CFG) {
-    CURRENT_CFG.fontSize = parseFloat(this.value);
-  }
-  // 关键：字号拉大或缩小时，必须立刻重新计算每行能装多少个字，再绘制
-  paginatedPages = computePagination(textInput.value, paperSelect.value);
-  renderAll();
-};
+    sliderFontSize.oninput = function() { CURRENT_CFG.fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); };
 
     btnSaveConfig.onclick = function() {
       const pKey = paperSelect.value;
@@ -773,19 +749,16 @@
     // 1. 中文逻辑维持原有排版不变
     // 2. 实拍信稿纸、草稿纸以及各尺寸打印纸，沿纵轴设定严格的右侧边界警戒线 (Right Bound)
     // 3. 英文单词到达右侧警戒红线前必须整词换行，彻底锁死溢出！
-  // 分页计算：适配所有可打印纸张（A4纵/横、B5纵/横、A3纵/横、红线信纸等）
     function computePagination(text, pKey) {
       const calib = CURRENT_CFG;
-      const printCfg = PRINT_PAPER_CONFIGS[pKey];
-      const isGrid = (calib && calib.isGrid) || (printCfg && printCfg.mode === 'grid_print');
+      const isGrid = calib && calib.isGrid;
 
-      // 1. 获取每页总行数
       let linesPerPage = 21;
       if (pKey === 'real_draft') linesPerPage = 20;
       else if (pKey === 'real_redline') linesPerPage = 22;
       else if (pKey === 'real_grid_red') linesPerPage = 21;
       else if (calib) linesPerPage = calib.maxLines || calib.rows || 21;
-      else if (printCfg) linesPerPage = printCfg.lines || printCfg.rows || 20;
+      else if (PRINT_PAPER_CONFIGS[pKey]) linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
 
       const pages = [];
       let currentPageLines = [];
@@ -799,14 +772,14 @@
 
         curLineChars = [];
 
-        // -------------------------------------------------------------
-        // 分支 A：所有格子纸（实拍红格、可打印黑格/红格等）保持按格切分
-        // -------------------------------------------------------------
+        // ==============================================================
+        // 【分支 A：方格纸张】严格保持原中文格子切分逻辑，满 14 字换行
+        // ==============================================================
         if (isGrid) {
-          const maxCols = (calib && calib.isGrid) ? 14 : (printCfg ? (printCfg.cols || 20) : 14);
           for (let c = 0; c < para.length; c++) {
-            curLineChars.push(para[c]);
-            if (curLineChars.length >= maxCols) {
+            const char = para[c];
+            // 红格子：满 14 个字符立刻切行！第 15 个字进入下一行第 1 格！
+            if (curLineChars.length >= 14) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
               if (currentPageLines.length >= linesPerPage) {
@@ -814,7 +787,9 @@
                 currentPageLines = [];
               }
             }
+            curLineChars.push(char);
           }
+
           if (curLineChars.length > 0) {
             currentPageLines.push(curLineChars.join(''));
             curLineChars = [];
@@ -823,72 +798,111 @@
               currentPageLines = [];
             }
           }
-        } 
-        // -------------------------------------------------------------
-        // 分支 B：所有非格子条纸（实拍单红线、草稿纸，以及全部可打印 A4/B5/A3 横线纸）
-        // 严格以“当前纸张横线的真实终点（右边缘）”为界换行，绝不提前截断！
-        // -------------------------------------------------------------
+        }
+        // ==============================================================
+        // 【分支 B：非方格纸张】(实拍信纸、草稿纸、可打印 A4/B5/A3 等)
+        // 区分中文与英文：中文单行字数锁死；英文沿纵向红线锁死 X 轴终点，绝不溢出！
+        // ==============================================================
         else {
-          let lineStartX = 189;
-          let lineEndX = 1040;
-          let baseFontSize = 24;
+          // 检测当前段落是否以英文/西文为主
+          const englishCharCount = (para.match(/[a-zA-Z]/g) || []).length;
+          const isEnglishDominant = englishCharCount > (para.length * 0.3);
 
-          if (calib) {
-            // 实拍类条纸
-            lineStartX = calib.startX;
-            baseFontSize = calib.fontSize;
-            if (pKey === 'real_redline') lineEndX = 1040;
-            else if (pKey === 'real_draft') lineEndX = 1580;
-            else lineEndX = (calib.w || 1240) - 150;
-         } else if (printCfg) {
-            // 所有可打印类条纸：严格取横线左右端点
-            lineStartX = printCfg.marginX;
-            lineEndX = printCfg.w - printCfg.marginX; // 横线的最右端
-            // 动态匹配行高：字号占行距的 68%（例如行距 56 时约为 38px，A3 行距 64 时约为 43.5px），绝不再写死 24px
-           baseFontSize = parseFloat(sliderFontSize.value) || 38;
-          }
-
-          // 计算当前纸张横线的实际可用净宽
-// 可用宽度严格等于横线两端总长度，不预留空隙，写到最后一个像素才换行
-          const availableLineWidth = Math.max(300, lineEndX - lineStartX);
-
-          let currentLineStr = '';
-          let currentLineWidth = 0;
-
-          for (let c = 0; c < para.length; c++) {
-            const char = para[c];
-            const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-
-            let charStep = 0;
-            if (calib) {
-              charStep = isEng ? calib.stepX * 0.55 : calib.stepX * 0.88;
-            } else {
-              charStep = isEng ? (baseFontSize * 0.52) : (baseFontSize * 0.85);
+          if (!isEnglishDominant) {
+            // ----------------------------------------------------------
+            // 纯中文逻辑：100% 保持原有逻辑不变
+            // ----------------------------------------------------------
+            const maxCharsPerLine = (pKey === 'real_draft') ? 22 : 25;
+            for (let c = 0; c < para.length; c++) {
+              const char = para[c];
+              if (curLineChars.length >= maxCharsPerLine) {
+                currentPageLines.push(curLineChars.join(''));
+                curLineChars = [];
+                if (currentPageLines.length >= linesPerPage) {
+                  pages.push(currentPageLines);
+                  currentPageLines = [];
+                }
+              }
+              curLineChars.push(char);
             }
 
-            // 只有当下一个字彻底超出横线终点时，才进行换行
-if (currentLineWidth + charStep > (availableLineWidth - 20) && currentLineStr.length > 0) {
-              currentPageLines.push(currentLineStr);
-              currentLineStr = '';
-              currentLineWidth = 0;
+            if (curLineChars.length > 0) {
+              currentPageLines.push(curLineChars.join(''));
+              curLineChars = [];
               if (currentPageLines.length >= linesPerPage) {
                 pages.push(currentPageLines);
                 currentPageLines = [];
               }
             }
+          } else {
+            // ----------------------------------------------------------
+            // 英文逻辑：严格沿纵轴锁死信纸两侧纵向边界线！
+            // ----------------------------------------------------------
+            let startX = 189;
+            let rightBorderX = 1040; // 默认右侧纵向红线警戒线坐标
+            let baseStep = 34.6 * 0.6;
 
-            currentLineStr += char;
-            currentLineWidth += charStep;
-          }
+            if (pKey === 'real_redline') {
+              // 单红线实拍信纸：起点 189，右侧纵向红线坐标严格锁死在 1040 以内
+              startX = (calib && calib.startX) ? calib.startX : 189;
+              rightBorderX = 1040;
+              baseStep = ((calib && calib.stepX) ? calib.stepX : 34.6) * 0.6;
+            } else if (pKey === 'real_draft') {
+              // 草稿纸：右页书页起点 930，右侧边缘严格锁死在 1580 以内
+              startX = (calib && calib.startX) ? calib.startX : 930;
+              rightBorderX = 1580;
+              baseStep = ((calib && calib.stepX) ? calib.stepX : 30.7) * 0.6;
+            } else if (calib) {
+              startX = calib.startX || 180;
+              rightBorderX = (calib.w || 1240) - 150;
+              baseStep = (calib.stepX || 34.6) * 0.6;
+            } else if (PRINT_PAPER_CONFIGS[pKey]) {
+              const cfg = PRINT_PAPER_CONFIGS[pKey];
+              startX = cfg.marginX;
+              rightBorderX = cfg.w - cfg.marginX;
+              baseStep = 24 * 0.55;
+            }
 
-          if (currentLineStr.length > 0) {
-            currentPageLines.push(currentLineStr);
-            currentLineStr = '';
-            currentLineWidth = 0;
+            // 净可用宽度（起点到右侧警戒红线之间的安全距离）
+            const maxAllowedWidth = Math.max(300, rightBorderX - startX);
 
-            if (currentPageLines.length >= linesPerPage) {
-              pages.push(currentPageLines);
-              currentPageLines = [];
+            // 正则分词：英文单词不可拆散，空格、标点单独处理
+            const tokens = para.match(/[a-zA-Z0-9'’\-]+|[\u4e00-\u9fa5]|\s+|./g) || [para];
+            let currentLineStr = '';
+            let currentLineWidth = 0;
+
+            for (let t = 0; t < tokens.length; t++) {
+              const token = tokens[t];
+              
+              // 精确预估单词渲染宽度
+              let tokenWidth = 0;
+              for (let i = 0; i < token.length; i++) {
+                const ch = token[i];
+                tokenWidth += /[a-zA-Z0-9\(\)\,\.\:\s]/.test(ch) ? baseStep : (baseStep * 1.6);
+              }
+
+              // 检查触碰右侧警戒线：只要加上当前单词会超出可用净宽，立刻锁死并在红线前切入下一行！
+              if (currentLineWidth + tokenWidth > maxAllowedWidth && currentLineStr.trim().length > 0) {
+                currentPageLines.push(currentLineStr);
+                if (currentPageLines.length >= linesPerPage) {
+                  pages.push(currentPageLines);
+                  currentPageLines = [];
+                }
+                // 新行开头去除无意义空格
+                currentLineStr = token.startsWith(' ') ? token.trimStart() : token;
+                currentLineWidth = tokenWidth;
+              } else {
+                currentLineStr += token;
+                currentLineWidth += tokenWidth;
+              }
+            }
+
+            if (currentLineStr.length > 0) {
+              currentPageLines.push(currentLineStr);
+              if (currentPageLines.length >= linesPerPage) {
+                pages.push(currentPageLines);
+                currentPageLines = [];
+              }
             }
           }
         }
@@ -1091,7 +1105,7 @@ if (currentLineWidth + charStep > (availableLineWidth - 20) && currentLineStr.le
               ctx.textAlign = 'center';
               ctx.textBaseline = 'alphabetic';
               ctx.fillStyle = `rgba(15, 23, 42, ${inkOpacity})`;
-ctx.fillText(char, 0, 0);
+              ctx.fillText(char, 0, 0);
               ctx.restore();
 
               if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
@@ -1108,11 +1122,8 @@ ctx.fillText(char, 0, 0);
       // =========================================================================
       // 4. 标准印刷纸张绘制
       // =========================================================================
-     else if (printCfg) {
-        // 与排版逻辑严格同频：条纸字号直接占行距的 68%，不再是渺小的 24px
-const baseFontSize = (printCfg.mode === 'grid_print') 
-          ? printCfg.size * 0.72 
-          : (parseFloat(sliderFontSize.value) || 38);
+      else if (printCfg) {
+        const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : 24;
 
         if (printCfg.mode === 'grid_print') {
           for (let row = 0; row < pageLines.length; row++) {
@@ -1144,15 +1155,14 @@ const baseFontSize = (printCfg.mode === 'grid_print')
             for (let c = 0; c < lineText.length; c++) {
               const char = lineText[c];
               const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-              // 【步长同步】改为与 computePagination 完全一致的 0.90 步长
-              const charStep = isEng ? (baseFontSize * 0.55) : (baseFontSize * 0.90);
+              const charStep = isEng ? baseFontSize * 0.55 : baseFontSize * 0.85;
 
               ctx.save();
               ctx.font = `${baseFontSize}px ${currentFontFamily}`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'alphabetic';
               ctx.fillStyle = '#0f172a';
-              ctx.fillText(char, curX + charStep * 0.5, lineY - 3);
+              ctx.fillText(char, curX + charStep * 0.5, lineY - 2);
               ctx.restore();
 
               curX += charStep;
