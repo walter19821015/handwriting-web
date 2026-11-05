@@ -812,7 +812,9 @@
             // ----------------------------------------------------------
             // 纯中文逻辑：100% 保持原有逻辑不变
             // ----------------------------------------------------------
-          const maxCharsPerLine = (pKey === 'real_draft') ? 21 : 25;
+          let maxCharsPerLine = 25;
+          if (pKey === 'real_draft') maxCharsPerLine = 21; // 实拍草稿纸绝对不动，死守 21
+          if (pKey && pKey.startsWith('print_')) maxCharsPerLine = 38; // 仅可打印非格子纸：放宽到正常整行排满
             for (let c = 0; c < para.length; c++) {
               const char = para[c];
               if (curLineChars.length >= maxCharsPerLine) {
