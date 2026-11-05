@@ -618,7 +618,15 @@
     sliderStepX.oninput = function() { CURRENT_CFG.stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); };
     sliderStepY.oninput = function() { CURRENT_CFG.stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); };
     sliderBottomDrift.oninput = function() { CURRENT_CFG.bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); };
-    sliderFontSize.oninput = function() { CURRENT_CFG.fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); };
+    sliderFontSize.oninput = function() {
+  valFontSize.textContent = this.value;
+  if (CURRENT_CFG) {
+    CURRENT_CFG.fontSize = parseFloat(this.value);
+  }
+  // 关键：字号拉大或缩小时，必须立刻重新计算每行能装多少个字，再绘制
+  paginatedPages = computePagination(textInput.value, paperSelect.value);
+  renderAll();
+};
 
     btnSaveConfig.onclick = function() {
       const pKey = paperSelect.value;
@@ -841,8 +849,8 @@
           }
 
           // 计算当前纸张横线的实际可用净宽
-// 【核心锁死】横线右端减去 15px 安全刹车距离，彻底留出右侧红线缓冲
-          const availableLineWidth = Math.max(300, (lineEndX - lineStartX) - 15);
+// 可用宽度严格等于横线两端总长度，不预留空隙，写到最后一个像素才换行
+          const availableLineWidth = Math.max(300, lineEndX - lineStartX);
 
           let currentLineStr = '';
           let currentLineWidth = 0;
@@ -853,18 +861,16 @@
 
             let charStep = 0;
             if (calib) {
-              charStep = isEng ? calib.stepX * 0.6 : calib.stepX;
+              charStep = isEng ? calib.stepX * 0.55 : calib.stepX * 0.88;
             } else {
-              // 中文字步长统一锁定为 0.90，与绘制阶段 100% 同步
-              charStep = isEng ? (baseFontSize * 0.55) : (baseFontSize * 0.90);
+              charStep = isEng ? (baseFontSize * 0.52) : (baseFontSize * 0.85);
             }
 
-            // 碰到右边界安全线，立即换到下一行，绝不越线
+            // 只有当下一个字彻底超出横线终点时，才进行换行
             if (currentLineWidth + charStep > availableLineWidth && currentLineStr.length > 0) {
               currentPageLines.push(currentLineStr);
               currentLineStr = '';
               currentLineWidth = 0;
-
               if (currentPageLines.length >= linesPerPage) {
                 pages.push(currentPageLines);
                 currentPageLines = [];
