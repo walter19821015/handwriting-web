@@ -651,10 +651,12 @@ function syncCalibUI() {
           const fontGroup = sliderFontSize.closest('.control-group') || sliderFontSize.parentElement;
           if (fontGroup) fontGroup.style.opacity = '1';
 
-          const pCfg = PRINT_PAPER_CONFIGS[pKey];
+const pCfg = PRINT_PAPER_CONFIGS ? PRINT_PAPER_CONFIGS[pKey] : null;
+        if (pCfg) {
           const defaultSize = pCfg.lineSpacing ? Math.round(pCfg.lineSpacing * 0.82) : (pCfg.size ? Math.round(pCfg.size * 0.80) : 46);
           sliderFontSize.value = defaultSize; 
           valFontSize.textContent = defaultSize;
+        }
         }
       }
     }
