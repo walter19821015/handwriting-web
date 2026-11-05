@@ -812,17 +812,7 @@
             // ----------------------------------------------------------
             // 纯中文逻辑：100% 保持原有逻辑不变
             // ----------------------------------------------------------
-            let maxCharsPerLine = 25;
-          if (pKey === 'real_draft') {
-            maxCharsPerLine = 21; // 实拍草稿纸死守 21，绝不碰它
-          } else if (pKey === 'real_redline') {
-            maxCharsPerLine = 22; // 实拍单红线原样
-          } else if (printCfg && !printCfg.cols) {
-            // 所有【可打印条格纸】（非格子）：根据横线真实宽度自动计算该写多少个字
-            const lineWidth = printCfg.w - printCfg.marginX * 2;
-            const effectiveStep = (typeof baseStep !== 'undefined' && baseStep > 0) ? baseStep : 40;
-            maxCharsPerLine = Math.floor(lineWidth / effectiveStep);
-          }
+          const maxCharsPerLine = (pKey === 'real_draft') ? 21 : 25;
             for (let c = 0; c < para.length; c++) {
               const char = para[c];
               if (curLineChars.length >= maxCharsPerLine) {
