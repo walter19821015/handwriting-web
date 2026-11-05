@@ -867,7 +867,7 @@
             }
 
             // 只有当下一个字彻底超出横线终点时，才进行换行
-            if (currentLineWidth + charStep > availableLineWidth && currentLineStr.length > 0) {
+if (lineStartX + currentLineWidth + charStep > lineEndX && currentLineStr.length > 0) {
               currentPageLines.push(currentLineStr);
               currentLineStr = '';
               currentLineWidth = 0;
