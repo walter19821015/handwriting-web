@@ -590,20 +590,26 @@
 
     let CURRENT_CFG = getActiveConfig(paperSelect.value);
 
-    function syncCalibUI() {
+   function syncCalibUI() {
       const pKey = paperSelect.value;
       CURRENT_CFG = getActiveConfig(pKey);
 
-      if (!CURRENT_CFG) {
-        calibPanelBox.style.display = 'none';
-      } else {
-        calibPanelBox.style.display = 'flex';
+      // 无论实拍还是可打印纸张，面板都显示，方便随时拉动字号
+      calibPanelBox.style.display = 'flex';
+
+      if (CURRENT_CFG) {
         sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
         sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
         sliderStepX.value = CURRENT_CFG.stepX; valStepX.textContent = CURRENT_CFG.stepX;
         sliderStepY.value = CURRENT_CFG.stepY; valStepY.textContent = CURRENT_CFG.stepY;
         sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
         sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
+      } else if (PRINT_PAPER_CONFIGS[pKey]) {
+        // 可打印纸张：自动带入一个匹配当前横线高度的基准字号，滑块可自由拖大或拖小
+        const pCfg = PRINT_PAPER_CONFIGS[pKey];
+        const defaultSize = pCfg.lineSpacing ? Math.round(pCfg.lineSpacing * 0.68) : (pCfg.size ? Math.round(pCfg.size * 0.72) : 38);
+        sliderFontSize.value = defaultSize; 
+        valFontSize.textContent = defaultSize;
       }
     }
 
@@ -831,7 +837,7 @@
             lineStartX = printCfg.marginX;
             lineEndX = printCfg.w - printCfg.marginX; // 横线的最右端
             // 动态匹配行高：字号占行距的 68%（例如行距 56 时约为 38px，A3 行距 64 时约为 43.5px），绝不再写死 24px
-            baseFontSize = printCfg.lineSpacing ? Math.round(printCfg.lineSpacing * 0.68) : 38;
+           baseFontSize = parseFloat(sliderFontSize.value) || 38;
           }
 
           // 计算当前纸张横线的实际可用净宽
@@ -1098,9 +1104,9 @@
       // =========================================================================
      else if (printCfg) {
         // 与排版逻辑严格同频：条纸字号直接占行距的 68%，不再是渺小的 24px
-        const baseFontSize = printCfg.mode === 'grid_print' 
+const baseFontSize = (printCfg.mode === 'grid_print') 
           ? printCfg.size * 0.72 
-          : (printCfg.lineSpacing ? Math.round(printCfg.lineSpacing * 0.68) : 38);
+          : (parseFloat(sliderFontSize.value) || 38);
 
         if (printCfg.mode === 'grid_print') {
           for (let row = 0; row < pageLines.length; row++) {
