@@ -812,28 +812,34 @@
             // ----------------------------------------------------------
             // 纯中文逻辑：100% 保持原有逻辑不变
             // ----------------------------------------------------------
-let maxCharsPerLine = 25;
+// 获取当前字间距与纸张右边界
+          const charStep = (typeof stepX !== 'undefined' && stepX > 0) ? stepX : (typeof baseStep !== 'undefined' && baseStep > 0 ? baseStep : 30.7);
+          let limitWidth = 1200;
           if (pKey === 'real_draft') {
-            maxCharsPerLine = 21; // 实拍草稿纸绝对不动，死守 21
+            limitWidth = 21 * charStep; // 实拍草稿纸锁死 21 字
           } else if (pKey === 'real_redline') {
-            maxCharsPerLine = 25; // 实拍单红线原样不动
-          } else {
-            // 所有可打印纸张（A4、A3、B5横纵、单红线信稿纸）：
-            // 根据当前纸张的实际物理可用宽度，动态除以字距，算出这一行该写几个字
-            const charStep = (typeof stepX !== 'undefined' && stepX > 0) ? stepX : (typeof baseStep !== 'undefined' && baseStep > 0 ? baseStep : 30.7);
-            const currentWidth = (typeof rightBorderX !== 'undefined' && typeof startX !== 'undefined') ? (rightBorderX - startX) : 1000;
-            maxCharsPerLine = Math.max(10, Math.floor(currentWidth / charStep));
+            limitWidth = 22 * charStep; // 实拍单红线原样锁定
+          } else if (typeof rightBorderX !== 'undefined' && typeof startX !== 'undefined' && rightBorderX > startX) {
+            limitWidth = rightBorderX - startX; // 可打印纸按右侧边界卡死
+          } else if (typeof canvas !== 'undefined' && canvas.width) {
+            limitWidth = canvas.width - 600;
           }
-            for (let c = 0; c < para.length; c++) {
-              const char = para[c];
-              if (curLineChars.length >= maxCharsPerLine) {
-                currentPageLines.push(curLineChars.join(''));
-                curLineChars = [];
-                if (currentPageLines.length >= linesPerPage) {
-                  pages.push(currentPageLines);
-                  currentPageLines = [];
-                }
+
+          let currentLineWidth = 0;
+          for (let c = 0; c < para.length; c++) {
+            const char = para[c];
+            const charWidth = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char) ? (charStep * 0.6) : charStep;
+
+            // 只要当前行写到右侧边界，立即自动折行！
+            if (currentLineWidth + charWidth > limitWidth && curLineChars.length > 0) {
+              currentPageLines.push(curLineChars.join(''));
+              curLineChars = [];
+              currentLineWidth = 0;
+              if (currentPageLines.length >= linesPerPage) {
+                pages.push(currentPageLines);
+                currentPageLines = [];
               }
+            }
               curLineChars.push(char);
             }
 
