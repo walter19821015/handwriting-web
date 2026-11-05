@@ -867,7 +867,7 @@
             }
 
             // 只有当下一个字彻底超出横线终点时，才进行换行
-if (lineStartX + currentLineWidth + charStep > lineEndX && currentLineStr.length > 0) {
+if (currentLineWidth + charStep > (availableLineWidth - 20) && currentLineStr.length > 0) {
               currentPageLines.push(currentLineStr);
               currentLineStr = '';
               currentLineWidth = 0;
@@ -1091,9 +1091,7 @@ if (lineStartX + currentLineWidth + charStep > lineEndX && currentLineStr.length
               ctx.textAlign = 'center';
               ctx.textBaseline = 'alphabetic';
               ctx.fillStyle = `rgba(15, 23, 42, ${inkOpacity})`;
-              if (curX + charStep <= 1040) {
-              ctx.fillText(char, 0, 0);
-            }
+ctx.fillText(char, 0, 0);
               ctx.restore();
 
               if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
