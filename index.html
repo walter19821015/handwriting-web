@@ -756,20 +756,19 @@
         const isPrintGrid = currentPaperVal === 'print_grid_black' || currentPaperVal === 'print_grid_red';
         const isGrid = (calib && calib.isGrid) || isPrintGrid;
 
-let linesPerPage = 21;
+let linesPerPage = 20;
         const pStr = String(currentPaperVal || '');
-        if (isPrintGrid || pStr.includes('print')) {
-            linesPerPage = 20;
-        } else if (pStr.includes('grid') || pStr.includes('红格')) {
-            linesPerPage = 21; // 红格子精准锁定 21 行！
-        } else if (pStr.includes('draft') || pStr.includes('草稿')) {
-            linesPerPage = 20; // 草稿纸恢复满页 20 行！
-        } else if (pStr.includes('redline') || pStr.includes('红线')) {
-            linesPerPage = 22; // 单红线信稿纸恢复满页 22 行！
+
+        if (pStr.includes('红格') || pStr.includes('grid')) {
+            linesPerPage = 21; // 实拍红格子：写满 21 行
+        } else if (pStr.includes('红线') || pStr.includes('redline')) {
+            linesPerPage = 22; // 实拍单红线：写满 22 行
+        } else if (pStr.includes('草稿') || pStr.includes('draft')) {
+            linesPerPage = 20; // 草稿纸：写满 20 行
         } else if (calib && calib.rows) {
             linesPerPage = calib.rows;
         } else if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
-            linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
+            linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || 20;
         }
 
       const pages = [];
@@ -1097,7 +1096,7 @@ const maxAllowedWidth = Math.max(300, rightBorderX - startX);
           }
         } else {
           for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-           if (lineIdx >= 14) break;
+          if (lineIdx >= linesPerPage) break;
 
             const extraDown = (lineIdx * lineIdx) * (drift * 0.25);
             const lineY = calib.startY + lineIdx * calib.stepY + extraDown;
