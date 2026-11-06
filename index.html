@@ -756,20 +756,21 @@
         const isPrintGrid = currentPaperVal === 'print_grid_black' || currentPaperVal === 'print_grid_red';
         const isGrid = (calib && calib.isGrid) || isPrintGrid;
 
-        let linesPerPage = 21;
-        if (isPrintGrid) {
-          linesPerPage = 20; // 可打印400字稿纸：锁死 20 行，铺满最后 3 行并正常切页
-        } else if (currentPaperVal === 'real_draft') {
-          linesPerPage = 20;
-        } else if (currentPaperVal === 'real_redline') {
-          linesPerPage = 22;
-        } else if (currentPaperVal === 'real_grid_red') {
-          linesPerPage = 14;
-} else if (calib) {
-linesPerPage = calib.rows || 21;
-} else if (PRINT_PAPER_CONFIGS[pKey]) {
-  linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
-}
+let linesPerPage = 21;
+        const pStr = String(currentPaperVal || '');
+        if (isPrintGrid || pStr.includes('print')) {
+            linesPerPage = 20;
+        } else if (pStr.includes('grid') || pStr.includes('红格')) {
+            linesPerPage = 14; // 红格子精准锁定 14 行！
+        } else if (pStr.includes('draft') || pStr.includes('草稿')) {
+            linesPerPage = 20; // 草稿纸恢复满页 20 行！
+        } else if (pStr.includes('redline') || pStr.includes('红线')) {
+            linesPerPage = 22; // 单红线信稿纸恢复满页 22 行！
+        } else if (calib && calib.rows) {
+            linesPerPage = calib.rows;
+        } else if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
+            linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
+        }
 
       const pages = [];
       let currentPageLines = [];
