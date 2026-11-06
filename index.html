@@ -585,15 +585,31 @@
       CURRENT_CFG = getActiveConfig(pKey);
 
 calibPanelBox.style.display = 'flex';
+        const isPrint = pKey.startsWith('print_') || pKey.includes('print');
+
+        // 前5个旋钮：可打印时置灰并禁用，实拍纸正常使用
+        [sliderStartX, sliderStartY, sliderStepX, sliderStepY, sliderBottomDrift].forEach(s => {
+            if (s) {
+                s.disabled = isPrint;
+                const row = s.closest('.calib-row');
+                if (row) row.style.opacity = isPrint ? '0.35' : '1';
+            }
+        });
+
+        // 放宽字号上限到80
+        if (sliderFontSize) sliderFontSize.max = 80;
+
         if (CURRENT_CFG) {
-        calibPanelBox.style.display = 'flex';
-        sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
-        sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
-        sliderStepX.value = CURRENT_CFG.stepX; valStepX.textContent = CURRENT_CFG.stepX;
-        sliderStepY.value = CURRENT_CFG.stepY; valStepY.textContent = CURRENT_CFG.stepY;
-        sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
-        sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
-      }
+            sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
+            sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
+            sliderStepX.value = CURRENT_CFG.stepX; valStepX.textContent = CURRENT_CFG.stepX;
+            sliderStepY.value = CURRENT_CFG.stepY; valStepY.textContent = CURRENT_CFG.stepY;
+            sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
+            sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
+        } else if (isPrint && typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
+            sliderFontSize.value = PRINT_PAPER_CONFIGS[pKey].fontSize || 28;
+            valFontSize.textContent = sliderFontSize.value;
+        }
     }
 
     sliderStartX.oninput = function() { CURRENT_CFG.startX = parseFloat(this.value); valStartX.textContent = this.value; renderAll(); };
