@@ -753,12 +753,17 @@
       const calib = CURRENT_CFG;
       const isGrid = calib && calib.isGrid;
 
-      let linesPerPage = 21;
-      if (pKey === 'real_draft') linesPerPage = 20;
-      else if (pKey === 'real_redline') linesPerPage = 22;
-      else if (pKey === 'real_grid_red') linesPerPage = 21;
-      else if (calib) linesPerPage = calib.maxLines || calib.rows || 21;
-      else if (PRINT_PAPER_CONFIGS[pKey]) linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
+let linesPerPage = 21;
+if (pKey === 'real_draft') linesPerPage = 20;
+else if (pKey === 'real_redline') linesPerPage = 22;
+else if (pKey === 'real_grid_red') linesPerPage = 14;
+else if (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('红格子') || (pKey.includes('格子') && pKey.includes('可打印'))) {
+  linesPerPage = 20; // 可打印400字稿纸：强制锁死20行，铺满最后3行空行并正常切页
+} else if (calib) {
+  linesPerPage = calib.maxLines || calib.rows || 21;
+} else if (PRINT_PAPER_CONFIGS[pKey]) {
+  linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
+}
 
       const pages = [];
       let currentPageLines = [];
