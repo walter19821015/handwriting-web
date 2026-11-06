@@ -811,7 +811,7 @@ if (isGrid) {
           if (curLineChars.length > 0) {
             currentPageLines.push(curLineChars.join(''));
             curLineChars = [];
-            if (currentPageLines.length >= maxRows) {
+            if (currentPageLines.length >= (isPrint400 ? maxRows : 14)) {
               pages.push(currentPageLines);
               currentPageLines = [];
             }
