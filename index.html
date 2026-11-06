@@ -783,14 +783,15 @@
             const char = para[c];
 // 实拍格子保持 14 换行；可打印 400 字格子每行 20 换行
               let gridLineMax = (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('可打印')) ? 20 : 14;
-              if (curLineChars.length >= gridLineMax) {
-              currentPageLines.push(curLineChars.join(''));
-              curLineChars = [];
-              if (currentPageLines.length >= linesPerPage) {
-                pages.push(currentPageLines);
-                currentPageLines = [];
-              }
-            }
+if (curLineChars.length > 0) {
+            currentPageLines.push(curLineChars.join(''));
+            curLineChars = [];
+          }
+          // 只要当前页有哪怕1行字，在段落结束或换页时必须推入 pages，绝不能丢弃末页
+          if (currentPageLines.length > 0) {
+            pages.push(currentPageLines);
+            currentPageLines = [];
+          }
             curLineChars.push(char);
           }
 
