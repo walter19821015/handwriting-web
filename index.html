@@ -584,9 +584,8 @@
       const pKey = paperSelect.value;
       CURRENT_CFG = getActiveConfig(pKey);
 
-      if (!CURRENT_CFG) {
-        calibPanelBox.style.display = 'none';
-      } else {
+calibPanelBox.style.display = 'flex';
+        if (CURRENT_CFG) {
         calibPanelBox.style.display = 'flex';
         sliderStartX.value = CURRENT_CFG.startX; valStartX.textContent = CURRENT_CFG.startX;
         sliderStartY.value = CURRENT_CFG.startY; valStartY.textContent = CURRENT_CFG.startY;
