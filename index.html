@@ -818,7 +818,7 @@ let maxCharsPerLine = 49; // 默认（如 A4纵向单红线）
           } else if (pKey === 'real_redline') {
             maxCharsPerLine = 25; // 实拍单红线
           } else if (pKey.includes('a4_landscape') || pKey.includes('A4-横向') || pKey.includes('a4_h')) {
-            maxCharsPerLine = 73; // A4 横向（更宽，拉满到右边）
+            maxCharsPerLine = 72; // A4 横向（更宽，拉满到右边）
           } else if (pKey.includes('b5_portrait') || pKey.includes('B5-纵向') || pKey.includes('b5_v')) {
             maxCharsPerLine = 41; // B5 纵向（较窄，防右侧溢出）
           } else if (pKey.includes('b5_landscape') || pKey.includes('B5-横向') || pKey.includes('b5_h')) {
