@@ -812,7 +812,7 @@
             // ----------------------------------------------------------
             // 纯中文逻辑：100% 保持原有逻辑不变
             // ----------------------------------------------------------
-let maxCharsPerLine = (pKey === 'real_draft') ? 21 : ((pKey === 'real_redline') ? 25 : 52);
+let maxCharsPerLine = (pKey === 'real_draft') ? 21 : ((pKey === 'real_redline') ? 25 : 49);
             for (let c = 0; c < para.length; c++) {
               const char = para[c];
               if (curLineChars.length >= maxCharsPerLine) {
