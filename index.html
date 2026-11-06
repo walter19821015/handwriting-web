@@ -766,7 +766,7 @@
         } else if (currentPaperVal === 'real_grid_red') {
           linesPerPage = 14;
 } else if (calib) {
-  linesPerPage =  || calib.rows || 21;
+linesPerPage = calib.rows || 21;
 } else if (PRINT_PAPER_CONFIGS[pKey]) {
   linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
 }
