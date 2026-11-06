@@ -787,55 +787,33 @@
         // 【分支 A：方格纸张】严格保持原中文格子切分逻辑，满 14 字换行
         // ==============================================================
 if (isGrid) {
-        // 1. 可打印 400 字稿纸 (20 字 × 20 行)
+          // 精确识别当前纸张是可打印400字还是实拍纸
           const currentPaper = (typeof pKey !== 'undefined' ? pKey : (document.getElementById('paperSelect') ? document.getElementById('paperSelect').value : ''));
-          if (currentPaper.includes('400') || currentPaper.includes('grid') || currentPaper.includes('格子')) {
-            const gridMaxChars = 20;
-            const gridMaxLines = 20;
+          const isPrint400 = currentPaper === 'print_grid_black' || currentPaper === 'print_grid_red' || currentPaper.includes('400');
+          
+          const maxCols = isPrint400 ? 20 : 14;   // 每行字数：可打印20字，实拍14字
+          const maxRows = isPrint400 ? 20 : 14;   // 每页行数：可打印20行，实拍14行
 
-            for (let c = 0; c < para.length; c++) {
-              curLineChars.push(para[c]);
-              if (curLineChars.length >= gridMaxChars) {
-                currentPageLines.push(curLineChars.join(''));
-                curLineChars = [];
-                if (currentPageLines.length >= gridMaxLines) {
-                  pages.push(currentPageLines);
-                  currentPageLines = [];
-                }
-              }
-            }
-
-if (curLineChars.length > 0) {
+          // 1. 字符逐个填入行
+          for (let c = 0; c < para.length; c++) {
+            curLineChars.push(para[c]);
+            if (curLineChars.length >= maxCols) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
-            }
-            if (currentPageLines.length > 0) {
-              pages.push(currentPageLines);
-              currentPageLines = [];
-            }
-          }
-          // 2. 实拍红格子稿纸（完全保持原样，严格 14 字换行）
-          else {
-            for (let c = 0; c < para.length; c++) {
-              const char = para[c];
-              if (curLineChars.length >= 14) {
-                currentPageLines.push(curLineChars.join(''));
-                curLineChars = [];
-                if (currentPageLines.length >= linesPerPage) {
-                  pages.push(currentPageLines);
-                  currentPageLines = [];
-                }
-              }
-              curLineChars.push(char);
-            }
-
-            if (curLineChars.length > 0) {
-              currentPageLines.push(curLineChars.join(''));
-              curLineChars = [];
-              if (currentPageLines.length >= linesPerPage) {
+              if (currentPageLines.length >= maxRows) {
                 pages.push(currentPageLines);
                 currentPageLines = [];
               }
+            }
+          }
+
+          // 2. 段落结尾：只换到下一行，绝不强行换页！
+          if (curLineChars.length > 0) {
+            currentPageLines.push(curLineChars.join(''));
+            curLineChars = [];
+            if (currentPageLines.length >= maxRows) {
+              pages.push(currentPageLines);
+              currentPageLines = [];
             }
           }
         }
