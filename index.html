@@ -766,7 +766,7 @@
         } else if (currentPaperVal === 'real_grid_red') {
           linesPerPage = 14;
 } else if (calib) {
-  linesPerPage = calib.maxLines || calib.rows || 21;
+  linesPerPage =  || calib.rows || 21;
 } else if (PRINT_PAPER_CONFIGS[pKey]) {
   linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
 }
@@ -792,7 +792,7 @@ if (isGrid) {
           const isPrint400 = currentPaper === 'print_grid_black' || currentPaper === 'print_grid_red' || currentPaper.includes('400');
           
           const maxCols = isPrint400 ? 20 : 14;   // 每行字数：可打印20字，实拍14字
-         const maxRows = isPrint400 ? 20 : (calib && calib.maxLines ? calib.maxLines : linesPerPage);
+         const maxRows = isPrint400 ? 20 : 14;
 
           // 1. 字符逐个填入行
           for (let c = 0; c < para.length; c++) {
@@ -1096,7 +1096,7 @@ const maxAllowedWidth = Math.max(300, rightBorderX - startX);
           }
         } else {
           for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-            if (lineIdx >= calib.maxLines) break;
+            if (lineIdx >= ) break;
 
             const extraDown = (lineIdx * lineIdx) * (drift * 0.25);
             const lineY = calib.startY + lineIdx * calib.stepY + extraDown;
