@@ -929,64 +929,74 @@ if (!isEnglishDominant) {
                 currentPageLines = [];
               }
             }
-          } else {
-            // 英文逻辑
-            let startX = 189;
-            let rightBorderX = 1040;
-            let baseStep = 34.6 * 0.6;
+} else {
+            // 英文逻辑：按右侧无形竖线动态计算单词累计宽度
+            let fixedMaxWords = 0;
+            if (pKey === 'real_draft') fixedMaxWords = 7;
+            else if (pKey === 'real_redline') fixedMaxWords = 9;
 
-            if (pKey === 'real_redline') {
-              startX = (calib && calib.startX) ? calib.startX : 189;
-              rightBorderX = 1040;
-              baseStep = ((calib && calib.stepX) ? calib.stepX : 34.6) * 0.6;
-            } else if (pKey === 'real_draft') {
-              startX = (calib && calib.startX) ? calib.startX : 930;
-              rightBorderX = 1580;
-              baseStep = ((calib && calib.stepX) ? calib.stepX : 30.7) * 0.6;
-            } else if (calib) {
-              startX = calib.startX || 180;
-              rightBorderX = (calib.w || 1240) - 150;
-              baseStep = (calib.stepX || 34.6) * 0.6;
-            } else if (PRINT_PAPER_CONFIGS[pKey]) {
-              const cfg = PRINT_PAPER_CONFIGS[pKey];
-              const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
-              startX = cfg.marginX;
-              rightBorderX = cfg.w - cfg.marginX;
-              baseStep = curSize * 0.55;
-            }
+            const words = para.split(/\s+/).filter(w => w.length > 0);
 
-            const maxAllowedWidth = Math.max(300, rightBorderX - startX);
-            const tokens = para.match(/[a-zA-Z0-9'’\-]+|[\u4e00-\u9fa5]|\s+|./g) || [para];
-            let currentLineStr = '';
-            let currentLineWidth = 0;
-
-            for (let t = 0; t < tokens.length; t++) {
-              const token = tokens[t];
-              let tokenWidth = 0;
-              for (let i = 0; i < token.length; i++) {
-                const ch = token[i];
-                tokenWidth += /[a-zA-Z0-9\(\)\,\.\:\s]/.test(ch) ? baseStep : (baseStep * 1.6);
+            if (fixedMaxWords > 0) {
+              // 实拍纸保持固定单词数
+              let currentLineWords = [];
+              for (let w = 0; w < words.length; w++) {
+                if (currentLineWords.length >= fixedMaxWords) {
+                  currentPageLines.push(currentLineWords.join(' '));
+                  currentLineWords = [];
+                  if (currentPageLines.length >= linesPerPage) {
+                    pages.push(currentPageLines);
+                    currentPageLines = [];
+                  }
+                }
+                currentLineWords.push(words[w]);
               }
-
-              if (currentLineWidth + tokenWidth > maxAllowedWidth && currentLineStr.trim().length > 0) {
-                currentPageLines.push(currentLineStr);
+              if (currentLineWords.length > 0) {
+                currentPageLines.push(currentLineWords.join(' '));
+                currentLineWords = [];
                 if (currentPageLines.length >= linesPerPage) {
                   pages.push(currentPageLines);
                   currentPageLines = [];
                 }
-                currentLineStr = token.startsWith(' ') ? token.trimStart() : token;
-                currentLineWidth = tokenWidth;
-              } else {
-                currentLineStr += token;
-                currentLineWidth += tokenWidth;
               }
-            }
+            } else {
+              // 可打印纸系列：按真实渲染宽度一路排到右侧末端
+              const pCfg = (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) ? PRINT_PAPER_CONFIGS[pKey] : { w: 1240, marginX: 120 };
+              const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
+              // 右侧竖线警戒坐标（直接拉满到横线右端）
+              const maxRowWidth = Math.max(300, (pCfg.w || 1240) - (pCfg.marginX * 2));
+              const charAvgW = curSize * 0.52; // 英文字符平均渲染宽度
 
-            if (currentLineStr.length > 0) {
-              currentPageLines.push(currentLineStr);
-              if (currentPageLines.length >= linesPerPage) {
-                pages.push(currentPageLines);
-                currentPageLines = [];
+              let currentLineWords = [];
+              let curLineWidth = 0;
+
+              for (let w = 0; w < words.length; w++) {
+                const word = words[w];
+                // 计算当前单词及其前置空格的实际像素宽度
+                const wordW = (word.length + (currentLineWords.length > 0 ? 1 : 0)) * charAvgW;
+
+                // 只要再塞一个单词会撞上右侧竖线，立即换行
+                if (curLineWidth + wordW > maxRowWidth && currentLineWords.length > 0) {
+                  currentPageLines.push(currentLineWords.join(' '));
+                  currentLineWords = [];
+                  curLineWidth = 0;
+                  if (currentPageLines.length >= linesPerPage) {
+                    pages.push(currentPageLines);
+                    currentPageLines = [];
+                  }
+                }
+
+                currentLineWords.push(word);
+                curLineWidth += (word.length + (currentLineWords.length > 1 ? 1 : 0)) * charAvgW;
+              }
+
+              if (currentLineWords.length > 0) {
+                currentPageLines.push(currentLineWords.join(' '));
+                currentLineWords = [];
+                if (currentPageLines.length >= linesPerPage) {
+                  pages.push(currentPageLines);
+                  currentPageLines = [];
+                }
               }
             }
           }
