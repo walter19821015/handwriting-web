@@ -761,7 +761,7 @@ let linesPerPage = 21;
         if (isPrintGrid || pStr.includes('print')) {
             linesPerPage = 20;
         } else if (pStr.includes('grid') || pStr.includes('红格')) {
-            linesPerPage = 14; // 红格子精准锁定 14 行！
+            linesPerPage = 21; // 红格子精准锁定 21 行！
         } else if (pStr.includes('draft') || pStr.includes('草稿')) {
             linesPerPage = 20; // 草稿纸恢复满页 20 行！
         } else if (pStr.includes('redline') || pStr.includes('红线')) {
