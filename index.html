@@ -793,13 +793,13 @@ if (isGrid) {
               }
             }
 
-            if (curLineChars.length > 0) {
+if (curLineChars.length > 0) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
-              if (currentPageLines.length >= gridMaxLines) {
-                pages.push(currentPageLines);
-                currentPageLines = [];
-              }
+            }
+            if (currentPageLines.length > 0) {
+              pages.push(currentPageLines);
+              currentPageLines = [];
             }
           }
           // 2. 实拍红格子稿纸（完全保持原样，严格 14 字换行）
