@@ -617,7 +617,18 @@ calibPanelBox.style.display = 'flex';
     sliderStepX.oninput = function() { CURRENT_CFG.stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); };
     sliderStepY.oninput = function() { CURRENT_CFG.stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); };
     sliderBottomDrift.oninput = function() { CURRENT_CFG.bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); };
-sliderFontSize.oninput = function() { CURRENT_CFG.fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); };
+   sliderFontSize.oninput = function() {
+    const val = parseFloat(this.value);
+    valFontSize.textContent = val;
+    const pKey = paperSelect.value;
+    if (CURRENT_CFG) {
+        CURRENT_CFG.fontSize = val;
+    }
+    if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
+        PRINT_PAPER_CONFIGS[pKey].fontSize = val;
+    }
+    renderAll();
+};
 
     btnSaveConfig.onclick = function() {
       const pKey = paperSelect.value;
@@ -782,14 +793,9 @@ let linesPerPage = 20;
             linesPerPage = 20; // 草稿纸：写满 20 行
         } else if (calib && calib.rows) {
             linesPerPage = calib.rows;
-} else if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
-    if (isPrintGrid) {
-        linesPerPage = 20;
-    } else {
-        const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : 28;
-        linesPerPage = Math.max(8, Math.floor(860 / (curSize * 1.55)));
-    }
-}
+        } else if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
+            linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || 20;
+        }
 
       const pages = [];
       let currentPageLines = [];
@@ -1176,7 +1182,7 @@ const maxAllowedWidth = Math.max(300, rightBorderX - startX);
       // 4. 标准印刷纸张绘制
       // =========================================================================
       else if (printCfg) {
-        const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : (sliderFontSize ? parseFloat(sliderFontSize.value) : 24);
+        const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : 24;
 
         if (printCfg.mode === 'grid_print') {
           for (let row = 0; row < pageLines.length; row++) {
