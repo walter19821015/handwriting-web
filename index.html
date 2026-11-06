@@ -1096,7 +1096,7 @@ const maxAllowedWidth = Math.max(300, rightBorderX - startX);
           }
         } else {
           for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
-          if (lineIdx >= linesPerPage) break;
+         if (calib && calib.rows && lineIdx >= calib.rows) break;
 
             const extraDown = (lineIdx * lineIdx) * (drift * 0.25);
             const lineY = calib.startY + lineIdx * calib.stepY + extraDown;
