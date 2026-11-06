@@ -751,14 +751,20 @@
     // 3. 英文单词到达右侧警戒红线前必须整词换行，彻底锁死溢出！
     function computePagination(text, pKey) {
       const calib = CURRENT_CFG;
-      const isGrid = calib && calib.isGrid;
+// 彻底判定方格纸：实拍红格子 OR 可打印黑/红格子
+        const currentPaperVal = (typeof pKey !== 'undefined' ? pKey : (document.getElementById('paperSelect') ? document.getElementById('paperSelect').value : ''));
+        const isPrintGrid = currentPaperVal === 'print_grid_black' || currentPaperVal === 'print_grid_red';
+        const isGrid = (calib && calib.isGrid) || isPrintGrid;
 
-let linesPerPage = 21;
-if (pKey === 'real_draft') linesPerPage = 20;
-else if (pKey === 'real_redline') linesPerPage = 22;
-else if (pKey === 'real_grid_red') linesPerPage = 14;
-else if (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('红格子') || (pKey.includes('格子') && pKey.includes('可打印'))) {
-  linesPerPage = 20; // 可打印400字稿纸：强制锁死20行，铺满最后3行空行并正常切页
+        let linesPerPage = 21;
+        if (isPrintGrid) {
+          linesPerPage = 20; // 可打印400字稿纸：锁死 20 行，铺满最后 3 行并正常切页
+        } else if (currentPaperVal === 'real_draft') {
+          linesPerPage = 20;
+        } else if (currentPaperVal === 'real_redline') {
+          linesPerPage = 22;
+        } else if (currentPaperVal === 'real_grid_red') {
+          linesPerPage = 14;
 } else if (calib) {
   linesPerPage = calib.maxLines || calib.rows || 21;
 } else if (PRINT_PAPER_CONFIGS[pKey]) {
@@ -781,8 +787,9 @@ else if (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('�
         // 【分支 A：方格纸张】严格保持原中文格子切分逻辑，满 14 字换行
         // ==============================================================
 if (isGrid) {
-// 1. 可打印 400 字稿纸（20 字 × 20 行）
-          if (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('红格子') || (pKey.includes('格子') && pKey.includes('可打印'))) {
+        // 1. 可打印 400 字稿纸 (20 字 × 20 行)
+          const currentPaper = (typeof pKey !== 'undefined' ? pKey : (document.getElementById('paperSelect') ? document.getElementById('paperSelect').value : ''));
+          if (currentPaper.includes('400') || currentPaper.includes('grid') || currentPaper.includes('格子')) {
             const gridMaxChars = 20;
             const gridMaxLines = 20;
 
