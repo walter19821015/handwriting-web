@@ -802,32 +802,42 @@
         // 【分支 B：非方格纸张】(实拍信纸、草稿纸、可打印 A4/B5/A3 等)
         // 区分中文与英文：中文单行字数锁死；英文沿纵向红线锁死 X 轴终点，绝不溢出！
         // ==============================================================
-        else {
+else {
           // 检测当前段落是否以英文/西文为主
           const englishCharCount = (para.match(/[a-zA-Z]/g) || []).length;
           const isEnglishDominant = englishCharCount > (para.length * 0.3);
-if (!isEnglishDominant) {
-// 彻底分开实拍版与可打印版，绝不互相影响
-          const currentPaperKey = (typeof currentPaper !== 'undefined' && currentPaper) 
-            ? currentPaper 
-            : (typeof pKey !== 'undefined' ? pKey : '');
 
-          let maxCharsPerLine = 25;
+          if (!isEnglishDominant) {
+            let maxCharsPerLine = 25;
+            const currentPaperKey = (typeof currentPaper !== 'undefined' && currentPaper) 
+              ? currentPaper 
+              : (typeof pKey !== 'undefined' ? pKey : '');
 
-          // 1. 实拍版（草稿纸死守21，单红线死守22）
-          if (currentPaperKey === 'real_draft' || currentPaperKey.includes('draft') || currentPaperKey.includes('草稿')) {
-            maxCharsPerLine = 21;
-          } else if (currentPaperKey === 'real_redline' || currentPaperKey.includes('real') || currentPaperKey.includes('实拍')) {
-            maxCharsPerLine = 22;
-          } 
-          // 2. 可打印版（独立字数，写满整行）
-          else {
-            maxCharsPerLine = 42;
-          }
+            // 1. 实拍纸：绝对固定字数
+            if (currentPaperKey === 'real_draft' || currentPaperKey.includes('draft') || currentPaperKey.includes('草稿')) {
+              maxCharsPerLine = 21; // 草稿纸锁死 21
+            } else if (currentPaperKey === 'real_redline' || currentPaperKey.includes('real') || currentPaperKey.includes('实拍')) {
+              maxCharsPerLine = 22; // 单红线锁死 22
+            } 
+            // 2. 可打印纸：放宽至 42 字写满整行
+            else {
+              maxCharsPerLine = 42;
+            }
 
-          for (let c = 0; c < para.length; c++) {
-            const char = para[c];
-            if (curLineChars.length >= maxCharsPerLine) {
+            for (let c = 0; c < para.length; c++) {
+              const char = para[c];
+              if (curLineChars.length >= maxCharsPerLine) {
+                currentPageLines.push(curLineChars.join(''));
+                curLineChars = [];
+                if (currentPageLines.length >= linesPerPage) {
+                  pages.push(currentPageLines);
+                  currentPageLines = [];
+                }
+              }
+              curLineChars.push(char);
+            }
+
+            if (curLineChars.length > 0) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
               if (currentPageLines.length >= linesPerPage) {
@@ -835,19 +845,7 @@ if (!isEnglishDominant) {
                 currentPageLines = [];
               }
             }
-            curLineChars.push(char);
-}
-
-          if (curLineChars.length > 0) {
-            currentPageLines.push(curLineChars.join(''));
-            curLineChars = [];
-            if (currentPageLines.length >= linesPerPage) {
-              pages.push(currentPageLines);
-              currentPageLines = [];
-            }
-          }
-        } else {
-            // ----------------------------------------------------------
+          } else {
             // 英文逻辑：严格沿纵轴锁死信纸两侧纵向边界线！
             // ----------------------------------------------------------
             let startX = 189;
