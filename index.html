@@ -776,10 +776,14 @@
         // 【分支 A：方格纸张】严格保持原中文格子切分逻辑，满 14 字换行
         // ==============================================================
         if (isGrid) {
+          if (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('可打印')) {
+            linesPerPage = 20; // 400字稿纸强制锁定 20 行，确保 20 行 × 20 字 = 400 字/页
+          }
           for (let c = 0; c < para.length; c++) {
             const char = para[c];
-            // 红格子：满 14 个字符立刻切行！第 15 个字进入下一行第 1 格！
-            if (curLineChars.length >= 14) {
+// 实拍格子保持 14 换行；可打印 400 字格子每行 20 换行
+              let gridLineMax = (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('可打印')) ? 20 : 14;
+              if (curLineChars.length >= gridLineMax) {
               currentPageLines.push(curLineChars.join(''));
               curLineChars = [];
               if (currentPageLines.length >= linesPerPage) {
