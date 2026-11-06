@@ -756,19 +756,22 @@
         const isPrintGrid = currentPaperVal === 'print_grid_black' || currentPaperVal === 'print_grid_red';
         const isGrid = (calib && calib.isGrid) || isPrintGrid;
 
-let linesPerPage = 20;
+let linesPerPage = 21;
         const pStr = String(currentPaperVal || '');
-        if (pStr.includes('grid') || pStr.includes('红格')) {
-            linesPerPage = isPrintGrid ? 20 : 14;
-        } else if (pStr.includes('draft') || pStr.includes('草稿')) {
+        if (isPrintGrid || pStr.includes('print')) {
             linesPerPage = 20;
+        } else if (pStr.includes('grid') || pStr.includes('红格')) {
+            linesPerPage = 21; // 红格子精准锁定 21 行！
+        } else if (pStr.includes('draft') || pStr.includes('草稿')) {
+            linesPerPage = 20; // 草稿纸恢复满页 20 行！
         } else if (pStr.includes('redline') || pStr.includes('红线')) {
-            linesPerPage = 22;
+            linesPerPage = 22; // 单红线信稿纸恢复满页 22 行！
         } else if (calib && calib.rows) {
             linesPerPage = calib.rows;
         } else if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
-            linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || 20;
+            linesPerPage = PRINT_PAPER_CONFIGS[pKey].lines || PRINT_PAPER_CONFIGS[pKey].rows || 20;
         }
+
       const pages = [];
       let currentPageLines = [];
       let curLineChars = [];
