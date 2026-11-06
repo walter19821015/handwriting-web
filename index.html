@@ -836,15 +836,17 @@ if (!isEnglishDominant) {
               }
             }
             curLineChars.push(char);
-          }
-              currentPageLines.push(curLineChars.join(''));
-              curLineChars = [];
-              if (currentPageLines.length >= linesPerPage) {
-                pages.push(currentPageLines);
-                currentPageLines = [];
-              }
+}
+
+          if (curLineChars.length > 0) {
+            currentPageLines.push(curLineChars.join(''));
+            curLineChars = [];
+            if (currentPageLines.length >= linesPerPage) {
+              pages.push(currentPageLines);
+              currentPageLines = [];
             }
-          } else {
+          }
+        } else {
             // ----------------------------------------------------------
             // 英文逻辑：严格沿纵轴锁死信纸两侧纵向边界线！
             // ----------------------------------------------------------
