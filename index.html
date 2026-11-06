@@ -637,6 +637,7 @@
       if (CURRENT_CFG) {
         CURRENT_CFG.fontSize = val;
       }
+      updateCanvasViewWidth();
       renderAll();
     };
 
@@ -1336,8 +1337,8 @@
 
     textInput.oninput = renderAll;
     fontSelect.onchange = function() { switchFont(this.value); };
-   paperSelect.onchange = function() {
-      const pKey = this.value;
+function updateCanvasViewWidth() {
+      const pKey = paperSelect.value;
       const isWidePaper = [
         'print_a4_h',
         'print_b5_v',
@@ -1347,18 +1348,23 @@
       ].includes(pKey);
 
       if (isWidePaper) {
-        // 仅这 5 款大纸：放开最大宽度，让画布按比例自然铺开，滑块能一路拖到最右边
+        // 随字号动态伸展宽度：字号越大画布越宽，确保底部的横向滑动条能完整滑到最右侧边缘
+        const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : 28;
+        const dynamicW = Math.max(1000, Math.floor(curSize * 32));
         canvas.style.maxWidth = 'none';
-        canvas.style.width = '1000px'; 
+        canvas.style.width = dynamicW + 'px';
       } else {
-        // 实拍纸及标准A4/方格：严谨贴合视窗，原汁原味整页预览
+        // 实拍纸及标准A4：贴合视窗，整页自然预览
         canvas.style.maxWidth = '100%';
         canvas.style.width = 'auto';
       }
+    }
 
+    paperSelect.onchange = function() {
       syncCalibUI();
+      updateCanvasViewWidth();
       renderAll();
-};
+    };
 
   paperSelect.onchange();
   renderAll();
