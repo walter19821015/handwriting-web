@@ -796,9 +796,8 @@
             if (currentPageLines.length >= linesPerPage) {
               pages.push(currentPageLines);
               currentPageLines = [];
-            }
-          }
         }
+          }
         // ==============================================================
         // 【分支 B：非方格纸张】(实拍信纸、草稿纸、可打印 A4/B5/A3 等)
         // 区分中文与英文：中文单行字数锁死；英文沿纵向红线锁死 X 轴终点，绝不溢出！
@@ -807,7 +806,7 @@
           // 检测当前段落是否以英文/西文为主
           const englishCharCount = (para.match(/[a-zA-Z]/g) || []).length;
           const isEnglishDominant = englishCharCount > (para.length * 0.3);
-
+if (!isEnglishDominant) {
 // 彻底分开实拍版与可打印版，绝不互相影响
           const currentPaperKey = (typeof currentPaper !== 'undefined' && currentPaper) 
             ? currentPaper 
