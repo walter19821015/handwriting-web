@@ -812,7 +812,22 @@
             // ----------------------------------------------------------
             // 纯中文逻辑：100% 保持原有逻辑不变
             // ----------------------------------------------------------
-let maxCharsPerLine = (pKey === 'real_draft') ? 21 : ((pKey === 'real_redline') ? 25 : 49);
+let maxCharsPerLine = 49; // 默认（如 A4纵向单红线）
+          if (pKey === 'real_draft') {
+            maxCharsPerLine = 21; // 实拍草稿纸
+          } else if (pKey === 'real_redline') {
+            maxCharsPerLine = 25; // 实拍单红线
+          } else if (pKey.includes('a4_landscape') || pKey.includes('A4-横向') || pKey.includes('a4_h')) {
+            maxCharsPerLine = 74; // A4 横向（更宽，拉满到右边）
+          } else if (pKey.includes('b5_portrait') || pKey.includes('B5-纵向') || pKey.includes('b5_v')) {
+            maxCharsPerLine = 44; // B5 纵向（较窄，防右侧溢出）
+          } else if (pKey.includes('b5_landscape') || pKey.includes('B5-横向') || pKey.includes('b5_h')) {
+            maxCharsPerLine = 62; // B5 横向
+          } else if (pKey.includes('a3_landscape') || pKey.includes('A3-横向') || pKey.includes('a3_h')) {
+            maxCharsPerLine = 105; // A3 横向（超宽规格，排满）
+          } else if (pKey.includes('a3') || pKey.includes('A3')) {
+            maxCharsPerLine = 75; // A3 纵向
+          }
             for (let c = 0; c < para.length; c++) {
               const char = para[c];
               if (curLineChars.length >= maxCharsPerLine) {
