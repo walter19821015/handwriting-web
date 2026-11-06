@@ -617,7 +617,18 @@ calibPanelBox.style.display = 'flex';
     sliderStepX.oninput = function() { CURRENT_CFG.stepX = parseFloat(this.value); valStepX.textContent = this.value; renderAll(); };
     sliderStepY.oninput = function() { CURRENT_CFG.stepY = parseFloat(this.value); valStepY.textContent = this.value; renderAll(); };
     sliderBottomDrift.oninput = function() { CURRENT_CFG.bottomDrift = parseFloat(this.value); valBottomDrift.textContent = this.value; renderAll(); };
-    sliderFontSize.oninput = function() { CURRENT_CFG.fontSize = parseFloat(this.value); valFontSize.textContent = this.value; renderAll(); };
+   sliderFontSize.oninput = function() {
+    const val = parseFloat(this.value);
+    valFontSize.textContent = val;
+    const pKey = paperSelect.value;
+    if (CURRENT_CFG) {
+        CURRENT_CFG.fontSize = val;
+    }
+    if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
+        PRINT_PAPER_CONFIGS[pKey].fontSize = val;
+    }
+    renderAll();
+};
 
     btnSaveConfig.onclick = function() {
       const pKey = paperSelect.value;
