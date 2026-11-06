@@ -776,8 +776,8 @@
         // 【分支 A：方格纸张】严格保持原中文格子切分逻辑，满 14 字换行
         // ==============================================================
 if (isGrid) {
-          // 1. 可打印 400 字稿纸（20 字 × 20 行）
-          if (pKey.includes('400') || pKey.includes('黑格子') || (pKey.includes('格子') && pKey.includes('可打印'))) {
+// 1. 可打印 400 字稿纸（20 字 × 20 行）
+          if (pKey.includes('400') || pKey.includes('黑格子') || pKey.includes('红格子') || (pKey.includes('格子') && pKey.includes('可打印'))) {
             const gridMaxChars = 20;
             const gridMaxLines = 20;
 
@@ -801,7 +801,7 @@ if (isGrid) {
                 currentPageLines = [];
               }
             }
-          } 
+          }
           // 2. 实拍红格子稿纸（完全保持原样，严格 14 字换行）
           else {
             for (let c = 0; c < para.length; c++) {
