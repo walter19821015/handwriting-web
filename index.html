@@ -792,7 +792,7 @@ if (isGrid) {
           const isPrint400 = currentPaper === 'print_grid_black' || currentPaper === 'print_grid_red' || currentPaper.includes('400');
           
           const maxCols = isPrint400 ? 20 : 14;   // 每行字数：可打印20字，实拍14字
-          const maxRows = isPrint400 ? 20 : 14;   // 每页行数：可打印20行，实拍14行
+         const maxRows = isPrint400 ? 20 : (calib && calib.maxLines ? calib.maxLines : linesPerPage);
 
           // 1. 字符逐个填入行
           for (let c = 0; c < para.length; c++) {
