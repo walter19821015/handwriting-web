@@ -390,8 +390,8 @@
             </optgroup>
             <optgroup label="—— 印刷/打印标准纸张 ——">
               <option value="print_redline_a4_new">可打印-单红线 A4 信稿纸-新</option>
-              <option value="print_grid_black">可打印-黑格子稿纸 (400字/页)-高清</option>
-              <option value="print_grid_red">可打印-红格子稿纸 (400字/页)-高清</option>
+              <option value="print_grid_black">可打印-黑格子稿纸 (200字/页)-高清</option>
+              <option value="print_grid_red">可打印-红格子稿纸 (200字/页)-高清</option>
               <option value="print_a4_v">可打印-A4纸-纵向-600dpi 高清</option>
               <option value="print_a4_h">可打印-A4纸-横向-600dpi 高清</option>
               <option value="print_b5_v">可打印-B5纸-纵向-600dpi 高清</option>
@@ -837,8 +837,15 @@
           const currentPaper = (typeof pKey !== 'undefined' ? pKey : (document.getElementById('paperSelect') ? document.getElementById('paperSelect').value : ''));
           const isPrint400 = currentPaper === 'print_grid_black' || currentPaper === 'print_grid_red' || currentPaper.includes('400');
           
-          const maxCols = isPrint400 ? 20 : 14;
-          const maxRows = isPrint400 ? 20 : 21;
+          let maxCols = 14;
+          let maxRows = 21;
+          if (isPrintGrid) {
+            const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
+            const gridSize = Math.max(38, Math.floor(curSize * 1.38));
+            const pCfg = PRINT_PAPER_CONFIGS[pKey] || { w: 1200, h: 1600, marginX: 110, marginY: 220 };
+            maxCols = Math.max(4, Math.floor((pCfg.w - pCfg.marginX * 2) / gridSize));
+            maxRows = Math.max(4, Math.floor((pCfg.h - pCfg.marginY - 120) / gridSize));
+          }
 
           for (let c = 0; c < para.length; c++) {
             curLineChars.push(para[c]);
@@ -1042,20 +1049,28 @@ if (!isEnglishDominant) {
             ctx.lineTo(canvasW - printCfg.marginX, y);
             ctx.stroke();
           }
-        } else if (printCfg.mode === 'grid_print') {
+} else if (printCfg.mode === 'grid_print') {
+          const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
+          // 单个格子尺寸随字号等比缩放，留出自然居中边距
+          const gridSize = Math.max(38, Math.floor(curSize * 1.38));
+          const availW = canvasW - printCfg.marginX * 2;
+          const availH = canvasH - printCfg.marginY - 120;
+          const cols = Math.max(4, Math.floor(availW / gridSize));
+          const rows = Math.max(4, Math.floor(availH / gridSize));
+          const totalW = cols * gridSize;
+          const totalH = rows * gridSize;
+
           ctx.strokeStyle = printCfg.color;
           ctx.lineWidth = 1.0;
-          const totalW = printCfg.cols * printCfg.size;
-          const totalH = printCfg.rows * printCfg.size;
-          for (let r = 0; r <= printCfg.rows; r++) {
-            const y = printCfg.marginY + r * printCfg.size;
+          for (let r = 0; r <= rows; r++) {
+            const y = printCfg.marginY + r * gridSize;
             ctx.beginPath();
             ctx.moveTo(printCfg.marginX, y);
             ctx.lineTo(printCfg.marginX + totalW, y);
             ctx.stroke();
           }
-          for (let c = 0; c <= printCfg.cols; c++) {
-            const x = printCfg.marginX + c * printCfg.size;
+          for (let c = 0; c <= cols; c++) {
+            const x = printCfg.marginX + c * gridSize;
             ctx.beginPath();
             ctx.moveTo(x, printCfg.marginY);
             ctx.lineTo(x, printCfg.marginY + totalH);
@@ -1208,13 +1223,20 @@ if (!isEnglishDominant) {
         const realFontSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
         const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : realFontSize;
 
-        if (printCfg.mode === 'grid_print') {
+if (printCfg.mode === 'grid_print') {
+          const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
+          const gridSize = Math.max(38, Math.floor(curSize * 1.38));
+          const availW = canvasW - printCfg.marginX * 2;
+          const availH = canvasH - printCfg.marginY - 120;
+          const dynamicCols = Math.max(4, Math.floor(availW / gridSize));
+          const dynamicRows = Math.max(4, Math.floor(availH / gridSize));
+
           for (let row = 0; row < pageLines.length; row++) {
-            if (row >= printCfg.rows) break;
+            if (row >= dynamicRows) break;
             const lineText = pageLines[row];
 
             for (let col = 0; col < lineText.length; col++) {
-              if (col >= printCfg.cols) break;
+              if (col >= dynamicCols) break;
               const char = lineText[col];
 
               const charCode = char.charCodeAt(0);
@@ -1231,12 +1253,12 @@ if (!isEnglishDominant) {
               const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
               const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-              const cellCenterX = printCfg.marginX + col * printCfg.size + (printCfg.size * 0.5);
-              const cellBottomY = printCfg.marginY + (row + 1) * printCfg.size;
+const cellCenterX = printCfg.marginX + col * gridSize + (gridSize * 0.5);
+              const cellBottomY = printCfg.marginY + (row + 1) * gridSize;
 
               // 位置乱乱度微移
-              const jX = (hashRandom(seed + 6) - 0.5) * (printCfg.size * 0.08 * posChaos);
-              const jY = (hashRandom(seed + 7) - 0.5) * (printCfg.size * 0.06 * posChaos);
+              const jX = (hashRandom(seed + 6) - 0.5) * (gridSize * 0.08 * posChaos);
+              const jY = (hashRandom(seed + 7) - 0.5) * (gridSize * 0.06 * posChaos);
               const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
               ctx.save();
