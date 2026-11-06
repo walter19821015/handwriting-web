@@ -866,40 +866,52 @@
           const englishCharCount = (para.match(/[a-zA-Z]/g) || []).length;
           const isEnglishDominant = englishCharCount > (para.length * 0.3);
 
-          if (!isEnglishDominant) {
-            let maxCharsPerLine = 49;
-            if (pKey === 'real_draft') {
-              maxCharsPerLine = 21;
-            } else if (pKey === 'real_redline') {
-              maxCharsPerLine = 25;
-            } else if (pKey.includes('a4_landscape') || pKey.includes('A4-横向') || pKey.includes('a4_h')) {
-              maxCharsPerLine = 72;
-            } else if (pKey.includes('b5_portrait') || pKey.includes('B5-纵向') || pKey.includes('b5_v')) {
-              maxCharsPerLine = 41;
-            } else if (pKey.includes('b5_landscape') || pKey.includes('B5-横向') || pKey.includes('b5_h')) {
-              maxCharsPerLine = 61;
-            } else if (pKey.includes('a3_landscape') || pKey.includes('A3-横向') || pKey.includes('a3_h')) {
-              maxCharsPerLine = 104;
-            } else if (pKey.includes('a3') || pKey.includes('A3')) {
-              maxCharsPerLine = 71;
-            } else if (PRINT_PAPER_CONFIGS[pKey]) {
-              const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
-              const pCfg = PRINT_PAPER_CONFIGS[pKey];
-              const safeLineWidth = (pCfg.w || 1240) - (pCfg.marginX * 2);
-              maxCharsPerLine = Math.max(10, Math.floor(safeLineWidth / (curSize * 0.95)));
-            }
+if (!isEnglishDominant) {
+            // 实拍纸维持原固定字数标定
+            let fixedMaxChars = 0;
+            if (pKey === 'real_draft') fixedMaxChars = 21;
+            else if (pKey === 'real_redline') fixedMaxChars = 25;
 
-            for (let c = 0; c < para.length; c++) {
-              const char = para[c];
-              if (curLineChars.length >= maxCharsPerLine) {
-                currentPageLines.push(curLineChars.join(''));
-                curLineChars = [];
-                if (currentPageLines.length >= linesPerPage) {
-                  pages.push(currentPageLines);
-                  currentPageLines = [];
+            if (fixedMaxChars > 0) {
+              for (let c = 0; c < para.length; c++) {
+                if (curLineChars.length >= fixedMaxChars) {
+                  currentPageLines.push(curLineChars.join(''));
+                  curLineChars = [];
+                  if (currentPageLines.length >= linesPerPage) {
+                    pages.push(currentPageLines);
+                    currentPageLines = [];
+                  }
                 }
+                curLineChars.push(para[c]);
               }
-              curLineChars.push(char);
+            } else {
+              // 可打印纸系列：右侧设立无形竖线（警戒墙），按实际宽度物理拦截
+              const pCfg = (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) ? PRINT_PAPER_CONFIGS[pKey] : { w: 1240, marginX: 120 };
+              const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
+              // 右侧竖线警戒坐标（横线末端内缩 15px 安全区）
+              const maxRowWidth = Math.max(300, (pCfg.w || 1240) - (pCfg.marginX * 2) - 15);
+              let curLineWidth = 0;
+
+              for (let c = 0; c < para.length; c++) {
+                const char = para[c];
+                const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+                // 计算当前单字真实宽度
+                const charW = isEng ? (curSize * 0.55) : (curSize * 1.05);
+
+                // 只要再塞一个字就会撞上右侧竖线，立刻强行换到下一行！
+                if (curLineWidth + charW > maxRowWidth && curLineChars.length > 0) {
+                  currentPageLines.push(curLineChars.join(''));
+                  curLineChars = [];
+                  curLineWidth = 0;
+                  if (currentPageLines.length >= linesPerPage) {
+                    pages.push(currentPageLines);
+                    currentPageLines = [];
+                  }
+                }
+
+                curLineChars.push(char);
+                curLineWidth += charW;
+              }
             }
 
             if (curLineChars.length > 0) {
