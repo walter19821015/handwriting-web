@@ -845,8 +845,6 @@
 
         // 【分支 A：方格纸张】
         if (isGrid) {
-          const currentPaper = (typeof pKey !== 'undefined' ? pKey : (document.getElementById('paperSelect') ? document.getElementById('paperSelect').value : ''));
-          
           let maxCols = 14;
           let maxRows = 21;
           if (isPrintGrid) {
@@ -910,8 +908,10 @@
 
               for (let c = 0; c < para.length; c++) {
                 const char = para[c];
-                const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-                const charW = isEng ? (curSize * 0.52) : (curSize * 0.86);
+                // 排除全角空格，全角空格必须按完整中文字宽计算
+                const isFullSpace = (char === '\u3000');
+                const isEng = !isFullSpace && /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+                const charW = isFullSpace ? (curSize * 0.95) : (isEng ? (curSize * 0.52) : (curSize * 0.86));
 
                 if (curLineWidth + charW > maxRowWidth && curLineChars.length > 0) {
                   currentPageLines.push(curLineChars.join(''));
@@ -937,77 +937,53 @@
               }
             }
           } else {
-            // 英文逻辑：按右侧无形竖线动态计算单词累计宽度
-            let fixedMaxWords = 0;
-            if (pKey === 'real_draft') fixedMaxWords = 7;
-            else if (pKey === 'real_redline') fixedMaxWords = 9;
+            // 英文逻辑：实拍纸与打印纸统一采用像素级右边界物理拦截，彻底杜绝飞出纸外
+            const isPhotoPaper = (pKey === 'real_draft' || pKey === 'real_redline');
+            const pCfg = (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) ? PRINT_PAPER_CONFIGS[pKey] : { w: 1240, marginX: 120 };
+            const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : (isPhotoPaper && calib ? calib.fontSize : getPrintFontSize(pKey));
 
+            let maxRowWidth = Math.max(300, (pCfg.w || 1240) - (pCfg.marginX * 2));
+            if (pKey === 'real_draft') {
+              maxRowWidth = 630; // 适配草稿纸右侧真实横线范围
+            } else if (pKey === 'real_redline') {
+              maxRowWidth = 840;
+            }
+
+            const charAvgW = curSize * 0.52;
             const words = para.split(/\s+/).filter(w => w.length > 0);
 
-            if (fixedMaxWords > 0) {
-              let currentLineWords = [];
-              // 如果开启缩进，第一行起始注入缩进空白
-              if (isAutoIndent && words.length > 0) {
-                currentLineWords.push('   ');
-              }
-              for (let w = 0; w < words.length; w++) {
-                if (currentLineWords.length >= fixedMaxWords) {
-                  currentPageLines.push(currentLineWords.join(' '));
-                  currentLineWords = [];
-                  if (currentPageLines.length >= linesPerPage) {
-                    pages.push(currentPageLines);
-                    currentPageLines = [];
-                  }
-                }
-                currentLineWords.push(words[w]);
-              }
-              if (currentLineWords.length > 0) {
+            let currentLineWords = [];
+            let curLineWidth = 0;
+
+            if (isAutoIndent && words.length > 0) {
+              currentLineWords.push('    ');
+              curLineWidth += 4 * charAvgW;
+            }
+
+            for (let w = 0; w < words.length; w++) {
+              const word = words[w];
+              const wordW = (word.length + (currentLineWords.length > 0 ? 1 : 0)) * charAvgW;
+
+              if (curLineWidth + wordW > maxRowWidth && currentLineWords.length > (isAutoIndent ? 1 : 0)) {
                 currentPageLines.push(currentLineWords.join(' '));
                 currentLineWords = [];
+                curLineWidth = 0;
                 if (currentPageLines.length >= linesPerPage) {
                   pages.push(currentPageLines);
                   currentPageLines = [];
                 }
               }
-            } else {
-              const pCfg = (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) ? PRINT_PAPER_CONFIGS[pKey] : { w: 1240, marginX: 120 };
-              const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
-              const maxRowWidth = Math.max(300, (pCfg.w || 1240) - (pCfg.marginX * 2));
-              const charAvgW = curSize * 0.52;
 
-              let currentLineWords = [];
-              let curLineWidth = 0;
+              currentLineWords.push(word);
+              curLineWidth += wordW;
+            }
 
-              if (isAutoIndent && words.length > 0) {
-                currentLineWords.push('   ');
-                curLineWidth += 3 * charAvgW;
-              }
-
-              for (let w = 0; w < words.length; w++) {
-                const word = words[w];
-                const wordW = (word.length + (currentLineWords.length > 0 ? 1 : 0)) * charAvgW;
-
-                if (curLineWidth + wordW > maxRowWidth && currentLineWords.length > 0) {
-                  currentPageLines.push(currentLineWords.join(' '));
-                  currentLineWords = [];
-                  curLineWidth = 0;
-                  if (currentPageLines.length >= linesPerPage) {
-                    pages.push(currentPageLines);
-                    currentPageLines = [];
-                  }
-                }
-
-                currentLineWords.push(word);
-                curLineWidth += (word.length + (currentLineWords.length > 1 ? 1 : 0)) * charAvgW;
-              }
-
-              if (currentLineWords.length > 0) {
-                currentPageLines.push(currentLineWords.join(' '));
-                currentLineWords = [];
-                if (currentPageLines.length >= linesPerPage) {
-                  pages.push(currentPageLines);
-                  currentPageLines = [];
-                }
+            if (currentLineWords.length > 0) {
+              currentPageLines.push(currentLineWords.join(' '));
+              currentLineWords = [];
+              if (currentPageLines.length >= linesPerPage) {
+                pages.push(currentPageLines);
+                currentPageLines = [];
               }
             }
           }
@@ -1196,7 +1172,8 @@
               const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
               charGlobalIndex++;
 
-              const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+              const isFullSpace = (char === '\u3000');
+              const isEng = !isFullSpace && /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
               const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
               const scaleX = 0.86 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
@@ -1208,7 +1185,8 @@
               const jX = (hashRandom(seed + 6) - 0.5) * (calib.fontSize * 0.10 * posChaos);
               const jY = (hashRandom(seed + 7) - 0.5) * (calib.fontSize * 0.08 * posChaos) + lineWave;
 
-              const baseStep = isEng ? calib.stepX * 0.6 : calib.stepX;
+              // 全角空格按 1.0 满格步长推进，不再被当成半角英文
+              const baseStep = isFullSpace ? calib.stepX : (isEng ? calib.stepX * 0.6 : calib.stepX);
               const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.12 * posChaos));
 
               const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
@@ -1316,7 +1294,8 @@
               const seed = (currentPageIndex + 1) * 2000 + charGlobalIndex * 151 + charCode * 23;
               charGlobalIndex++;
 
-              const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
+              const isFullSpace = (char === '\u3000');
+              const isEng = !isFullSpace && /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
               const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
               const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
@@ -1328,7 +1307,7 @@
               const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.10 * posChaos);
               const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.08 * posChaos) + lineWave;
 
-              const baseStep = isEng ? baseFontSize * 0.52 : baseFontSize * 0.86;
+              const baseStep = isFullSpace ? (baseFontSize * 0.95) : (isEng ? baseFontSize * 0.52 : baseFontSize * 0.86);
               const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.10 * posChaos));
 
               if (curX + charStep > rightLimitX) break;
