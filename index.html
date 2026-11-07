@@ -803,7 +803,7 @@
 
       if (pStr.includes('红格') || pStr.includes('grid')) {
         linesPerPage = 21;
-      } else if (pStr.includes('红线') || pStr.includes('redline')) {
+      } else if (currentPaperVal === 'real_redline') {
         linesPerPage = 22;
       } else if (pStr.includes('草稿') || pStr.includes('draft')) {
         linesPerPage = 20;
