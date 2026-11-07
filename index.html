@@ -184,14 +184,13 @@
       flex-direction: column;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
       min-height: calc(100vh - 40px);
-      min-width: 0; /* 允许弹性容器收缩，让子元素自适应出横向滚动条 */
+      min-width: 0;
     }
     .preview-header {
       font-size: 13px; color: #6b7280; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6;
       display: flex; justify-content: space-between; align-items: center;
     }
     
-    /* 解决问题 1：支持原生横向 + 纵向滚动，带清晰滚轮样式 */
     .canvas-wrapper {
       flex: 1;
       width: 100%;
@@ -204,7 +203,7 @@
       text-align: center;
     }
 
-#previewCanvas {
+    #previewCanvas {
       display: block;
       margin: 0 auto;
       max-width: 100%;
@@ -312,6 +311,14 @@
           <input type="range" class="calib-slider" id="sliderFontSize" min="16" max="80" step="1" value="28" />
         </div>
 
+        <!-- 段落首行自动缩进开关 -->
+        <div style="margin: 10px 0; display: flex; align-items: center; justify-content: space-between; background: rgba(0, 168, 84, 0.08); padding: 8px 12px; border-radius: 6px;">
+          <label for="autoIndentSwitch" style="font-size: 13px; font-weight: bold; color: #15803d; cursor: pointer; user-select: none;">
+            段落首行自动缩进 2 格
+          </label>
+          <input type="checkbox" id="autoIndentSwitch" checked style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer;">
+        </div>
+
         <button class="btn-save-cfg" id="btnSaveConfig" type="button">💾 保存当前背景参数</button>
       </div>
 
@@ -402,7 +409,6 @@
         </div>
       </div>
 
-      <!-- 解决问题 3：这三个滑块无论是实拍还是可打印纸，一律生效！ -->
       <div class="slider-group">
         <div class="slider-label-row">
           <span>随机勾画涂改概率</span>
@@ -479,6 +485,7 @@
     const badgeContainer = document.getElementById('badgeContainer');
     const btnSaveConfig = document.getElementById('btnSaveConfig');
     const calibPanelBox = document.getElementById('calibPanelBox');
+    const autoIndentSwitch = document.getElementById('autoIndentSwitch');
 
     const btnPrevPage = document.getElementById('btnPrevPage');
     const btnNextPage = document.getElementById('btnNextPage');
@@ -579,7 +586,6 @@
 
     let CURRENT_CFG = getActiveConfig(paperSelect.value);
 
-    // 解决问题 2：读取指定可打印纸上次保存的字号（默认28）
     function getPrintFontSize(pKey) {
       const saved = localStorage.getItem('hw_print_fs_' + pKey);
       if (saved) {
@@ -596,7 +602,6 @@
       calibPanelBox.style.display = 'flex';
       const isPrint = pKey.startsWith('print_') || pKey.includes('print');
 
-      // 前 5 个坐标卡尺旋钮：仅用于实拍校准，可打印标准纸时置灰
       [sliderStartX, sliderStartY, sliderStepX, sliderStepY, sliderBottomDrift].forEach(s => {
         if (s) {
           s.disabled = isPrint;
@@ -605,7 +610,6 @@
         }
       });
 
-      // 字号滑块上限设定到 80
       if (sliderFontSize) sliderFontSize.max = 80;
 
       if (CURRENT_CFG) {
@@ -616,7 +620,6 @@
         sliderBottomDrift.value = CURRENT_CFG.bottomDrift || 0; valBottomDrift.textContent = CURRENT_CFG.bottomDrift || 0;
         sliderFontSize.value = CURRENT_CFG.fontSize; valFontSize.textContent = CURRENT_CFG.fontSize;
       } else if (isPrint) {
-        // 读取此纸张保存的持久化字号
         const curSize = getPrintFontSize(pKey);
         sliderFontSize.value = curSize;
         valFontSize.textContent = curSize;
@@ -640,7 +643,6 @@
       renderAll();
     };
 
-    // 解决问题 2：实拍纸和可打印纸，点击此按钮均永久保存当前设置，刷新不丢失！
     btnSaveConfig.onclick = function() {
       const pKey = paperSelect.value;
       const isPrint = pKey.startsWith('print_') || pKey.includes('print');
@@ -824,17 +826,26 @@
       let curLineChars = [];
 
       const rawParagraphs = text.split('\n');
+      const isAutoIndent = autoIndentSwitch ? autoIndentSwitch.checked : true;
 
       for (let p = 0; p < rawParagraphs.length; p++) {
-        const para = rawParagraphs[p].trim();
+        let para = rawParagraphs[p].trim();
         if (para.length === 0) continue;
+
+        // 段落首行自动缩进逻辑：中文/方格纸加 2 个全角空格，纯英文加 4 个标准空格
+        if (isAutoIndent) {
+          const hasChinese = /[\u4e00-\u9fa5]/.test(para);
+          const indentStr = hasChinese ? '\u3000\u3000' : '    ';
+          if (!para.startsWith('\u3000') && !para.startsWith('    ')) {
+            para = indentStr + para;
+          }
+        }
 
         curLineChars = [];
 
         // 【分支 A：方格纸张】
         if (isGrid) {
           const currentPaper = (typeof pKey !== 'undefined' ? pKey : (document.getElementById('paperSelect') ? document.getElementById('paperSelect').value : ''));
-          const isPrint400 = currentPaper === 'print_grid_black' || currentPaper === 'print_grid_red' || currentPaper.includes('400');
           
           let maxCols = 14;
           let maxRows = 21;
@@ -872,7 +883,7 @@
           const englishCharCount = (para.match(/[a-zA-Z]/g) || []).length;
           const isEnglishDominant = englishCharCount > (para.length * 0.3);
 
-if (!isEnglishDominant) {
+          if (!isEnglishDominant) {
             // 实拍纸维持原固定字数标定
             let fixedMaxChars = 0;
             if (pKey === 'real_draft') fixedMaxChars = 21;
@@ -894,17 +905,14 @@ if (!isEnglishDominant) {
               // 可打印纸系列：右侧设立无形竖线（警戒墙），按实际宽度物理拦截
               const pCfg = (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) ? PRINT_PAPER_CONFIGS[pKey] : { w: 1240, marginX: 120 };
               const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
-// 右侧竖线警戒坐标：直接拉满到横线右末端
               const maxRowWidth = Math.max(300, (pCfg.w || 1240) - (pCfg.marginX * 2));
               let curLineWidth = 0;
 
               for (let c = 0; c < para.length; c++) {
                 const char = para[c];
                 const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
-                // 计算当前单字真实渲染步长：中文按 0.86 倍紧凑字宽计算
                 const charW = isEng ? (curSize * 0.52) : (curSize * 0.86);
 
-                // 只要再塞一个字就会撞上右侧竖线，立刻强行换到下一行！
                 if (curLineWidth + charW > maxRowWidth && curLineChars.length > 0) {
                   currentPageLines.push(curLineChars.join(''));
                   curLineChars = [];
@@ -928,7 +936,7 @@ if (!isEnglishDominant) {
                 currentPageLines = [];
               }
             }
-} else {
+          } else {
             // 英文逻辑：按右侧无形竖线动态计算单词累计宽度
             let fixedMaxWords = 0;
             if (pKey === 'real_draft') fixedMaxWords = 7;
@@ -937,8 +945,11 @@ if (!isEnglishDominant) {
             const words = para.split(/\s+/).filter(w => w.length > 0);
 
             if (fixedMaxWords > 0) {
-              // 实拍纸保持固定单词数
               let currentLineWords = [];
+              // 如果开启缩进，第一行起始注入缩进空白
+              if (isAutoIndent && words.length > 0) {
+                currentLineWords.push('   ');
+              }
               for (let w = 0; w < words.length; w++) {
                 if (currentLineWords.length >= fixedMaxWords) {
                   currentPageLines.push(currentLineWords.join(' '));
@@ -959,22 +970,23 @@ if (!isEnglishDominant) {
                 }
               }
             } else {
-              // 可打印纸系列：按真实渲染宽度一路排到右侧末端
               const pCfg = (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) ? PRINT_PAPER_CONFIGS[pKey] : { w: 1240, marginX: 120 };
               const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
-              // 右侧竖线警戒坐标（直接拉满到横线右端）
               const maxRowWidth = Math.max(300, (pCfg.w || 1240) - (pCfg.marginX * 2));
-              const charAvgW = curSize * 0.52; // 英文字符平均渲染宽度
+              const charAvgW = curSize * 0.52;
 
               let currentLineWords = [];
               let curLineWidth = 0;
 
+              if (isAutoIndent && words.length > 0) {
+                currentLineWords.push('   ');
+                curLineWidth += 3 * charAvgW;
+              }
+
               for (let w = 0; w < words.length; w++) {
                 const word = words[w];
-                // 计算当前单词及其前置空格的实际像素宽度
                 const wordW = (word.length + (currentLineWords.length > 0 ? 1 : 0)) * charAvgW;
 
-                // 只要再塞一个单词会撞上右侧竖线，立即换行
                 if (curLineWidth + wordW > maxRowWidth && currentLineWords.length > 0) {
                   currentPageLines.push(currentLineWords.join(' '));
                   currentLineWords = [];
@@ -1058,9 +1070,8 @@ if (!isEnglishDominant) {
             ctx.lineTo(canvasW - printCfg.marginX, y);
             ctx.stroke();
           }
-} else if (printCfg.mode === 'grid_print') {
+        } else if (printCfg.mode === 'grid_print') {
           const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
-          // 单个格子尺寸随字号等比缩放，留出自然居中边距
           const gridSize = Math.max(38, Math.floor(curSize * 1.38));
           const availW = canvasW - printCfg.marginX * 2;
           const availH = canvasH - printCfg.marginY - 120;
@@ -1226,13 +1237,13 @@ if (!isEnglishDominant) {
         }
       }
       // =========================================================================
-      // 4. 标准印刷纸张绘制：全面接入手写仿真（位置微抖、笔划变化、随机涂改）
+      // 4. 标准印刷纸张绘制
       // =========================================================================
       else if (printCfg) {
         const realFontSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
         const baseFontSize = printCfg.mode === 'grid_print' ? printCfg.size * 0.72 : realFontSize;
 
-if (printCfg.mode === 'grid_print') {
+        if (printCfg.mode === 'grid_print') {
           const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
           const gridSize = Math.max(38, Math.floor(curSize * 1.38));
           const availW = canvasW - printCfg.marginX * 2;
@@ -1255,17 +1266,15 @@ if (printCfg.mode === 'grid_print') {
               const isEng = /[a-zA-Z0-9]/.test(char);
               const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-              // 笔画紊乱
               const scaleX = 0.90 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
               const scaleY = 1.10 + (hashRandom(seed + 4) - 0.5) * (0.16 * strokeChaos);
               const skewX = -0.05 + (hashRandom(seed + 8) - 0.5) * (0.20 * strokeChaos);
               const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
               const charAngle = (hashRandom(seed + 2) - 0.5) * (0.12 * strokeChaos);
 
-const cellCenterX = printCfg.marginX + col * gridSize + (gridSize * 0.5);
+              const cellCenterX = printCfg.marginX + col * gridSize + (gridSize * 0.5);
               const cellBottomY = printCfg.marginY + (row + 1) * gridSize;
 
-              // 位置乱乱度微移
               const jX = (hashRandom(seed + 6) - 0.5) * (gridSize * 0.08 * posChaos);
               const jY = (hashRandom(seed + 7) - 0.5) * (gridSize * 0.06 * posChaos);
               const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
@@ -1282,7 +1291,6 @@ const cellCenterX = printCfg.marginX + col * gridSize + (gridSize * 0.5);
               ctx.fillText(char, 0, 0);
               ctx.restore();
 
-              // 随机勾画涂改
               if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
                 if (hashRandom(seed * 7 + 991) < scratchProb) {
                   drawScratch(cellCenterX + jX, cellBottomY - printCfg.size * 0.5, printCfg.size * 0.9, seed);
@@ -1291,7 +1299,6 @@ const cellCenterX = printCfg.marginX + col * gridSize + (gridSize * 0.5);
             }
           }
         } else {
-          // 普通可打印信纸：行距随字号联动
           const dynamicSpacing = Math.max(printCfg.lineSpacing || 54, realFontSize * 1.55);
 
           for (let lineIdx = 0; lineIdx < pageLines.length; lineIdx++) {
@@ -1312,21 +1319,19 @@ const cellCenterX = printCfg.marginX + col * gridSize + (gridSize * 0.5);
               const isEng = /[a-zA-Z0-9\(\)\,\.\:\s]/.test(char);
               const isPunctuation = /[，。、；：？！,.!?:;·]/;
 
-              // 笔画紊乱
               const scaleX = 0.88 + (hashRandom(seed + 3) - 0.5) * (0.16 * strokeChaos);
               const scaleY = 1.14 + (hashRandom(seed + 4) - 0.5) * (0.14 * strokeChaos);
               const skewX = -0.06 + (hashRandom(seed + 8) - 0.5) * (0.20 * strokeChaos);
               const skewY = (hashRandom(seed + 9) - 0.5) * (0.10 * strokeChaos);
               const charAngle = (hashRandom(seed + 2) - 0.5) * (0.10 * strokeChaos);
 
-              // 位置乱乱度微移
               const jX = (hashRandom(seed + 6) - 0.5) * (baseFontSize * 0.10 * posChaos);
               const jY = (hashRandom(seed + 7) - 0.5) * (baseFontSize * 0.08 * posChaos) + lineWave;
 
               const baseStep = isEng ? baseFontSize * 0.52 : baseFontSize * 0.86;
-const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.10 * posChaos));
+              const charStep = baseStep * (1.0 + (hashRandom(seed + 15) - 0.5) * (0.10 * posChaos));
 
-if (curX + charStep > rightLimitX) break;
+              if (curX + charStep > rightLimitX) break;
               const inkOpacity = 0.94 + (hashRandom(seed + 1) - 0.5) * 0.08;
 
               ctx.save();
@@ -1341,7 +1346,6 @@ if (curX + charStep > rightLimitX) break;
               ctx.fillText(char, 0, 0);
               ctx.restore();
 
-              // 随机勾画涂改
               if (scratchProb > 0 && !isPunctuation.test(char) && char.trim() !== '') {
                 if (hashRandom(seed * 11 + 104729) < scratchProb) {
                   drawScratch(curX + charStep * 0.5 + jX, lineY - baseFontSize * 0.4, baseFontSize * 1.2, seed);
@@ -1381,9 +1385,15 @@ if (curX + charStep > rightLimitX) break;
     posJitterRange.oninput = function() { posJitterVal.textContent = this.value + '%'; renderAll(); };
     rotJitterRange.oninput = function() { rotJitterVal.textContent = this.value + '%'; renderAll(); };
 
+    // 开关状态改变时立即重绘
+    if (autoIndentSwitch) {
+      autoIndentSwitch.onchange = renderAll;
+    }
+
     textInput.oninput = renderAll;
     fontSelect.onchange = function() { switchFont(this.value); };
-function updateCanvasViewWidth() {
+
+    function updateCanvasViewWidth() {
       const pKey = paperSelect.value;
       const isWidePaper = [
         'print_a4_h',
@@ -1394,13 +1404,11 @@ function updateCanvasViewWidth() {
       ].includes(pKey);
 
       if (isWidePaper) {
-        // 随字号动态伸展宽度：字号越大画布越宽，确保底部的横向滑动条能完整滑到最右侧边缘
         const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : 28;
         const dynamicW = Math.max(1000, Math.floor(curSize * 32));
         canvas.style.maxWidth = 'none';
         canvas.style.width = dynamicW + 'px';
       } else {
-        // 实拍纸及标准A4：贴合视窗，整页自然预览
         canvas.style.maxWidth = '100%';
         canvas.style.width = 'auto';
       }
@@ -1412,9 +1420,9 @@ function updateCanvasViewWidth() {
       renderAll();
     };
 
-  paperSelect.onchange();
-  renderAll();
-  switchFont(fontSelect.value);
+    paperSelect.onchange();
+    renderAll();
+    switchFont(fontSelect.value);
   </script>
 </body>
 </html>
