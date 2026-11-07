@@ -311,7 +311,12 @@
           </div>
           <input type="range" class="calib-slider" id="sliderFontSize" min="16" max="80" step="1" value="28" />
         </div>
-
+<div style="margin: 12px 0 10px 0; display: flex; align-items: center; justify-content: space-between; background: rgba(0, 168, 84, 0.08); padding: 8px 12px; border-radius: 6px;">
+  <label for="autoIndentSwitch" style="font-size: 14px; font-weight: bold; color: #1b6339; cursor: pointer; user-select: none;">
+    段落首行自动缩进 2 格
+  </label>
+  <input type="checkbox" id="autoIndentSwitch" checked style="width: 18px; height: 18px; accent-color: #00a854; cursor: pointer;">
+</div>
         <button class="btn-save-cfg" id="btnSaveConfig" type="button">💾 保存当前背景参数</button>
       </div>
 
@@ -870,6 +875,15 @@
         // 【分支 B：非方格纸张】
         else {
           const englishCharCount = (para.match(/[a-zA-Z]/g) || []).length;
+          // 段首缩进处理：中文/英文/方格/横格全适配
+        const isAutoIndent = document.getElementById('autoIndentSwitch')?.checked ?? true;
+        if (isAutoIndent && para && para.trim().length > 0) {
+            const hasChinese = /[\u4e00-\u9fa5]/.test(para);
+            const indentStr = hasChinese ? '\u3000\u3000' : '    ';
+            if (!para.startsWith('\u3000') && !para.startsWith('    ')) {
+                para = indentStr + para;
+            }
+        }
           const isEnglishDominant = englishCharCount > (para.length * 0.3);
 
 if (!isEnglishDominant) {
