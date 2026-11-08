@@ -556,17 +556,17 @@ real_redline: {
       }
     };
 
-    const PRINT_PAPER_CONFIGS = {
-      print_redline_a4_new: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 200, lineSpacing: 56, lines: 25, color: 'rgba(225, 70, 60, 0.4)' },
-      print_grid_black: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(50, 50, 50, 0.4)' },
-      print_grid_red: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(215, 65, 55, 0.45)' },
-      print_a4_v: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 190, lineSpacing: 54, lines: 26, color: 'rgba(180, 180, 180, 0.35)' },
-      print_a4_h: { w: 1754, h: 1240, mode: 'line_print', marginX: 140, topMargin: 170, lineSpacing: 54, lines: 17, color: 'rgba(180, 180, 180, 0.35)' },
-      print_b5_v: { w: 1040, h: 1476, mode: 'line_print', marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24, color: 'rgba(180, 180, 180, 0.35)' },
-      print_b5_h: { w: 1476, h: 1040, mode: 'line_print', marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16, color: 'rgba(180, 180, 180, 0.35)' },
-      print_a3_v: { w: 1754, h: 2480, mode: 'line_print', marginX: 160, topMargin: 240, lineSpacing: 64, lines: 32, color: 'rgba(180, 180, 180, 0.35)' },
-      print_a3_h: { w: 2480, h: 1754, mode: 'line_print', marginX: 180, topMargin: 200, lineSpacing: 64, lines: 22, color: 'rgba(180, 180, 180, 0.35)' }
-    };
+const PRINT_PAPER_CONFIGS = {
+    print_redline_a4_new: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 200, lineSpacing: 56, lines: 26, color: 'rgba(225, 70, 70, 0.4)' },
+    print_grid_black: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(50, 50, 50, 0.4)' },
+    print_grid_red: { w: 1200, h: 1600, mode: 'grid_print', cols: 20, rows: 20, marginX: 110, marginY: 220, size: 49, color: 'rgba(215, 65, 55, 0.4)' },
+    print_a4_v: { w: 1240, h: 1754, mode: 'line_print', marginX: 120, topMargin: 190, lineSpacing: 54, lines: 27, color: 'rgba(180, 180, 180, 0.35)' },
+    print_a4_h: { w: 1754, h: 1240, mode: 'line_print', marginX: 140, topMargin: 170, lineSpacing: 54, lines: 18, color: 'rgba(180, 180, 180, 0.35)' },
+    print_b5_v: { w: 1040, h: 1476, mode: 'line_print', marginX: 100, topMargin: 170, lineSpacing: 50, lines: 24, color: 'rgba(180, 180, 180, 0.35)' },
+    print_b5_h: { w: 1476, h: 1040, mode: 'line_print', marginX: 120, topMargin: 150, lineSpacing: 50, lines: 16, color: 'rgba(180, 180, 180, 0.35)' },
+    print_a3_v: { w: 1754, h: 2480, mode: 'line_print', marginX: 160, topMargin: 240, lineSpacing: 64, lines: 33, color: 'rgba(180, 180, 180, 0.35)' },
+    print_a3_h: { w: 2480, h: 1754, mode: 'line_print', marginX: 180, topMargin: 200, lineSpacing: 64, lines: 23, color: 'rgba(180, 180, 180, 0.35)' }
+};
 
     function getActiveConfig(pKey) {
       if (!DEFAULT_PHOTO_CONFIGS[pKey]) return null;
