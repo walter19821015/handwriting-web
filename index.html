@@ -578,6 +578,10 @@ real_redline: {
           cfg = Object.assign(cfg, parsed);
         } catch(e) {}
       }
+      if (pKey === 'real_redline') {
+        cfg.startY = 288.5; // (原230 + 58.5，从第二行开始写)
+        cfg.maxLines = 21;  // (每页21行，翻页也是21行)
+    }
       if (pKey === 'real_draft') cfg.maxLines = 20;
       if (pKey === 'real_redline') cfg.maxLines = 22;
       if (pKey === 'real_grid_red') cfg.rows = 21;
