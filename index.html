@@ -580,12 +580,11 @@ real_redline: {
       }
 if (pKey === 'real_redline') {
         cfg.startY = 288.5; // 从第 2 行开始写
-        cfg.maxLines = 20;  // 从第 2 行写到第 21 行（总共排 20 行，第 22 行不写）
+        cfg.maxLines = 20;  // 从第 2 行写到第 21 行（总共 20 行，第 22 行空出）
     }
-      if (pKey === 'real_draft') cfg.maxLines = 20;
-      if (pKey === 'real_redline') cfg.maxLines = 22;
-      if (pKey === 'real_grid_red') cfg.rows = 21;
-      return cfg;
+    if (pKey === 'real_draft') cfg.maxLines = 20;
+    if (pKey === 'real_grid_red') cfg.rows = 21;
+    return cfg;
     }
 
     let CURRENT_CFG = getActiveConfig(paperSelect.value);
