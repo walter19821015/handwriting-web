@@ -812,16 +812,21 @@ if (pKey === 'real_redline') {
         linesPerPage = 20;
       } else if (calib && calib.rows) {
         linesPerPage = calib.rows;
-      } else if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
-        if (isPrintGrid) {
-          linesPerPage = 20;
+} else if (typeof PRINT_PAPER_CONFIGS !== 'undefined' && PRINT_PAPER_CONFIGS[pKey]) {
+    if (isPrintGrid) {
+        linesPerPage = 20;
+    } else {
+        const pCfg = PRINT_PAPER_CONFIGS[pKey];
+        // 如果配置里已经明确定义了 lines（例如信稿纸固定行数），直接以配置为准，不再受字号漂移影响
+        if (pCfg && pCfg.lines) {
+            linesPerPage = pCfg.lines;
         } else {
-          const curSize = sliderFontSize ? parseFloat(sliderFontSize.value) : getPrintFontSize(pKey);
-          const pCfg = PRINT_PAPER_CONFIGS[pKey];
-          const dynamicStepY = Math.max(pCfg.lineSpacing || 54, curSize * 1.55);
-          const availHeight = (pCfg.h || 1754) - (pCfg.topMargin || 190) - 100;
-          linesPerPage = Math.max(5, Math.floor(availHeight / dynamicStepY));
+            // 没有定义 lines 的白纸类，使用固定基准间距计算可用行数，避免字号放大时忽多忽少
+            const baseStepY = pCfg.lineSpacing || 54;
+            const availHeight = (pCfg.h || 1754) - (pCfg.topMargin || 190) - (pCfg.bottomMargin || pCfg.topMargin || 150);
+            linesPerPage = Math.max(5, Math.floor(availHeight / baseStepY));
         }
+    }
       }
 
       const pages = [];
