@@ -249,13 +249,6 @@
   </style>
 </head>
 <body>
-  <!-- 顶部固定导航按钮与翻译容器 -->
-<div style="position: fixed; top: 15px; right: 20px; z-index: 2147483647; display: flex; align-items: center; gap: 8px;">
-  <a href="https://walter19821015.ccwu.cc" style="padding: 6px 12px; background: #fff; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; text-decoration: none; color: #333; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
-    🏠 首页
-  </a>
-  <div id="google_translate_element"></div>
-</div>
 
   <header>
     <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
@@ -1418,14 +1411,5 @@ if (pKey === 'real_redline') {
     renderAll();
     switchFont(fontSelect.value);
   </script>
-  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-<script>
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'zh-CN',
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-  }, 'google_translate_element');
-}
-</script>
 </body>
 </html>
