@@ -1525,23 +1525,26 @@ translate.setUseVersion2();
 translate.selectLanguageTag.show = false; // 隐藏自带的难看下拉框
 translate.listener.start();
 
-// === 1. 恢复工坊原版画布渲染（解决灰屏问题） ===
+// === 1. 保障原生画布渲染（恢复灰屏） ===
 try {
-  if (typeof updatePreview === 'function') {
-    updatePreview();
-  }
-} catch (e) {}
+  if (typeof generatePreview === 'function') generatePreview();
+  else if (typeof updatePreview === 'function') updatePreview();
+} catch (err) {
+  console.warn(err);
+}
 
-// === 2. 加载与主站完全一致的全自动翻译内核 ===
+// === 2. 主站同款全自动翻译内核（动态注入） ===
 (function() {
-  const s = document.createElement('script');
-  s.src = 'https://res.zvo.cn/translate/translate.js';
-  s.onload = function() {
-    translate.setUseVersion2();
-    translate.selectLanguageTag.show = false;
-    translate.listener.start();
+  const transScript = document.createElement('script');
+  transScript.src = 'https://res.zvo.cn/translate/translate.js';
+  transScript.onload = function() {
+    if (window.translate) {
+      translate.setUseVersion2();
+      translate.selectLanguageTag.show = false;
+      translate.listener.start();
+    }
   };
-  document.head.appendChild(s);
+  document.head.appendChild(transScript);
 })();
 
 // === 3. 下拉菜单展开与收起交互 ===
@@ -1559,7 +1562,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// === 4. 点击语言触发全页面全局翻译 ===
+// === 4. 点击语言切换全局页面翻译 ===
 function selectLanguage(langCode, langName) {
   const label = document.getElementById('currentLangLabel');
   if (label) label.innerText = langName;
@@ -1571,7 +1574,7 @@ function selectLanguage(langCode, langName) {
   const menu = document.getElementById('languageMenu');
   if (menu) menu.classList.remove('active');
 
-  if (typeof translate !== 'undefined') {
+  if (window.translate) {
     if (langCode === 'zh-CN') translate.changeLanguage('chinese_simplified');
     else if (langCode === 'en') translate.changeLanguage('english');
     else if (langCode === 'es') translate.changeLanguage('spanish');
