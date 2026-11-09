@@ -1411,5 +1411,136 @@ if (pKey === 'real_redline') {
     renderAll();
     switchFont(fontSelect.value);
   </script>
+  <!-- === 独立集成：主站同款导航与 Edge 自动翻译（完全隔离，不碰工坊原有逻辑） === -->
+<style>
+  #custom-top-nav-bar {
+    position: fixed;
+    top: 14px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 99999;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .custom-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+  .custom-nav-btn:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  #custom-lang-menu {
+    position: absolute;
+    top: 115%;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    display: none;
+    flex-direction: column;
+    min-width: 110px;
+    overflow: hidden;
+    padding: 4px 0;
+  }
+  #custom-lang-menu.show {
+    display: flex;
+  }
+  .custom-menu-item {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease;
+  }
+  .custom-menu-item:hover {
+    background: #f1f5f9;
+    color: #2563eb;
+  }
+</style>
+
+<div id="custom-top-nav-bar">
+  <a href="https://walter19821015.ccwu.cc" class="custom-nav-btn" title="返回首页">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    <span>首页</span>
+  </a>
+
+  <div style="position: relative;">
+    <button type="button" class="custom-nav-btn" id="custom-lang-toggle-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+      <span id="custom-cur-lang-text">语言</span>
+      <span style="font-size: 10px; opacity: 0.6;">▼</span>
+    </button>
+    <div id="custom-lang-menu">
+      <div class="custom-menu-item" onclick="execGlobalLang('chinese_simplified', '简体中文')">简体中文</div>
+      <div class="custom-menu-item" onclick="execGlobalLang('english', 'English')">English</div>
+      <div class="custom-menu-item" onclick="execGlobalLang('spanish', 'Español')">Español</div>
+      <div class="custom-menu-item" onclick="execGlobalLang('arabic', 'العربية')">العربية</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // 1. 动态引入主站同款翻译引擎
+  const s = document.createElement('script');
+  s.src = 'https://cdn.staticfile.net/translate.js/3.2.1/translate.js';
+  s.onload = function() {
+    function initTranslate() {
+      if (typeof translate === 'undefined') {
+        setTimeout(initTranslate, 100);
+        return;
+      }
+      translate.selectLanguageTag.show = false;
+      translate.service.use('client.edge');
+      translate.execute();
+    }
+    initTranslate();
+  };
+  document.head.appendChild(s);
+
+  // 2. 下拉菜单展开与收起
+  const btn = document.getElementById('custom-lang-toggle-btn');
+  const menu = document.getElementById('custom-lang-menu');
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    menu.classList.toggle('show');
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+
+  // 3. 语言切换执行函数
+  window.execGlobalLang = function(langCode, labelText) {
+    document.getElementById('custom-cur-lang-text').innerText = labelText;
+    menu.classList.remove('show');
+    if (typeof translate !== 'undefined') {
+      translate.changeLanguage(langCode);
+    }
+  };
+})();
+</script>
 </body>
 </html>
