@@ -246,13 +246,122 @@
     .modal-btn { padding: 10px 24px; border-radius: 20px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .modal-btn-close { background: #475569; color: #ffffff; }
     .modal-btn-download { background: #16a34a; color: #ffffff; }
+    header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.nav-right-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  font-size: 13px;
+  color: #374151;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.tool-btn:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background-color: #f8fafc;
+}
+
+.tool-btn .dropdown-arrow {
+  font-size: 9px;
+  margin-left: 2px;
+  color: #6b7280;
+}
+
+.tool-dropdown {
+  position: relative;
+}
+
+.tool-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 120px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12), 0 3px 6px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+  padding: 5px 0;
+  z-index: 9999;
+}
+
+.tool-menu.active {
+  display: block;
+}
+
+.tool-menu-item {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.tool-menu-item:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.tool-menu-item.active {
+  color: #2563eb;
+  font-weight: 600;
+}
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
-  </header>
+<header>
+  <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
+  <div class="nav-right-tools">
+    <a href="https://walter19821015.github.io/ppr-tools/" class="tool-btn" title="返回首页">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>首页</span>
+    </a>
+
+    <div class="tool-dropdown">
+      <button type="button" class="tool-btn" id="langToggleBtn" onclick="toggleLanguageMenu(event)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span id="currentLangLabel">语言</span>
+        <span class="dropdown-arrow">▼</span>
+      </button>
+
+      <div class="tool-menu" id="languageMenu">
+        <div class="tool-menu-item active" onclick="selectLanguage('zh-CN', '简体中文')">简体中文</div>
+        <div class="tool-menu-item" onclick="selectLanguage('en', 'English')">English</div>
+        <div class="tool-menu-item" onclick="selectLanguage('es', 'Español')">Español</div>
+        <div class="tool-menu-item" onclick="selectLanguage('ar', 'العربية')">العربية</div>
+      </div>
+    </div>
+  </div>
+</header>
 
   <main>
     <section class="control-panel">
@@ -1410,6 +1519,36 @@ if (pKey === 'real_redline') {
     paperSelect.onchange();
     renderAll();
     switchFont(fontSelect.value);
+    // 控制语言下拉展开/折叠
+function toggleLanguageMenu(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('languageMenu');
+  if (menu) menu.classList.toggle('active');
+}
+
+// 点击空白区域自动关闭下拉框
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('languageMenu');
+  const btn = document.getElementById('langToggleBtn');
+  if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('active');
+  }
+});
+
+// 选择语言
+function selectLanguage(langCode, langName) {
+  const label = document.getElementById('currentLangLabel');
+  if (label) label.innerText = langName;
+
+  document.querySelectorAll('.tool-menu-item').forEach(function(item) {
+    item.classList.toggle('active', item.innerText.trim() === langName);
+  });
+
+  localStorage.setItem('preferred_language', langCode);
+
+  const menu = document.getElementById('languageMenu');
+  if (menu) menu.classList.remove('active');
+}
   </script>
 </body>
 </html>
