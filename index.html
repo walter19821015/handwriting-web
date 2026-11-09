@@ -1411,5 +1411,83 @@ if (pKey === 'real_redline') {
     renderAll();
     switchFont(fontSelect.value);
   </script>
+  <!-- === Google 官方原生翻译与首页导航（完全独立运行） === -->
+<div id="google_translate_element" style="display:none;"></div>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+// 1. Google 官方引擎初始化
+window.googleTranslateElementInit = function() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'zh-CN',
+    includedLanguages: 'zh-CN,en,es,ar',
+    autoDisplay: false
+  }, 'google_translate_element');
+};
+
+// 2. 动态创建右上角导航（首页 + 语言）
+(function() {
+  if (document.getElementById('google-native-nav-box')) return;
+
+  const box = document.createElement('div');
+  box.id = 'google-native-nav-box';
+  box.style.cssText = 'position:fixed;top:16px;right:20px;z-index:999999;display:flex;align-items:center;gap:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
+
+  box.innerHTML = `
+    <a href="https://walter19821015.ccwu.cc" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#ffffff;border:1px solid #d1d5db;border-radius:6px;color:#374151;font-size:13px;font-weight:500;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,0.1);cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span>首页</span>
+    </a>
+    <div style="position:relative;">
+      <button id="googleLangBtn" type="button" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#ffffff;border:1px solid #d1d5db;border-radius:6px;color:#374151;font-size:13px;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,0.1);cursor:pointer;">
+        <span>🌐 语言</span>
+        <span style="font-size:10px;opacity:0.6;">▼</span>
+      </button>
+      <div id="googleLangList" style="display:none;position:absolute;top:115%;right:0;background:#ffffff;border:1px solid #d1d5db;border-radius:6px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);min-width:110px;flex-direction:column;padding:4px 0;">
+        <div class="google-lang-item" data-lang="zh-CN" style="padding:8px 14px;font-size:13px;color:#374151;cursor:pointer;">简体中文</div>
+        <div class="google-lang-item" data-lang="en" style="padding:8px 14px;font-size:13px;color:#374151;cursor:pointer;">English</div>
+        <div class="google-lang-item" data-lang="es" style="padding:8px 14px;font-size:13px;color:#374151;cursor:pointer;">Español</div>
+        <div class="google-lang-item" data-lang="ar" style="padding:8px 14px;font-size:13px;color:#374151;cursor:pointer;">العربية</div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(box);
+
+  // 3. 下拉菜单展开与点击关闭
+  const btn = document.getElementById('googleLangBtn');
+  const list = document.getElementById('googleLangList');
+
+  btn.onclick = function(e) {
+    e.stopPropagation();
+    list.style.display = list.style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  document.addEventListener('click', function(e) {
+    if (!box.contains(e.target)) list.style.display = 'none';
+  });
+
+  // 4. 触发 Google 官方 Cookie 翻译核心
+  const items = box.querySelectorAll('.google-lang-item');
+  items.forEach(function(item) {
+    item.onmouseenter = function() { this.style.backgroundColor = '#f3f4f6'; };
+    item.onmouseleave = function() { this.style.backgroundColor = '#ffffff'; };
+    item.onclick = function(e) {
+      e.stopPropagation();
+      const targetLang = this.getAttribute('data-lang');
+      list.style.display = 'none';
+
+      if (targetLang === 'zh-CN') {
+        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + location.hostname + '; path=/;';
+      } else {
+        const transVal = '/zh-CN/' + targetLang;
+        document.cookie = 'googtrans=' + transVal + '; path=/;';
+        document.cookie = 'googtrans=' + transVal + '; domain=' + location.hostname + '; path=/;';
+      }
+
+      // 尝试直接变更原生 select，如果尚未就绪则刷新生效
+      const select = document.querySelector('#google_translate_element select');
+      if (select)
 </body>
 </html>
