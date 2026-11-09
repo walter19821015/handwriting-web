@@ -1411,56 +1411,5 @@ if (pKey === 'real_redline') {
     renderAll();
     switchFont(fontSelect.value);
   </script>
-<script>
-(function() {
-  // 1. 动态引入翻译引擎
-  const s = document.createElement('script');
-  s.src = 'https://cdn.staticfile.net/translate.js/3.2.1/translate.js';
-  s.onload = function() {
-    function initTranslate() {
-      if (typeof translate === 'undefined') {
-        setTimeout(initTranslate, 100);
-        return;
-      }
-      // 声明页面原本是简体中文（防止识别错乱弹回）
-      translate.language.setLocal('chinese_simplified');
-      translate.selectLanguageTag.show = false;
-      translate.service.use('client.edge');
-      translate.listener.start(); // 开启节点监听
-      translate.execute();
-    }
-    initTranslate();
-  };
-  document.head.appendChild(s);
-
-  // 2. 下拉菜单展开与收起
-  const btn = document.getElementById('custom-lang-toggle-btn');
-  const menu = document.getElementById('custom-lang-menu');
-
-  if (btn && menu) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      menu.classList.toggle('show');
-    });
-
-    document.addEventListener('click', function(e) {
-      if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.classList.remove('show');
-      }
-    });
-  }
-
-  // 3. 语言切换执行函数
-  window.execGlobalLang = function(langCode, labelText) {
-    const curText = document.getElementById('custom-cur-lang-text');
-    if (curText) curText.innerText = labelText;
-    if (menu) menu.classList.remove('show');
-
-    if (typeof translate !== 'undefined') {
-      translate.changeLanguage(langCode);
-    }
-  };
-})();
-</script>
 </body>
 </html>
