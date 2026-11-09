@@ -12,7 +12,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <script>
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -335,7 +334,7 @@
 <header>
   <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
   <div class="nav-right-tools">
-  <a href="https://walter19821015.ccwu.cc" class="tool-btn" title="返回首页">
+    <a href="https://walter19821015.github.io/ppr-tools/" class="tool-btn" title="返回首页">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -1520,32 +1519,14 @@ if (pKey === 'real_redline') {
     paperSelect.onchange();
     renderAll();
     switchFont(fontSelect.value);
-// === Google 翻译容器与初始化 ===
-(function() {
-  if (!document.getElementById('google_translate_element')) {
-    const div = document.createElement('div');
-    div.id = 'google_translate_element';
-    div.style.display = 'none';
-    document.body.appendChild(div);
-  }
-})();
-
-window.googleTranslateElementInit = function() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'zh-CN',
-    includedLanguages: 'zh-CN,en,es,ar',
-    autoDisplay: false
-  }, 'google_translate_element');
-};
-
-// 下拉菜单显隐控制
+    // 控制语言下拉展开/折叠
 function toggleLanguageMenu(event) {
   event.stopPropagation();
   const menu = document.getElementById('languageMenu');
   if (menu) menu.classList.toggle('active');
 }
 
-// 点击空白关闭菜单
+// 点击空白区域自动关闭下拉框
 document.addEventListener('click', function(e) {
   const menu = document.getElementById('languageMenu');
   const btn = document.getElementById('langToggleBtn');
@@ -1554,7 +1535,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// 触发翻译
+// 选择语言
 function selectLanguage(langCode, langName) {
   const label = document.getElementById('currentLangLabel');
   if (label) label.innerText = langName;
@@ -1563,26 +1544,10 @@ function selectLanguage(langCode, langName) {
     item.classList.toggle('active', item.innerText.trim() === langName);
   });
 
+  localStorage.setItem('preferred_language', langCode);
+
   const menu = document.getElementById('languageMenu');
   if (menu) menu.classList.remove('active');
-
-  if (langCode === 'zh-CN') {
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + location.hostname + '; path=/;';
-    location.reload();
-  } else {
-    const transVal = '/zh-CN/' + langCode;
-    document.cookie = 'googtrans=' + transVal + '; path=/;';
-    document.cookie = 'googtrans=' + transVal + '; domain=' + location.hostname + '; path=/;';
-
-    const select = document.querySelector('#google_translate_element select');
-    if (select) {
-      select.value = langCode;
-      select.dispatchEvent(new Event('change'));
-    } else {
-      location.reload();
-    }
-  }
 }
   </script>
 </body>
