@@ -1412,7 +1412,7 @@ if (pKey === 'real_redline') {
     renderAll();
     switchFont(fontSelect.value);
   </script>
-  <!-- 多语言切换组件与返回首页（1:1 还原主站架构） -->
+<!-- 多语言切换组件与返回首页（嵌入 header 完美垂直居中、随顶栏固定） -->
 <script>
   (function() {
     function initTranslate() {
@@ -1426,20 +1426,33 @@ if (pKey === 'real_redline') {
 
       if (document.getElementById('lang-dropdown-wrapper')) return;
 
+      // 找到手写工坊原本的顶部栏 header
+      const header = document.querySelector('header');
+      if (!header) {
+        setTimeout(initTranslate, 50);
+        return;
+      }
+
+      // 确保 header 自身具备弹性两端对齐
+      header.style.display = 'flex';
+      header.style.alignItems = 'center';
+      header.style.justifyContent = 'space-between';
+
       const wrapper = document.createElement('div');
       wrapper.id = 'lang-dropdown-wrapper';
-      wrapper.style.cssText = 'position:fixed;top:18px;right:20px;z-index:99999;display:flex;align-items:center;gap:8px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
+      // 行内弹性居中，不脱离顶栏，垂直绝对中线对齐
+      wrapper.style.cssText = 'display:inline-flex;align-items:center;gap:10px;margin-left:auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
       wrapper.innerHTML = `
-        <a href="https://walter19821015.ccwu.cc" style="display:flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:600;color:#1f2937;text-decoration:none;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+        <a href="https://walter19821015.ccwu.cc" style="display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 12px;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;color:#1f2937;text-decoration:none;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.06);box-sizing:border-box;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           <span>首页</span>
         </a>
-        <div style="position:relative;">
-          <button id="langMenuBtn" style="display:flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);border-radius:8px;font-size:13px;font-weight:600;color:#1f2937;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+        <div style="position:relative;display:inline-flex;align-items:center;">
+          <button id="langMenuBtn" type="button" style="display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 12px;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;color:#1f2937;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.06);box-sizing:border-box;">
             <span>🌐 语言</span>
             <span style="font-size:10px;opacity:0.7;">▼</span>
           </button>
-          <div id="langMenu" style="display:none;position:absolute;right:0;top:100%;margin-top:6px;width:120px;background:#ffffff;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.12);border:1px solid #e5e7eb;overflow:hidden;z-index:10000;padding:4px 0;">
+          <div id="langMenu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:120px;background:#ffffff;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.12);border:1px solid #e5e7eb;overflow:hidden;z-index:999999;padding:4px 0;">
             <a href="javascript:translate.changeLanguage('chinese_simplified');" style="display:block;padding:8px 14px;color:#374151;font-size:13px;text-decoration:none;">简体中文</a>
             <a href="javascript:translate.changeLanguage('english');" style="display:block;padding:8px 14px;color:#374151;font-size:13px;text-decoration:none;">English</a>
             <a href="javascript:translate.changeLanguage('spanish');" style="display:block;padding:8px 14px;color:#374151;font-size:13px;text-decoration:none;">Español</a>
@@ -1447,7 +1460,9 @@ if (pKey === 'real_redline') {
           </div>
         </div>
       `;
-      document.body.appendChild(wrapper);
+
+      // 挂载到 header 内部，彻底成为顶栏的一部分
+      header.appendChild(wrapper);
 
       const btn = document.getElementById('langMenuBtn');
       const menu = document.getElementById('langMenu');
