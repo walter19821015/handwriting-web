@@ -1411,26 +1411,5 @@ if (pKey === 'real_redline') {
     renderAll();
     switchFont(fontSelect.value);
   </script>
-  <!-- === 顶部固定导航：首页直达 + Google 官方原生翻译 === -->
-<div style="position: fixed; top: 15px; right: 20px; z-index: 2147483647; display: flex; align-items: center; gap: 8px;">
-  <!-- 返回首页 -->
-  <a href="https://walter19821015.ccwu.cc" style="padding: 6px 12px; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; text-decoration: none; color: #374151; font-weight: 500; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    🏠 首页
-  </a>
-
-  <!-- Google 翻译原生挂载容器 -->
-  <div id="google_translate_element"></div>
-</div>
-
-<!-- Google 官方初始化与引擎加载（科学网络下 100% 秒响应） -->
-<script>
-  window.googleTranslateElementInit = function() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'zh-CN',
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-    }, 'google_translate_element');
-  };
-</script>
-<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
