@@ -1525,48 +1525,94 @@ translate.setUseVersion2();
 translate.selectLanguageTag.show = false; // 隐藏自带的难看下拉框
 translate.listener.start();
 
-// 控制下拉菜单展开/折叠
-function toggleLanguageMenu(event) {
-  event.stopPropagation();
-  const menu = document.getElementById('languageMenu');
-  if (menu) menu.classList.toggle('active');
+// === 专用于手写工坊的纯本地翻译字典 ===
+const I18N_DICT = {
+  'en': {
+    '✍️ 手写模拟工坊 · 在线版': '✍️ Handwriting Workshop · Online',
+    '首页': 'Home',
+    '语言': 'Language',
+    '卡尺对齐手柄': 'Caliper Handle',
+    '标准规格，填满翻页': 'Standard Size, Fill & Turn Page',
+    '水平起点 (X 原点)': 'Horizontal Start (X)',
+    '垂直起点 (Y 原点)': 'Vertical Start (Y)',
+    '行间距 (Line Spacing)': 'Line Spacing',
+    '字间距 (Letter Spacing)': 'Letter Spacing',
+    '字体大小': 'Font Size',
+    '笔画粗细': 'Stroke Width'
+  },
+  'es': {
+    '✍️ 手写模拟工坊 · 在线版': '✍️ Taller de Escritura · En línea',
+    '首页': 'Inicio',
+    '语言': 'Idioma',
+    '卡尺对齐手柄': 'Mango de Calibrador',
+    '标准规格，填满翻页': 'Tamaño Estándar',
+    '水平起点 (X 原点)': 'Inicio Horizontal (X)',
+    '垂直起点 (Y 原点)': 'Inicio Vertical (Y)',
+    '行间距 (Line Spacing)': 'Espaciado de Línea',
+    '字间距 (Letter Spacing)': 'Espaciado de Letra',
+    '字体大小': 'Tamaño de Fuente',
+    '笔画粗细': 'Grosor de Trazo'
+  },
+  'ar': {
+    '✍️ 手写模拟工坊 · 在线版': '✍️ ورشة محاكاة الخط اليدوي',
+    '首页': 'الرئيسية',
+    '语言': 'اللغة',
+    '卡尺对齐手柄': 'مقبض الفرجار',
+    '标准规格，填满翻页': 'حجم قياسي',
+    '水平起点 (X 原点)': 'نقطة البداية الأفقية (X)',
+    '垂直起点 (Y 原点)': 'نقطة البداية العمودية (Y)',
+    '行间距 (Line Spacing)': 'تباعد الأسطر',
+    '字间距 (Letter Spacing)': 'تباعد الحروف',
+    '字体大小': 'حجم الخط',
+    '笔画粗细': 'سمك الخط'
+  }
+};
+
+let pageOriginalTexts = [];
+
+function initTextNodes() {
+  pageOriginalTexts = [];
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode: function(node) {
+        if (node.parentElement.closest('#languageMenu') || 
+            ['SCRIPT', 'STYLE'].includes(node.parentElement.tagName)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    }
+  );
+
+  let currentNode;
+  while ((currentNode = walker.nextNode())) {
+    pageOriginalTexts.push({
+      node: currentNode,
+      originalText: currentNode.nodeValue.trim()
+    });
+  }
 }
 
-// 点击空白区域自动收回下拉菜单
-document.addEventListener('click', function(e) {
-  const menu = document.getElementById('languageMenu');
-  const btn = document.getElementById('langToggleBtn');
-  if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
-    menu.classList.remove('active');
+function applyTranslations(lang) {
+  if (pageOriginalTexts.length === 0) {
+    initTextNodes();
   }
-});
 
-// 选择语言并执行整页翻译
-function selectLanguage(langCode, langName) {
-  // 1. 修改顶部按钮上的文字
-  const label = document.getElementById('currentLangLabel');
-  if (label) label.innerText = langName;
-
-  // 2. 更新选中高亮
-  document.querySelectorAll('.tool-menu-item').forEach(function(item) {
-    item.classList.toggle('active', item.innerText.trim() === langName);
-  });
-
-  // 3. 关闭下拉菜单
-  const menu = document.getElementById('languageMenu');
-  if (menu) menu.classList.remove('active');
-
-  // 4. 执行全网页动态翻译
-  if (langCode === 'zh-CN') {
-    translate.changeLanguage('chinese_simplified');
-  } else if (langCode === 'en') {
-    translate.changeLanguage('english');
-  } else if (langCode === 'es') {
-    translate.changeLanguage('spanish');
-  } else if (langCode === 'ar') {
-    translate.changeLanguage('arabic');
+  if (lang === 'zh-CN') {
+    pageOriginalTexts.forEach(item => {
+      item.node.nodeValue = item.originalText;
+    });
+    return;
   }
-}
+
+  const dict = I18N_DICT[lang];
+  if (!dict) return;
+
+  pageOriginalTexts.forEach(item => {
+    if (dict[item.originalText]) {
+      item.node.nodeValue = dict[item.originalText
   </script>
 </body>
 </html>
