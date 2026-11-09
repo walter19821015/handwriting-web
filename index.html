@@ -334,7 +334,7 @@
 <header>
   <div class="brand">✍️ 手写模拟工坊 · 在线版</div>
   <div class="nav-right-tools">
-    <a href="https://walter19821015.github.io/ppr-tools/" class="tool-btn" title="返回首页">
+    <a href="https://walter19821015.github.io/ppr-tools/" class="tool-btn" title="https://walter19821015.ccwu.cc/">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -1520,13 +1520,19 @@ if (pKey === 'real_redline') {
     renderAll();
     switchFont(fontSelect.value);
     // 控制语言下拉展开/折叠
+// 初始化翻译引擎
+translate.setUseVersion2();
+translate.selectLanguageTag.show = false; // 隐藏自带的难看下拉框
+translate.listener.start();
+
+// 控制下拉菜单展开/折叠
 function toggleLanguageMenu(event) {
   event.stopPropagation();
   const menu = document.getElementById('languageMenu');
   if (menu) menu.classList.toggle('active');
 }
 
-// 点击空白区域自动关闭下拉框
+// 点击空白区域自动收回下拉菜单
 document.addEventListener('click', function(e) {
   const menu = document.getElementById('languageMenu');
   const btn = document.getElementById('langToggleBtn');
@@ -1535,19 +1541,31 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// 选择语言
+// 选择语言并执行整页翻译
 function selectLanguage(langCode, langName) {
+  // 1. 修改顶部按钮上的文字
   const label = document.getElementById('currentLangLabel');
   if (label) label.innerText = langName;
 
+  // 2. 更新选中高亮
   document.querySelectorAll('.tool-menu-item').forEach(function(item) {
     item.classList.toggle('active', item.innerText.trim() === langName);
   });
 
-  localStorage.setItem('preferred_language', langCode);
-
+  // 3. 关闭下拉菜单
   const menu = document.getElementById('languageMenu');
   if (menu) menu.classList.remove('active');
+
+  // 4. 执行全网页动态翻译
+  if (langCode === 'zh-CN') {
+    translate.changeLanguage('chinese_simplified');
+  } else if (langCode === 'en') {
+    translate.changeLanguage('english');
+  } else if (langCode === 'es') {
+    translate.changeLanguage('spanish');
+  } else if (langCode === 'ar') {
+    translate.changeLanguage('arabic');
+  }
 }
   </script>
 </body>
